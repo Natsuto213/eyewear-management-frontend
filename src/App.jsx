@@ -1,9 +1,9 @@
-function App() {
+import Homepage from "./views/Homepage";
+
+export default function App() {
   return (
     <>
-      <h1>Hello world</h1>
+      <Homepage />
     </>
   )
 }
-
-export default App
