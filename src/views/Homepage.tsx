@@ -1,12 +1,16 @@
+import BannerSale from "../components/BannerSale";
+import Footer from "../components/Footer";
 import Navbar from "../components/navbar";
+import ProductSection from "../components/ProductSection";
 
 export default function Homepage() {
     return (
         <>
             <Navbar />
-            <div className="text-red-500 text-3xl">
-                TEST TAILWIND
-            </div>
+            <BannerSale />
+            <ProductSection title={"Best Seller"} />
+            <ProductSection title={"New Arrival "} />
+            <Footer />
         </>
     )
 }
