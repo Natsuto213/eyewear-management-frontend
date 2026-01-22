@@ -1,9 +1,10 @@
-import BannerSale from "../components/BannerSale";
-import Footer from "../components/Footer";
 import Navbar from "../components/navbar";
+import BannerSale from "../components/BannerSale";
 import ProductSection from "../components/ProductSection";
+import Footer from "../components/Footer";
 
-export default function Homepage() {
+
+export default function HomePage() {
     return (
         <>
             <Navbar />
