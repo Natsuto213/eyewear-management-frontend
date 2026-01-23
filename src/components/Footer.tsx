@@ -9,7 +9,6 @@ import {
     Clock,
     ShoppingBag,
     RefreshCw,
-    Truck,
     Shield,
     Eye,
 } from "lucide-react";
@@ -97,15 +96,6 @@ export default function Footer() {
                                 >
                                     <RefreshCw className="size-4 group-hover:rotate-180 transition-transform duration-500" />
                                     <span>Chính sách đổi trả</span>
-                                </Link>
-                            </li>
-                            <li>
-                                <Link
-                                    to="/chinh-sach-van-chuyen"
-                                    className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition group"
-                                >
-                                    <Truck className="size-4 group-hover:translate-x-1 transition-transform" />
-                                    <span>Chính sách vận chuyển</span>
                                 </Link>
                             </li>
                             <li>
