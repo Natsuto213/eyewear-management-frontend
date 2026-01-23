@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
-import { Filter, X, ChevronDown, SlidersHorizontal } from "lucide-react";
-import Navbar from "../components/Navbar";
+import { Filter, SlidersHorizontal } from "lucide-react";
+import Navbar from "../components/navbar";
 import Footer from "../components/Footer";
 
 // Mock data
@@ -14,9 +15,7 @@ const allProducts = [
         salePrice: 960000,
         category: "gong",
         brand: "Ray-Ban",
-        image: "https://images.unsplash.com/photo-1766998224439-9f048ed4d687?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxleWVnbGFzc2VzJTIwZnJhbWVzJTIwbW9kZXJufGVufDF8fHx8MTc2OTE1ODk4OXww&ixlib=rb-4.1.0&q=80&w=1080",
-        rating: 5,
-        reviews: 128,
+        image: "https://images.unsplash.com/photo-1718967807816-414e2f9bc95a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdW5nbGFzc2VzJTIwZmFzaGlvbnxlbnwxfHx8fDE3NjkxNDc0OTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
     },
     {
         id: 2,
@@ -25,9 +24,7 @@ const allProducts = [
         salePrice: 640000,
         category: "gong",
         brand: "Oakley",
-        image: "https://images.unsplash.com/photo-1641048927024-0e801784b4f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxleWVnbGFzc2VzJTIwZnJhbWVzfGVufDF8fHx8MTc2OTAyODUwM3ww&ixlib=rb-4.1.0&q=80&w=1080",
-        rating: 4,
-        reviews: 95,
+        image: "https://images.unsplash.com/photo-1718967807816-414e2f9bc95a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdW5nbGFzc2VzJTIwZmFzaGlvbnxlbnwxfHx8fDE3NjkxNDc0OTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
     },
     {
         id: 3,
@@ -37,8 +34,6 @@ const allProducts = [
         category: "gong",
         brand: "Gucci",
         image: "https://images.unsplash.com/photo-1718967807816-414e2f9bc95a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdW5nbGFzc2VzJTIwZmFzaGlvbnxlbnwxfHx8fDE3NjkxNDc0OTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
-        rating: 5,
-        reviews: 210,
     },
     {
         id: 4,
@@ -48,8 +43,6 @@ const allProducts = [
         category: "gong",
         brand: "Montblanc",
         image: "https://images.unsplash.com/photo-1606357086272-eab87f3db598?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb3VuZCUyMGdsYXNzZXN8ZW58MXx8fHwxNzY5MTU4OTkwfDA&ixlib=rb-4.1.0&q=80&w=1080",
-        rating: 4,
-        reviews: 76,
     },
     {
         id: 5,
@@ -58,9 +51,7 @@ const allProducts = [
         salePrice: 880000,
         category: "gong",
         brand: "Prada",
-        image: "https://images.unsplash.com/photo-1768729797999-d61ea4d025a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx2aW50YWdlJTIwZXllZ2xhc3Nlc3xlbnwxfHx8fDE3NjkwODM5Mzl8MA&ixlib=rb-4.1.0&q=80&w=1080",
-        rating: 5,
-        reviews: 142,
+        image: "https://images.unsplash.com/photo-1606357086272-eab87f3db598?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb3VuZCUyMGdsYXNzZXN8ZW58MXx8fHwxNzY5MTU4OTkwfDA&ixlib=rb-4.1.0&q=80&w=1080",
     },
     {
         id: 6,
@@ -69,9 +60,7 @@ const allProducts = [
         salePrice: 712000,
         category: "gong",
         brand: "Ray-Ban",
-        image: "https://images.unsplash.com/photo-1762718900539-c51799fd71b3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxvcHRpY2FsJTIwZ2xhc3NlcyUyMHN0b3JlfGVufDF8fHx8MTc2OTA0MzEwMHww&ixlib=rb-4.1.0&q=80&w=1080",
-        rating: 4,
-        reviews: 88,
+        image: "https://images.unsplash.com/photo-1606357086272-eab87f3db598?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb3VuZCUyMGdsYXNzZXN8ZW58MXx8fHwxNzY5MTU4OTkwfDA&ixlib=rb-4.1.0&q=80&w=1080",
     },
     // Tròng
     {
@@ -81,9 +70,7 @@ const allProducts = [
         salePrice: 440000,
         category: "trong",
         brand: "Essilor",
-        image: "https://images.unsplash.com/photo-1760446031441-65f456460d59?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxvcHRpY2FsJTIwbGVucyUyMGdsYXNzZXN8ZW58MXx8fHwxNzY5MTU4OTg5fDA&ixlib=rb-4.1.0&q=80&w=1080",
-        rating: 5,
-        reviews: 256,
+        image: "https://images.unsplash.com/photo-1582143434535-eba55a806718?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb250YWN0JTIwbGVuc2VzfGVufDF8fHx8MTc2OTE1ODk4OXww&ixlib=rb-4.1.0&q=80&w=1080",
     },
     {
         id: 8,
@@ -92,9 +79,7 @@ const allProducts = [
         salePrice: 680000,
         category: "trong",
         brand: "Transitions",
-        image: "https://images.unsplash.com/photo-1603578119639-798b8413d8d7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzcGVjdGFjbGVzJTIwZnJhbWVzfGVufDF8fHx8MTc2OTA0MzEwMXww&ixlib=rb-4.1.0&q=80&w=1080",
-        rating: 5,
-        reviews: 189,
+        image: "https://images.unsplash.com/photo-1582143434535-eba55a806718?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb250YWN0JTIwbGVuc2VzfGVufDF8fHx8MTc2OTE1ODk4OXww&ixlib=rb-4.1.0&q=80&w=1080",
     },
     {
         id: 9,
@@ -103,9 +88,7 @@ const allProducts = [
         salePrice: 336000,
         category: "trong",
         brand: "Hoya",
-        image: "https://images.unsplash.com/photo-1646084081219-1090f72a531c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkZXNpZ25lciUyMGV5ZXdlYXJ8ZW58MXx8fHwxNzY5MDQzMTAxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-        rating: 4,
-        reviews: 134,
+        image: "https://images.unsplash.com/photo-1582143434535-eba55a806718?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb250YWN0JTIwbGVuc2VzfGVufDF8fHx8MTc2OTE1ODk4OXww&ixlib=rb-4.1.0&q=80&w=1080",
     },
     {
         id: 10,
@@ -114,9 +97,7 @@ const allProducts = [
         salePrice: 960000,
         category: "trong",
         brand: "Essilor",
-        image: "https://images.unsplash.com/photo-1764333327297-0ebfd9fda541?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdW5nbGFzc2VzJTIwZGlzcGxheXxlbnwxfHx8fDE3NjkwMjMzMTZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-        rating: 5,
-        reviews: 98,
+        image: "https://images.unsplash.com/photo-1582143434535-eba55a806718?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb250YWN0JTIwbGVuc2VzfGVufDF8fHx8MTc2OTE1ODk4OXww&ixlib=rb-4.1.0&q=80&w=1080",
     },
     // Kính áp tròng
     {
@@ -126,9 +107,7 @@ const allProducts = [
         salePrice: 256000,
         category: "kinhaptrong",
         brand: "Acuvue",
-        image: "https://images.unsplash.com/photo-1582143434535-eba55a806718?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb250YWN0JTIwbGVuc2VzfGVufDF8fHx8MTc2OTE1ODk4OXww&ixlib=rb-4.1.0&q=80&w=1080",
-        rating: 5,
-        reviews: 412,
+        image: "https://images.unsplash.com/photo-1627260125320-fbafe86e341e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb2xvcmVkJTIwY29udGFjdCUyMGxlbnNlc3xlbnwxfHx8fDE3NjkxNjQ3MjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
     },
     {
         id: 12,
@@ -137,9 +116,7 @@ const allProducts = [
         salePrice: 304000,
         category: "kinhaptrong",
         brand: "Freshlook",
-        image: "https://images.unsplash.com/photo-1582143434535-eba55a806718?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb250YWN0JTIwbGVuc2VzfGVufDF8fHx8MTc2OTE1ODk4OXww&ixlib=rb-4.1.0&q=80&w=1080",
-        rating: 4,
-        reviews: 276,
+        image: "https://images.unsplash.com/photo-1627260125320-fbafe86e341e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb2xvcmVkJTIwY29udGFjdCUyMGxlbnNlc3xlbnwxfHx8fDE3NjkxNjQ3MjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
     },
     {
         id: 13,
@@ -148,9 +125,7 @@ const allProducts = [
         salePrice: 360000,
         category: "kinhaptrong",
         brand: "Bausch & Lomb",
-        image: "https://images.unsplash.com/photo-1582143434535-eba55a806718?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb250YWN0JTIwbGVuc2VzfGVufDF8fHx8MTc2OTE1ODk4OXww&ixlib=rb-4.1.0&q=80&w=1080",
-        rating: 5,
-        reviews: 321,
+        image: "https://images.unsplash.com/photo-1627260125320-fbafe86e341e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb2xvcmVkJTIwY29udGFjdCUyMGxlbnNlc3xlbnwxfHx8fDE3NjkxNjQ3MjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
     },
     {
         id: 14,
@@ -159,14 +134,17 @@ const allProducts = [
         salePrice: 232000,
         category: "kinhaptrong",
         brand: "Cooper Vision",
-        image: "https://images.unsplash.com/photo-1582143434535-eba55a806718?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb250YWN0JTIwbGVuc2VzfGVufDF8fHx8MTc2OTE1ODk4OXww&ixlib=rb-4.1.0&q=80&w=1080",
-        rating: 4,
-        reviews: 187,
+        image: "https://images.unsplash.com/photo-1627260125320-fbafe86e341e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb2xvcmVkJTIwY29udGFjdCUyMGxlbnNlc3xlbnwxfHx8fDE3NjkxNjQ3MjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
     },
 ];
 
 export default function AllProduct() {
-    const [selectedCategory, setSelectedCategory] = useState<string[]>([]);
+    const [searchParams] = useSearchParams();
+    const categoryFromUrl = searchParams.get("category");
+
+    const [selectedCategory, setSelectedCategory] = useState<string[]>(
+        categoryFromUrl ? [categoryFromUrl] : []
+    );
     const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
     const [priceRange, setPriceRange] = useState<string>("all");
     const [sortBy, setSortBy] = useState<string>("newest");
@@ -211,7 +189,6 @@ export default function AllProduct() {
     const sortedProducts = [...filteredProducts].sort((a, b) => {
         if (sortBy === "price-asc") return a.salePrice - b.salePrice;
         if (sortBy === "price-desc") return b.salePrice - a.salePrice;
-        if (sortBy === "popular") return b.reviews - a.reviews;
         return 0; // newest
     });
 
@@ -332,7 +309,7 @@ export default function AllProduct() {
         <div className="min-h-screen bg-gray-50">
             <Navbar />
             {/* Header */}
-            <div className="bg-white mt-5 border-b border-gray-200 shadow-sm">
+            <div className="bg-white border-b border-gray-200 mt-5 shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 py-6">
                     <h1 className="text-3xl mb-2">Tất Cả Sản Phẩm</h1>
                     <p className="text-gray-600">
@@ -371,7 +348,6 @@ export default function AllProduct() {
                                     className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                                 >
                                     <option value="newest">Mới nhất</option>
-                                    <option value="popular">Phổ biến</option>
                                     <option value="price-asc">
                                         Giá: Thấp → Cao
                                     </option>
@@ -447,25 +423,6 @@ export default function AllProduct() {
                 </div>
             </div>
 
-            {/* Mobile Filter Drawer */}
-            {showMobileFilter && (
-                <div className="lg:hidden fixed inset-0 bg-black/50 z-50 animate-in fade-in">
-                    <div className="absolute right-0 top-0 bottom-0 w-80 bg-white shadow-2xl animate-in slide-in-from-right">
-                        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                            <h3 className="text-lg">Bộ Lọc</h3>
-                            <button
-                                onClick={() => setShowMobileFilter(false)}
-                                className="p-2 hover:bg-gray-100 rounded-lg transition"
-                            >
-                                <X className="size-5" />
-                            </button>
-                        </div>
-                        <div className="p-4 overflow-y-auto h-[calc(100vh-80px)]">
-                            <FilterSidebar />
-                        </div>
-                    </div>
-                </div>
-            )}
             <Footer />
         </div>
     );
