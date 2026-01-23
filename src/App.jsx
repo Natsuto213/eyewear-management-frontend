@@ -1,15 +1,12 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
-import MainLayout from './MainLayout'; // Đã sửa đường dẫn
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
+import { Routes, Route, Navigate } from "react-router-dom";
+import Loginpage from "./views/Loginpage";
+import Registerpage from "./views/Registerpage";
 
 function App() {
   return (
     <Routes>
-      <Route element={<MainLayout />}>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-      </Route>
+      <Route path="/login" element={<Loginpage />} />
+      <Route path="/register" element={<Registerpage />} />
       <Route path="/" element={<Navigate to="/login" />} />
     </Routes>
   );
