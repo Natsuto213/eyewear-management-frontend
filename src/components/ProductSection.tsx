@@ -27,7 +27,7 @@ export default function ProductSection({ title }) {
     };
 
     return (
-        <section className="max-w-7xl mx-auto px-4 py-10 m-5">
+        <section className="max-w-7xl mx-auto px-4 py-10 m-2">
             <div className="flex justify-between items-center mb-8">
                 <h3 className="text-2xl">{title}</h3>
                 <select className="border border-gray-300 px-4 py-2 rounded-lg bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition cursor-pointer">
@@ -62,22 +62,6 @@ export default function ProductSection({ title }) {
                                 </span>
                                 <span className="text-gray-400 text-sm line-through">
                                     1.200.000đ
-                                </span>
-                            </div>
-                            <div className="mt-3 flex items-center gap-1">
-                                <div className="flex text-yellow-400">
-                                    {[...Array(5)].map((_, idx) => (
-                                        <svg
-                                            key={idx}
-                                            className="w-4 h-4 fill-current"
-                                            viewBox="0 0 20 20"
-                                        >
-                                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                                        </svg>
-                                    ))}
-                                </div>
-                                <span className="text-gray-500 text-sm ml-1">
-                                    (128)
                                 </span>
                             </div>
                         </div>

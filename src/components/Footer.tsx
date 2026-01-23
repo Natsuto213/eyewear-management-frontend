@@ -23,7 +23,7 @@ export default function Footer() {
                     <div>
                         <div className="flex items-center gap-2 mb-4">
                             <Eye className="size-8 text-blue-600" />
-                            <h3 className="text-xl">Kính Mắt ABC</h3>
+                            <h3 className="text-xl">Kính Mắt Sona</h3>
                         </div>
                         <p className="text-gray-600 mb-4 leading-relaxed">
                             Chuyên cung cấp gọng kính, tròng kính chính hãng với
@@ -155,19 +155,19 @@ export default function Footer() {
                             </a>
                         </div>
 
-                        {/* Newsletter */}
+                        {/* Feedback */}
                         <div className="mt-6">
                             <p className="text-sm text-gray-600 mb-2">
-                                Đăng ký nhận tin khuyến mãi
+                               Hãy góp ý để chúng tôi làm tốt hơn !
                             </p>
                             <div className="flex gap-2">
                                 <input
-                                    type="email"
-                                    placeholder="Email của bạn"
+                                    type="text"
+                                    placeholder="Góp ý"
                                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                 />
                                 <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm whitespace-nowrap">
-                                    Đăng ký
+                                    Gửi
                                 </button>
                             </div>
                         </div>
