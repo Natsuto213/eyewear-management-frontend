@@ -45,7 +45,14 @@ export default function Navbar() {
           to="/login"
           className="text-sm font-medium text-gray-600 hover:text-black transition"
         >
-          Đăng nhập
+          Login
+        </Link>
+
+        <Link
+          to="/profile"
+          className="text-sm font-medium text-gray-600 hover:text-black transition"
+        >
+          Profile
         </Link>
       </div>
     </header>
