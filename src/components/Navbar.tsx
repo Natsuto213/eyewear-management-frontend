@@ -13,9 +13,9 @@ export default function Navbar() {
 
   const tabs = [
     { name: "Trang chủ", path: "/" },
-    { name: "Gọng kính", path: "/all-product?category=gong" },
-    { name: "Tròng kính", path: "/all-product?category=trong" },
-    { name: "Kính áp tròng", path: "/all-product?category=kinhaptrong" },
+    { name: "Gọng kính", path: "/all-product/gong" },
+    { name: "Tròng kính", path: "/all-product/trong" },
+    { name: "Kính áp tròng", path: "/all-product/kinh-ap-trong" },
     { name: "Về chúng tôi", path: "/about-us" },
   ];
 
