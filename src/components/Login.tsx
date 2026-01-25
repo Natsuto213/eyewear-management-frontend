@@ -3,7 +3,7 @@ import loginImg from "../assets/login.png";
 import { Link } from "react-router-dom";
 import React from "react";
 
-const LoginPage: React.FC = () => {
+const LoginPage = () => {
   return (
     <div className="flex items-center justify-center gap-[60px] my-[60px] font-['Times_New_Roman']">
       
@@ -100,5 +100,6 @@ const LoginPage: React.FC = () => {
     </div>
   );
 };
+
 
 export default LoginPage;
