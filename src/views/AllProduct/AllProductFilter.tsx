@@ -19,9 +19,6 @@ export default function AllProductFrame() {
                                     alt={product.name}
                                     className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
                                 />
-                                <div className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs">
-                                    -20%
-                                </div>
                             </div>
                             <div className="p-4">
                                 <div className="text-xs text-blue-600 mb-1">
@@ -31,11 +28,7 @@ export default function AllProductFrame() {
                                     {product.name}
                                 </p>
                                 <div className="flex items-center gap-2 mb-3">
-                                    <span className="text-red-600 text-lg">
-                                        {product.salePrice.toLocaleString()}
-                                        đ
-                                    </span>
-                                    <span className="text-gray-400 text-sm line-through">
+                                    <span className="text-gray-600 text-lg">
                                         {product.price.toLocaleString()}
                                         đ
                                     </span>

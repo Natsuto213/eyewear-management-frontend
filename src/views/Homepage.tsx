@@ -4,9 +4,10 @@ import { ImageWithFallback } from "@/components/ImageWithFallback";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import banner from "@/assets/Sale_banner.png";
+import { ArrowRight } from "lucide-react";
 
 export default function HomePage() {
-    
+
     const productImages = [
         "https://images.unsplash.com/photo-1641048927024-0e801784b4f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxleWVnbGFzc2VzJTIwZnJhbWVzfGVufDF8fHx8MTc2OTAyODUwM3ww&ixlib=rb-4.1.0&q=80&w=1080",
         "https://images.unsplash.com/photo-1762718900539-c51799fd71b3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxvcHRpY2FsJTIwZ2xhc3NlcyUyMHN0b3JlfGVufDF8fHx8MTc2OTA0MzEwMHww&ixlib=rb-4.1.0&q=80&w=1080",
@@ -138,19 +139,16 @@ export default function HomePage() {
                                     alt={productNames[i]}
                                     className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
                                 />
-                                <div className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs">
-                                    -20%
-                                </div>
                             </div>
                             <div className="p-4">
-                                <p className="text-gray-900 mb-2 min-h-[48px]">
+                                <div className="text-xs text-blue-600 mb-1">
+                                    Ray-ban
+                                </div>
+                                <p className="text-gray-900 mb-2 min-h-[48px] line-clamp-2">
                                     {productNames[i]}
                                 </p>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-red-600 text-lg">
-                                        960.000đ
-                                    </span>
-                                    <span className="text-gray-400 text-sm line-through">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <span className="text-gray-600 text-lg">
                                         1.200.000đ
                                     </span>
                                 </div>
@@ -162,9 +160,10 @@ export default function HomePage() {
                 <div className="text-center mt-6">
                     <button
                         onClick={handleViewAll}
-                        className="border px-5 py-2 rounded hover:bg-gray-100"
+                        className="group inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-full hover:from-gray-700 hover:to-gray-800 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
                     >
-                        Xem toàn bộ sản phẩm
+                        <span>Xem toàn bộ sản phẩm</span>
+                        <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform duration-300" />
                     </button>
                 </div>
             </section>
