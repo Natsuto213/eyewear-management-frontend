@@ -260,7 +260,10 @@ export default function ProductDetail() {
                                                             placeholder="0.00"
                                                             value={prescriptionData[`${eye.prefix}Can`]}
                                                             onChange={(e) =>
-                                                                handleUpdate(`${eye.prefix}Can`, e.target.value)
+                                                                handleUpdate(
+                                                                    `${eye.prefix}Can`,
+                                                                    e.target.value,
+                                                                )
                                                             }
                                                             className="w-full py-1 text-sm bg-transparent outline-none focus:border-teal-500"
                                                         />
@@ -311,7 +314,10 @@ export default function ProductDetail() {
                                                             placeholder="0.00"
                                                             value={prescriptionData[`${eye.prefix}Lao`]}
                                                             onChange={(e) =>
-                                                                handleUpdate(`${eye.prefix}Lao`, e.target.value)
+                                                                handleUpdate(
+                                                                    `${eye.prefix}Lao`,
+                                                                    e.target.value,
+                                                                )
                                                             }
                                                             className="w-full py-1 text-sm bg-transparent outline-none"
                                                         />
@@ -438,11 +444,13 @@ export default function ProductDetail() {
                 </div>
             </div>
             <RelatedSection title={sectionTitle} products={relatedProducts} />
-            <RelatedSection
-                title="SẢN PHẨM TƯƠNG TỰ"
-                products={similarProducts}
-                category={product.category}
-            />
+            {product.category !== "kinhaptrong" && (
+                <RelatedSection
+                    title="SẢN PHẨM TƯƠNG TỰ"
+                    products={similarProducts}
+                    category={product.category}
+                />
+            )}
             <Footer />
         </div>
     );
@@ -475,7 +483,6 @@ function RelatedSection({ title, products, category }) {
     );
 }
 
-//
 function ProductCard({ item }) {
     return (
         <Link
