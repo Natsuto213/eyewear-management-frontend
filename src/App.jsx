@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { BrowserRouter, Routes, Route } from "react-router";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import './App.css'
 
 import HomePage from './views/Homepage';
@@ -12,12 +12,14 @@ import Account from './components/Account';
 import AllProductLayout from './views/AllProduct/AllProductLayout'
 import AllProductFilter from './views/AllProduct/AllProductFilter';
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+import ProductDetail from "./views/ProductDetail";
+
+ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <Routes>
       <Route index element={<HomePage />} />
 
-      <Route path="/all-product" element={<AllProductLayout />} >
+      <Route path="/all-product" element={<AllProductLayout />}>
         <Route index element={<AllProductFilter />} />
         <Route path="gong" element={<AllProductFilter />} />
         <Route path="trong" element={<AllProductFilter />} />
@@ -30,7 +32,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <Route path="/profile" element={<ProfilePage />}>
         <Route path="account" element={<Account />} />
       </Route>
-
+      <Route path="/product/:id" element={<ProductDetail />} />
     </Routes>
-  </BrowserRouter>
-)
+  </BrowserRouter>,
+);
