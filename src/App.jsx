@@ -11,8 +11,9 @@ import Account from './components/Account';
 
 import AllProductLayout from './views/AllProduct/AllProductLayout'
 import AllProductFilter from './views/AllProduct/AllProductFilter';
-
 import ProductDetail from "./views/ProductDetail";
+
+
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
@@ -23,7 +24,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <Route index element={<AllProductFilter />} />
         <Route path="gong" element={<AllProductFilter />} />
         <Route path="trong" element={<AllProductFilter />} />
-        <Route path="kinh-ap-trong" element={<AllProductFilter />} />
+        <Route path="kinhaptrong" element={<AllProductFilter />} />
       </Route>
 
       <Route path="/login" element={<LoginPage />} />
@@ -32,7 +33,10 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <Route path="/profile" element={<ProfilePage />}>
         <Route path="account" element={<Account />} />
       </Route>
+
+
       <Route path="/product/:id" element={<ProductDetail />} />
+
     </Routes>
   </BrowserRouter>,
 );

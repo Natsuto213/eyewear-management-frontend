@@ -1,143 +1,16 @@
 import { useEffect, useState } from "react";
 import { Outlet, useSearchParams, useLocation } from "react-router-dom";
 import { Filter, SlidersHorizontal } from "lucide-react";
-import Navbar from "@/components/navbar";
+
+import api from "@/lib/axios";
+import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-// Mock data
-const allProducts = [
-    // Gọng
-    {
-        id: 1,
-        name: "Gọng Kính Titan Cao Cấp",
-        price: 1200000,
-        salePrice: 960000,
-        category: "gong",
-        brand: "Ray-Ban",
-        image: "https://images.unsplash.com/photo-1718967807816-414e2f9bc95a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdW5nbGFzc2VzJTIwZmFzaGlvbnxlbnwxfHx8fDE3NjkxNDc0OTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
-    },
-    {
-        id: 2,
-        name: "Gọng Kính Nhựa Dẻo Hàn Quốc",
-        price: 800000,
-        salePrice: 640000,
-        category: "gong",
-        brand: "Oakley",
-        image: "https://images.unsplash.com/photo-1718967807816-414e2f9bc95a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdW5nbGFzc2VzJTIwZmFzaGlvbnxlbnwxfHx8fDE3NjkxNDc0OTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
-    },
-    {
-        id: 3,
-        name: "Gọng Kính Kim Loại Thời Trang",
-        price: 950000,
-        salePrice: 760000,
-        category: "gong",
-        brand: "Gucci",
-        image: "https://images.unsplash.com/photo-1718967807816-414e2f9bc95a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdW5nbGFzc2VzJTIwZmFzaGlvbnxlbnwxfHx8fDE3NjkxNDc0OTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
-    },
-    {
-        id: 4,
-        name: "Gọng Kính Tròn Vintage",
-        price: 650000,
-        salePrice: 520000,
-        category: "gong",
-        brand: "Montblanc",
-        image: "https://images.unsplash.com/photo-1606357086272-eab87f3db598?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb3VuZCUyMGdsYXNzZXN8ZW58MXx8fHwxNzY5MTU4OTkwfDA&ixlib=rb-4.1.0&q=80&w=1080",
-    },
-    {
-        id: 5,
-        name: "Gọng Kính Vuông Cổ Điển",
-        price: 1100000,
-        salePrice: 880000,
-        category: "gong",
-        brand: "Prada",
-        image: "https://images.unsplash.com/photo-1606357086272-eab87f3db598?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb3VuZCUyMGdsYXNzZXN8ZW58MXx8fHwxNzY5MTU4OTkwfDA&ixlib=rb-4.1.0&q=80&w=1080",
-    },
-    {
-        id: 6,
-        name: "Gọng Kính Nửa Viền Hiện Đại",
-        price: 890000,
-        salePrice: 712000,
-        category: "gong",
-        brand: "Ray-Ban",
-        image: "https://images.unsplash.com/photo-1606357086272-eab87f3db598?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyb3VuZCUyMGdsYXNzZXN8ZW58MXx8fHwxNzY5MTU4OTkwfDA&ixlib=rb-4.1.0&q=80&w=1080",
-    },
-    // Tròng
-    {
-        id: 7,
-        name: "Tròng Kính Cận Chống Ánh Sáng Xanh",
-        price: 550000,
-        salePrice: 440000,
-        category: "trong",
-        brand: "Essilor",
-        image: "https://images.unsplash.com/photo-1582143434535-eba55a806718?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb250YWN0JTIwbGVuc2VzfGVufDF8fHx8MTc2OTE1ODk4OXww&ixlib=rb-4.1.0&q=80&w=1080",
-    },
-    {
-        id: 8,
-        name: "Tròng Kính Đổi Màu Transitions",
-        price: 850000,
-        salePrice: 680000,
-        category: "trong",
-        brand: "Transitions",
-        image: "https://images.unsplash.com/photo-1582143434535-eba55a806718?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb250YWN0JTIwbGVuc2VzfGVufDF8fHx8MTc2OTE1ODk4OXww&ixlib=rb-4.1.0&q=80&w=1080",
-    },
-    {
-        id: 9,
-        name: "Tròng Kính Chống UV 400",
-        price: 420000,
-        salePrice: 336000,
-        category: "trong",
-        brand: "Hoya",
-        image: "https://images.unsplash.com/photo-1582143434535-eba55a806718?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb250YWN0JTIwbGVuc2VzfGVufDF8fHx8MTc2OTE1ODk4OXww&ixlib=rb-4.1.0&q=80&w=1080",
-    },
-    {
-        id: 10,
-        name: "Tròng Kính Đa Tròng Progressive",
-        price: 1200000,
-        salePrice: 960000,
-        category: "trong",
-        brand: "Essilor",
-        image: "https://images.unsplash.com/photo-1582143434535-eba55a806718?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb250YWN0JTIwbGVuc2VzfGVufDF8fHx8MTc2OTE1ODk4OXww&ixlib=rb-4.1.0&q=80&w=1080",
-    },
-    // Kính áp tròng
-    {
-        id: 11,
-        name: "Kính Áp Tròng 1 Ngày Acuvue",
-        price: 320000,
-        salePrice: 256000,
-        category: "kinhaptrong",
-        brand: "Acuvue",
-        image: "https://images.unsplash.com/photo-1627260125320-fbafe86e341e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb2xvcmVkJTIwY29udGFjdCUyMGxlbnNlc3xlbnwxfHx8fDE3NjkxNjQ3MjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-    },
-    {
-        id: 12,
-        name: "Kính Áp Tròng Màu Freshlook",
-        price: 380000,
-        salePrice: 304000,
-        category: "kinhaptrong",
-        brand: "Freshlook",
-        image: "https://images.unsplash.com/photo-1627260125320-fbafe86e341e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb2xvcmVkJTIwY29udGFjdCUyMGxlbnNlc3xlbnwxfHx8fDE3NjkxNjQ3MjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-    },
-    {
-        id: 13,
-        name: "Kính Áp Tròng Tháng Bausch & Lomb",
-        price: 450000,
-        salePrice: 360000,
-        category: "kinhaptrong",
-        brand: "Bausch & Lomb",
-        image: "https://images.unsplash.com/photo-1627260125320-fbafe86e341e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb2xvcmVkJTIwY29udGFjdCUyMGxlbnNlc3xlbnwxfHx8fDE3NjkxNjQ3MjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-    },
-    {
-        id: 14,
-        name: "Kính Áp Tròng Loại Mềm Comfort",
-        price: 290000,
-        salePrice: 232000,
-        category: "kinhaptrong",
-        brand: "Cooper Vision",
-        image: "https://images.unsplash.com/photo-1627260125320-fbafe86e341e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb2xvcmVkJTIwY29udGFjdCUyMGxlbnNlc3xlbnwxfHx8fDE3NjkxNjQ3MjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-    },
-];
-
 export default function AllProductLayout() {
+    const [allProducts, setAllProducts] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
     const [searchParams] = useSearchParams();
     const categoryFromUrl = searchParams.get("category");
 
@@ -151,12 +24,52 @@ export default function AllProductLayout() {
 
     const location = useLocation();
 
+    const fetchProducts = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            const res = await api.get("/products/search");
+
+            const mapped = res.data.map((p: any) => {
+                const type = p.Product_Type?.toLowerCase().trim() || "";
+
+                return {
+                    id: p.id,
+                    name: p.productName,
+                    price: p.price,
+                    brand: p.Brand,
+                    image: p.image,
+                    category: type.includes("gong")
+                        ? "gong"
+                        : type.includes("trong") && !type.includes("ap")
+                            ? "trong"
+                            : "kinhaptrong",
+                };
+            });
+
+            setAllProducts(mapped);
+
+            console.log("API raw:", res.data);
+            console.log("Mapped:", mapped);
+        } catch (err) {
+            console.error("Fetch products error:", err);
+            setError("Không thể tải danh sách sản phẩm");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchProducts();
+    }, []);
+
     useEffect(() => {
         if (location.pathname === "/all-product/gong") {
             setSelectedCategory(["gong"]);
         } else if (location.pathname === "/all-product/trong") {
             setSelectedCategory(["trong"]);
-        } else if (location.pathname === "/all-product/kinh-ap-trong") {
+        } else if (location.pathname === "/all-product/kinhaptrong") {
             setSelectedCategory(["kinhaptrong"]);
         } else {
             setSelectedCategory([]);
@@ -185,14 +98,14 @@ export default function AllProductLayout() {
         }
 
         // Price filter
-        if (priceRange === "under500" && product.salePrice >= 500000)
+        if (priceRange === "under500" && product.price >= 500000)
             return false;
         if (
             priceRange === "500-1000" &&
-            (product.salePrice < 500000 || product.salePrice >= 1000000)
+            (product.price < 500000 || product.price >= 1000000)
         )
             return false;
-        if (priceRange === "over1000" && product.salePrice < 1000000)
+        if (priceRange === "over1000" && product.price < 1000000)
             return false;
 
         return true;
@@ -200,8 +113,8 @@ export default function AllProductLayout() {
 
     // Sort products
     const sortedProducts = [...filteredProducts].sort((a, b) => {
-        if (sortBy === "price-asc") return a.salePrice - b.salePrice;
-        if (sortBy === "price-desc") return b.salePrice - a.salePrice;
+        if (sortBy === "price-asc") return a.price - b.price;
+        if (sortBy === "price-desc") return b.price - a.price;
         return 0; // newest
     });
 
@@ -376,8 +289,12 @@ export default function AllProductLayout() {
                             Hiển thị {sortedProducts.length} sản phẩm
                         </div>
 
+                        {loading && <div>Đang tải sản phẩm...</div>}
+                        {error && <div className="text-red-500">{error}</div>}
+
                         {/* Products Grid */}
                         <Outlet context={{ sortedProducts, clearAllFilters }} />
+
                     </div>
                 </div>
             </div>

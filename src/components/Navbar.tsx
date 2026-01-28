@@ -15,7 +15,7 @@ export default function Navbar() {
     { name: "Trang chủ", path: "/" },
     { name: "Gọng kính", path: "/all-product/gong" },
     { name: "Tròng kính", path: "/all-product/trong" },
-    { name: "Kính áp tròng", path: "/all-product/kinh-ap-trong" },
+    { name: "Kính áp tròng", path: "/all-product/kinhaptrong" },
     { name: "Về chúng tôi", path: "/about-us" },
   ];
 
