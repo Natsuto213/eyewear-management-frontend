@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Outlet, useSearchParams, useLocation } from "react-router-dom";
 import { Filter, SlidersHorizontal } from "lucide-react";
 
-import api from "@/lib/axios";
+import { api } from "@/app/api";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import logo from "../assets/Sora_logo.png";
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { Search, ShoppingCart } from "lucide-react";
+import { Search, ShoppingCart, User } from "lucide-react";
 
 export default function Navbar() {
   const [showSearch, setShowSearch] = useState(false);
@@ -69,13 +69,20 @@ export default function Navbar() {
             </button>
           </div>
 
-
           {/* Cart Icon with Badge */}
           <Link
             to="/cart"
             className="p-2 hover:bg-gray-100 rounded-lg transition group relative"
           >
             <ShoppingCart className="size-5 text-gray-600 group-hover:text-black transition" />
+          </Link>
+
+          {/* Profile Link */}
+          <Link
+            to="/profile"
+            className="text-sm font-medium text-gray-600 hover:text-black transition"
+          >
+            <User className="size-5 text-gray-600 group-hover:text-black transition" />
           </Link>
 
           {/* Login Link */}
