@@ -1,13 +1,26 @@
-import React from "react";
-import { NavLink, Outlet, useMatch } from "react-router-dom";
+import React, { useEffect } from "react";
+import { NavLink, Outlet, useMatch, useNavigate } from "react-router-dom";
+import { apiLogout } from "../../app/userApi";
 
 const Profile: React.FC = () => {
   const isAccountPage = useMatch("/profile/account");
+  const navigate = useNavigate();
+
+  // ✅ Guard: chưa có token thì đá về /login
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (!token) navigate("/login", { replace: true });
+  }, [navigate]);
+
+  const handleLogout = (e: React.MouseEvent) => {
+    e.preventDefault();
+    apiLogout(); // xóa token
+    navigate("/login", { replace: true });
+  };
 
   return (
     <div className="w-full min-h-screen bg-neutral-200/50 flex justify-center items-center">
       <div className="flex gap-6 max-w-[1200px] w-full px-6">
-
         {/* SIDEBAR */}
         <aside className="w-64 h-[460px] bg-white rounded-xl p-4 space-y-4">
           <div className="w-16 h-16 rounded-full bg-zinc-300 mx-auto" />
@@ -38,20 +51,19 @@ const Profile: React.FC = () => {
             </li>
 
             <li>
-              <NavLink
-                to="/login"
+              <a
+                href="/login"
+                onClick={handleLogout}
                 className="flex items-center gap-2 text-black/60 hover:text-cyan-400"
->
-                
-                 Đăng xuất
-              </NavLink>
+              >
+                Đăng xuất
+              </a>
             </li>
           </ul>
         </aside>
 
         {/* CONTENT */}
         <main className="flex-1 h-[460px] bg-white rounded-2xl p-6 overflow-auto">
-
           {/* 👉 MẶC ĐỊNH: ORDER LIST */}
           {!isAccountPage && (
             <>
@@ -76,8 +88,7 @@ const Profile: React.FC = () => {
           )}
 
           {/* 👉 CHỈ HIỆN KHI /profile/account */}
-          <Outlet />
-
+          {isAccountPage && <Outlet />}
         </main>
       </div>
     </div>

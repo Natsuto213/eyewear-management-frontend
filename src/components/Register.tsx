@@ -1,102 +1,128 @@
 import loginImg from "../assets/login.png";
-import { Link } from "react-router-dom";
-import React from "react";
+import { Link, useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { apiSignup } from "../app/userApi";
 
 const Register: React.FC = () => {
+  const navigate = useNavigate();
+  const [error, setError] = useState("");
+
+  const [form, setForm] = useState({
+    username: "",
+    name: "",
+    password: "",
+    confirmPassword: "",
+    email: "",
+    phone: "",
+    dob: "",
+  });
+
+  const setField =
+    (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
+      setForm((p) => ({ ...p, [k]: e.target.value }));
+
+  const handleSignup = async () => {
+    setError("");
+    if (form.password !== form.confirmPassword) {
+      setError("Mật khẩu xác nhận không khớp");
+      return;
+    }
+
+    try {
+      await apiSignup({
+        username: form.username,
+        password: form.password,
+        email: form.email,
+        phone: form.phone,
+        name: form.name,
+        dob: form.dob,
+      });
+      navigate("/login", { replace: true });
+    } catch (err: any) {
+      setError(err?.response?.data?.message || err?.message || "Sign up failed");
+    }
+  };
+
   return (
     <div className="flex items-center justify-center gap-[60px] my-[60px] font-['Times_New_Roman']">
-      
-      {/* LEFT IMAGE */}
       <div>
-        <img
-          src={loginImg}
-          alt="Login"
-          className="w-[520px] rounded"
-        />
+        <img src={loginImg} alt="Login" className="w-[580px] rounded" />
       </div>
 
-      {/* RIGHT FORM */}
       <div className="w-[420px]">
         <h2 className="text-center mb-2 text-xl font-semibold">
           Đăng ký tài khoản
         </h2>
 
-        <p className="text-center text-[12px] text-gray-600 mb-5">
-          Hãy đăng ký để được hưởng đặc quyền riêng của bạn
-        </p>
-
-        <label className="block text-sm mt-3">
-          Tên tài khoản
-        </label>
+        <label className="block text-sm mt-3">Tên tài khoản</label>
         <input
-          type="text"
-          placeholder="Nhập tên tài khoản"
           className="w-full h-9 mt-1 bg-gray-200 px-2 outline-none"
+          value={form.username}
+          onChange={setField("username")}
         />
 
-        <label className="block text-sm mt-3">
-          Mật khẩu
-        </label>
+        <label className="block text-sm mt-3">Họ và tên</label>
         <input
-          type="password"
-          placeholder="Nhập mật khẩu"
           className="w-full h-9 mt-1 bg-gray-200 px-2 outline-none"
+          value={form.name}
+          onChange={setField("name")}
         />
 
-        <label className="block text-sm mt-3">
-          Xác nhận mật khẩu
-        </label>
+        <label className="block text-sm mt-3">Mật khẩu</label>
         <input
           type="password"
-          placeholder="Xác nhận mật khẩu"
           className="w-full h-9 mt-1 bg-gray-200 px-2 outline-none"
+          value={form.password}
+          onChange={setField("password")}
         />
 
-        <label className="block text-sm mt-3">
-          Email
-        </label>
+        <label className="block text-sm mt-3">Xác nhận mật khẩu</label>
+        <input
+          type="password"
+          className="w-full h-9 mt-1 bg-gray-200 px-2 outline-none"
+          value={form.confirmPassword}
+          onChange={setField("confirmPassword")}
+        />
+
+        <label className="block text-sm mt-3">Email</label>
         <input
           type="email"
-          placeholder="Nhập email"
           className="w-full h-9 mt-1 bg-gray-200 px-2 outline-none"
+          value={form.email}
+          onChange={setField("email")}
         />
 
-        <label className="block text-sm mt-3">
-          Số điện thoại
-        </label>
+        <label className="block text-sm mt-3">Số điện thoại</label>
         <input
-          type="text"
-          placeholder="Nhập số điện thoại"
           className="w-full h-9 mt-1 bg-gray-200 px-2 outline-none"
+          value={form.phone}
+          onChange={setField("phone")}
         />
 
-        {/* REGISTER BUTTON */}
+        <label className="block text-sm mt-3">Ngày sinh</label>
+        <input
+          type="date"
+          className="w-full h-9 mt-1 bg-gray-200 px-2 outline-none"
+          value={form.dob}
+          onChange={setField("dob")}
+        />
+
+        {/* span error theo yêu cầu */}
+        {error && (
+          <span className="block mt-2 text-sm text-red-600">{error}</span>
+        )}
+
         <button
           type="button"
-          className="w-full h-9 bg-gray-300 my-2 transition-all duration-200 hover:bg-teal-500 hover:text-white"
+          onClick={handleSignup}
+          className="w-full h-9 bg-gray-300 my-2 hover:bg-teal-500 hover:text-white"
         >
           Đăng ký ngay
         </button>
 
-        {/* GOOGLE */}
-        <button
-          type="button"
-          className="w-full h-9 bg-gray-200"
-        >
-          Đăng nhập bằng Google
-        </button>
-
-        {/* LOGIN LINK */}
         <p className="text-center text-[13px] mt-2">
           Bạn đã có tài khoản?
-          <Link
-            to="/login"
-            className="ml-1 font-bold relative text-gray-800
-                       after:absolute after:left-0 after:-bottom-[2px]
-                       after:h-[1.5px] after:w-0 after:bg-teal-500
-                       after:transition-all after:duration-200
-                       hover:text-teal-500 hover:after:w-full"
-          >
+          <Link to="/login" className="ml-1 font-bold">
             Đăng nhập tại đây
           </Link>
         </p>
@@ -105,6 +131,4 @@ const Register: React.FC = () => {
   );
 };
 
-
 export default Register;
-
