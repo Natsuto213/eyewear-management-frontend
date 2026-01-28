@@ -29,22 +29,23 @@ export default function AllProductLayout() {
             setLoading(true);
             setError(null);
 
-            const res = await api.get("/products/search");
+            const res = await api.get("/api/products/search");
 
             const mapped = res.data.map((p: any) => {
-                const type = p.Product_Type?.toLowerCase().trim() || "";
+                const type = p.Product_Type?.toLowerCase().trim();
+
+                let category = "";
+                if (type === "gọng kính") category = "gong";
+                else if (type === "tròng kính") category = "trong";
+                else if (type === "kính áp tròng") category = "kinhaptrong";
 
                 return {
                     id: p.id,
-                    name: p.productName,
+                    name: p.name,          // API trả name chứ không phải productName
                     price: p.price,
                     brand: p.Brand,
-                    image: p.image,
-                    category: type.includes("gong")
-                        ? "gong"
-                        : type.includes("trong") && !type.includes("ap")
-                            ? "trong"
-                            : "kinhaptrong",
+                    image: p.Image_URL,    // đúng key từ API
+                    category,
                 };
             });
 
