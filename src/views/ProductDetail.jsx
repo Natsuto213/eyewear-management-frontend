@@ -1,18 +1,20 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { allProducts } from "@/data/products";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 export default function ProductDetail() {
     const { id } = useParams();
-    const product = allProducts.find((p) => p.id === Number(id));
 
     const [quantity, setQuantity] = useState(1);
     const [openAccordion, setOpenAccordion] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
     const [method, setMethod] = useState("manual");
+
+    const [product, setProduct] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     const [prescriptionData, setPrescriptionData] = useState({
         leftCan: "", // Cận thị trái
@@ -26,28 +28,88 @@ export default function ProductDetail() {
         file: null,
     });
 
+    const productTypeFrame = "Gọng kính";
+    const productTypeLenses = "Tròng kính";
+    const productTypeContactLenses = "Kính áp tròng";
+
     useEffect(() => {
+        const fetchProductDetail = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+
+                const response = await fetch(
+                    `http://localhost:8080/api/products/${id}`,
+                );
+
+                if (!response.ok) {
+                    throw new Error("Không tìm thấy sản phẩm trên hệ thống!");
+                }
+
+                const data = await response.json();
+                setProduct(data); // Cập nhật dữ liệu vào state
+
+                // Reset các thông số giao diện khi đổi sản phẩm thành công
+                setQuantity(1);
+                setOpenAccordion(null);
+                setMethod("manual");
+                setPrescriptionData({
+                    leftCan: "",
+                    leftVien: "",
+                    leftLoan: "",
+                    leftLao: "",
+                    rightCan: "",
+                    rightVien: "",
+                    rightLoan: "",
+                    rightLao: "",
+                    file: null,
+                });
+            } catch (err) {
+                console.error("Lỗi API:", err.message);
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProductDetail();
+
         window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
-        const timer = setTimeout(() => {
-            setQuantity(1);
-            setOpenAccordion(null);
-            setPreviewUrl(null);
-            setMethod("manual");
-            // Reset dữ liệu đơn thuốc khi đổi SP
-            setPrescriptionData({
-                leftCan: "", // Cận thị trái
-                leftVien: "", // Viễn thị trái
-                leftLoan: "", // Loạn thị trái
-                leftLao: "", // Lão thị trái
-                rightCan: "", // Cận thị phải
-                rightVien: "", // Viễn thị phải
-                rightLoan: "", // Loạn thị phải
-                rightLao: "", // Lão thị phải
-                file: null,
-            });
-        }, 0);
-        return () => clearTimeout(timer);
     }, [id]);
+
+    // useEffect khi cập nhật ảnh mới thì ảnh cũ trong bộ nhớ trình duyệt sẽ bị xoá (Memory Leak)
+    useEffect(() => {
+        return () => {
+            if (previewUrl) {
+                console.log("Đang giải phóng bộ nhớ cho ảnh:", previewUrl);
+                URL.revokeObjectURL(previewUrl);
+            }
+        };
+    }, [previewUrl]);
+
+    if (loading) {
+        return (
+            <div className="w-full h-screen flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+                <p className="ml-4 font-bold text-teal-800 uppercase tracking-widest">
+                    Đang lấy dữ liệu...
+                </p>
+            </div>
+        );
+    }
+
+    if (error || !product) {
+        return (
+            <div className="text-center py-40">
+                <h2 className="text-2xl font-bold text-red-600">
+                    {error || "Sản phẩm không tồn tại!"}
+                </h2>
+                <Link to="/all-product" className="mt-4 text-teal-600 underline">
+                    Quay lại cửa hàng
+                </Link>
+            </div>
+        );
+    }
 
     // cập nhật dữ liệu mới
     const handleUpdate = (field, value) => {
@@ -62,17 +124,6 @@ export default function ProductDetail() {
             setMethod("upload");
         }
     };
-
-    // useEffect khi cập nhật ảnh mới thì ảnh cũ trong bộ nhớ trình duyệt sẽ bị xoá (Memory Leak)
-    useEffect(() => {
-        return () => {
-            if (previewUrl) {
-                console.log("Đang giải phóng bộ nhớ cho ảnh:", previewUrl);
-                URL.revokeObjectURL(previewUrl);
-            }
-        };
-    }, [previewUrl]);
-
 
     // kiểm tra điều kiện để bỏ vào giỏ hàng
     const validatePrescription = () => {
@@ -133,7 +184,7 @@ export default function ProductDetail() {
         const cartItem = {
             id: product.id,
             name: product.name,
-            price: product.salePrice,
+            price: product.price,
             quantity: quantity,
             method: method,
             details:
@@ -165,9 +216,9 @@ export default function ProductDetail() {
     if (!product)
         return <div className="text-center py-40">Sản phẩm không tồn tại!</div>;
 
-    const isGong = product.category === "gong";
-    const isTrong = product.category === "trong";
-    const isKinhApTrong = product.category === "kinhaptrong";
+    const isGong = product.Product_Type === productTypeFrame;
+    const isTrong = product.Product_Type === productTypeLenses;
+    const isKinhApTrong = product.Product_Type === productTypeContactLenses;
 
     const sectionTitle = isGong
         ? "TRÒNG KÍNH BỔ TRỢ"
@@ -175,17 +226,35 @@ export default function ProductDetail() {
             ? "GỌNG KÍNH BỔ TRỢ"
             : "SẢN PHẨM TƯƠNG TỰ";
     const relatedCategory = isGong
-        ? "trong"
+        ? productTypeLenses
         : isTrong
-            ? "gong"
-            : product.category;
+            ? productTypeFrame
+            : product.Product_Type;
 
-    const relatedProducts = allProducts
-        .filter((p) => p.category === relatedCategory && p.id !== product.id)
-        .slice(0, 4);
-    const similarProducts = allProducts
-        .filter((p) => p.category === product.category && p.id !== product.id)
-        .slice(0, 4);
+    let relatedProducts = [];
+    let similarProducts = [];
+
+    if (product.Product_Type !== productTypeContactLenses) {
+        const frames = product.relatedFrames ?? [];
+        const lenses = product.relatedLenses ?? [];
+        relatedProducts = frames
+            .concat(lenses)
+            .filter(
+                (p) =>
+                    p.Product_Type === relatedCategory && p.id !== product.id,
+            )
+            .slice(0, 4);
+        similarProducts = frames
+            .concat(lenses)
+            .filter(
+                (p) =>
+                    p.Product_Type === product.Product_Type &&
+                    p.id !== product.id,
+            )
+            .slice(0, 4);
+    } else {
+        relatedProducts = product.relatedContactLenses;
+    }
 
     return (
         <div className="w-full bg-white font-sans text-black antialiased">
@@ -195,7 +264,7 @@ export default function ProductDetail() {
                     <div className="w-full">
                         <div className="relative aspect-[1/0.85] bg-[#F5F5F5] overflow-hidden group rounded-sm">
                             <ImageWithFallback
-                                src={product.image}
+                                src={product.imageUrls[0]}
                                 alt={product.name}
                                 className="w-full h-full object-contain mix-blend-multiply transition-transform duration-700 group-hover:scale-110"
                             />
@@ -205,11 +274,11 @@ export default function ProductDetail() {
                     <div className="flex flex-col pl-4 lg:pl-10">
                         <div className="mb-4">
                             <h1 className="text-xl md:text-2xl font-bold text-gray-800 leading-tight uppercase">
-                                {product.name}, mã hàng: JN-00{product.id}
+                                {product.name}, mã hàng: {product.sku}
                             </h1>
                         </div>
                         <div className="text-2xl font-bold text-red-600 mb-6 font-mono">
-                            {product.salePrice.toLocaleString()}đ
+                            {product.price.toLocaleString()}đ
                         </div>
 
                         {(isTrong || isKinhApTrong) && (
@@ -367,7 +436,7 @@ export default function ProductDetail() {
                                     className="aspect-square border border-teal-500/30 overflow-hidden cursor-pointer hover:border-teal-500 transition p-1 bg-white"
                                 >
                                     <ImageWithFallback
-                                        src={product.image}
+                                        src={product.imageUrls[0]}
                                         className="w-full h-full object-cover"
                                     />
                                 </div>
@@ -434,7 +503,7 @@ export default function ProductDetail() {
                                         className={`overflow-hidden transition-all duration-300 ${openAccordion === index ? "max-h-32 pb-4" : "max-h-0"}`}
                                     >
                                         <p className="text-[13px] text-gray-500 leading-relaxed italic">
-                                            Thông tin chi tiết đang được cập nhật...
+                                            {index === 0 ? product.Description : "Thông tin chi tiết đang được cập nhật..."}
                                         </p>
                                     </div>
                                 </div>
@@ -444,11 +513,11 @@ export default function ProductDetail() {
                 </div>
             </div>
             <RelatedSection title={sectionTitle} products={relatedProducts} />
-            {product.category !== "kinhaptrong" && (
+            {product.Product_Type !== productTypeContactLenses && (
                 <RelatedSection
                     title="SẢN PHẨM TƯƠNG TỰ"
                     products={similarProducts}
-                    category={product.category}
+                    category={product.Product_Type}
                 />
             )}
             <Footer />
@@ -467,7 +536,7 @@ function RelatedSection({ title, products, category }) {
                         {title}
                     </h2>
                     <Link
-                        to={category ? `/all-product/${category}` : "/all-product"}
+                        to={category ? `/all-product` : "/all-product"}
                         className="text-[#00B5AD] font-medium flex items-center gap-1 hover:underline transition-all"
                     >
                         → Xem thêm
@@ -485,25 +554,25 @@ function RelatedSection({ title, products, category }) {
 
 function ProductCard({ item }) {
     return (
-        <Link
-            to={`/product/${item.id}`}
-            className="group border border-gray-200 rounded-sm overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col h-full bg-white"
-        >
-            <div className="aspect-square p-4 flex items-center justify-center overflow-hidden">
-                <ImageWithFallback
-                    src={item.image}
-                    alt={item.name}
-                    className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
-                />
-            </div>
-            <div className="p-4 border-t border-gray-100 text-center mt-auto">
-                <p className="text-sm font-bold text-gray-800 truncate mb-1 uppercase tracking-tighter">
-                    {item.name}
-                </p>
-                <p className="text-red-600 font-bold text-base">
-                    {item.salePrice.toLocaleString()}đ
-                </p>
-            </div>
-        </Link>
+      <Link
+        to={`/product/${item.id}`}
+        className="group border border-gray-200 rounded-sm overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col h-full bg-white"
+      >
+        <div className="aspect-square p-4 flex items-center justify-center overflow-hidden">
+          <ImageWithFallback
+            src={item.Image_URL}
+            alt={item.name}
+            className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
+          />
+        </div>
+        <div className="p-4 border-t border-gray-100 text-center mt-auto">
+          <p className="text-sm font-bold text-gray-800 truncate mb-1 uppercase tracking-tighter">
+            {item.name}
+          </p>
+          <p className="text-red-600 font-bold text-base">
+            {item.price.toLocaleString()}đ
+          </p>
+        </div>
+      </Link>
     );
 }
