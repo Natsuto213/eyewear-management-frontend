@@ -36,12 +36,10 @@ export default function AllProductLayout() {
 
                 return {
                     id: p.id,
-                    name: p.name,
-                    price: Number(p.price),
+                    name: p.productName,
+                    price: p.price,
                     brand: p.Brand,
-                    image: p.Image_URL?.startsWith("http")
-                        ? p.Image_URL
-                        : `http://localhost:8080/${p.Image_URL}`,
+                    image: p.image,
                     category: type.includes("gong")
                         ? "gong"
                         : type.includes("trong") && !type.includes("ap")
@@ -71,7 +69,7 @@ export default function AllProductLayout() {
             setSelectedCategory(["gong"]);
         } else if (location.pathname === "/all-product/trong") {
             setSelectedCategory(["trong"]);
-        } else if (location.pathname === "/all-product/kinh-ap-trong") {
+        } else if (location.pathname === "/all-product/kinhaptrong") {
             setSelectedCategory(["kinhaptrong"]);
         } else {
             setSelectedCategory([]);
@@ -296,6 +294,7 @@ export default function AllProductLayout() {
 
                         {/* Products Grid */}
                         <Outlet context={{ sortedProducts, clearAllFilters }} />
+
                     </div>
                 </div>
             </div>
