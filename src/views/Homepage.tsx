@@ -1,3 +1,4 @@
+import { useEffect } from "react";  
 import { useNavigate, Link } from "react-router-dom";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 
@@ -7,6 +8,13 @@ import banner from "@/assets/Sale_banner.png";
 import { ArrowRight } from "lucide-react";
 
 export default function HomePage() {
+
+    useEffect(() => {
+        console.log(
+            "ACCESS TOKEN IN HOMEPAGE =",
+            localStorage.getItem("access_token")
+        );
+    }, []);
 
     const productImages = [
         "https://images.unsplash.com/photo-1641048927024-0e801784b4f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxleWVnbGFzc2VzJTIwZnJhbWVzfGVufDF8fHx8MTc2OTAyODUwM3ww&ixlib=rb-4.1.0&q=80&w=1080",
