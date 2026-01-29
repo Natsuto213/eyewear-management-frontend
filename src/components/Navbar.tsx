@@ -101,7 +101,7 @@ export default function Navbar() {
               <button
                 onClick={() => {
                   apiLogout();
-                  navigate("/login", { replace: true });
+                  navigate("/", { replace: true });
                 }}
                 className="text-sm font-medium text-gray-600 hover:text-black transition"
               >

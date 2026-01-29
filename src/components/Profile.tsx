@@ -48,9 +48,9 @@ const Profile: React.FC = () => {
               <button
                 onClick={() => {
                   apiLogout();
-                  navigate("/login", { replace: true });
+                  navigate("/", { replace: true });
                 }}
-                className="flex items-center gap-2 text-black/60 hover:text-cyan-400"
+                className="text-black/60 hover:text-cyan-400 text-left"
               >
                 Đăng xuất
               </button>
