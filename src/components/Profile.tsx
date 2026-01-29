@@ -12,12 +12,6 @@ const Profile: React.FC = () => {
     if (!token) navigate("/login", { replace: true });
   }, [navigate]);
 
-  const handleLogout = (e: React.MouseEvent) => {
-    e.preventDefault();
-    apiLogout(); // xóa token
-    navigate("/login", { replace: true });
-  };
-
   return (
     <div className="w-full min-h-screen bg-neutral-200/50 flex justify-center items-center">
       <div className="flex gap-6 max-w-[1200px] w-full px-6">
@@ -51,13 +45,15 @@ const Profile: React.FC = () => {
             </li>
 
             <li>
-              <a
-                href="/login"
-                onClick={handleLogout}
+              <button
+                onClick={() => {
+                  apiLogout();
+                  navigate("/login", { replace: true });
+                }}
                 className="flex items-center gap-2 text-black/60 hover:text-cyan-400"
               >
                 Đăng xuất
-              </a>
+              </button>
             </li>
           </ul>
         </aside>

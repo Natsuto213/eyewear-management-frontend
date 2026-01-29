@@ -1,9 +1,14 @@
-import { NavLink, Outlet, useMatch } from "react-router-dom";
+import { Navigate, NavLink, Outlet, useMatch } from "react-router-dom";
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useEffect } from "react";
 
 export default function Profilepage() {
+
+    if (!localStorage.getItem("access_token")) {
+        return <Navigate to="/login" replace />;
+    }
 
     function Profile() {
         const isAccountPage = useMatch("/profile/account");
@@ -42,13 +47,15 @@ export default function Profilepage() {
                             </li>
 
                             <li>
-                                <NavLink
-                                    to="/login"
-                                    className="flex items-center gap-2 text-black/60 hover:text-cyan-400"
+                                <button
+                                    onClick={() => {
+                                        localStorage.removeItem("access_token");
+                                        window.location.href = "/login";
+                                    }}
+                                    className="text-black/60 hover:text-cyan-400 text-left"
                                 >
-
                                     Đăng xuất
-                                </NavLink>
+                                </button>
                             </li>
                         </ul>
                     </aside>

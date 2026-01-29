@@ -17,14 +17,14 @@ export default function ProductDetail() {
     const [error, setError] = useState(null);
 
     const [prescriptionData, setPrescriptionData] = useState({
-        leftCan: "", // Cận thị trái
-        leftVien: "", // Viễn thị trái
-        leftLoan: "", // Loạn thị trái
-        leftLao: "", // Lão thị trái
-        rightCan: "", // Cận thị phải
-        rightVien: "", // Viễn thị phải
-        rightLoan: "", // Loạn thị phải
-        rightLao: "", // Lão thị phải
+        leftCan: "0", // Cận thị trái
+        leftVien: "0", // Viễn thị trái
+        leftLoan: "0", // Loạn thị trái
+        leftLao: "0", // Lão thị trái
+        rightCan: "0", // Cận thị phải
+        rightVien: "0", // Viễn thị phải
+        rightLoan: "0", // Loạn thị phải
+        rightLao: "0", // Lão thị phải
         file: null,
     });
 
@@ -54,14 +54,14 @@ export default function ProductDetail() {
                 setOpenAccordion(null);
                 setMethod("manual");
                 setPrescriptionData({
-                    leftCan: "",
-                    leftVien: "",
-                    leftLoan: "",
-                    leftLao: "",
-                    rightCan: "",
-                    rightVien: "",
-                    rightLoan: "",
-                    rightLao: "",
+                    leftCan: "0", // Cận thị trái
+                    leftVien: "0", // Viễn thị trái
+                    leftLoan: "0", // Loạn thị trái
+                    leftLao: "0", // Lão thị trái
+                    rightCan: "0", // Cận thị phải
+                    rightVien: "0", // Viễn thị phải
+                    rightLoan: "0", // Loạn thị phải
+                    rightLao: "0", // Lão thị phải
                     file: null,
                 });
             } catch (err) {
@@ -554,25 +554,25 @@ function RelatedSection({ title, products, category }) {
 
 function ProductCard({ item }) {
     return (
-      <Link
-        to={`/product/${item.id}`}
-        className="group border border-gray-200 rounded-sm overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col h-full bg-white"
-      >
-        <div className="aspect-square p-4 flex items-center justify-center overflow-hidden">
-          <ImageWithFallback
-            src={item.Image_URL}
-            alt={item.name}
-            className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
-          />
-        </div>
-        <div className="p-4 border-t border-gray-100 text-center mt-auto">
-          <p className="text-sm font-bold text-gray-800 truncate mb-1 uppercase tracking-tighter">
-            {item.name}
-          </p>
-          <p className="text-red-600 font-bold text-base">
-            {item.price.toLocaleString()}đ
-          </p>
-        </div>
-      </Link>
+        <Link
+            to={`/product/${item.id}`}
+            className="group border border-gray-200 rounded-sm overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col h-full bg-white"
+        >
+            <div className="aspect-square p-4 flex items-center justify-center overflow-hidden">
+                <ImageWithFallback
+                    src={item.Image_URL}
+                    alt={item.name}
+                    className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
+                />
+            </div>
+            <div className="p-4 border-t border-gray-100 text-center mt-auto">
+                <p className="text-sm font-bold text-gray-800 truncate mb-1 uppercase tracking-tighter">
+                    {item.name}
+                </p>
+                <p className="text-red-600 font-bold text-base">
+                    {item.price.toLocaleString()}đ
+                </p>
+            </div>
+        </Link>
     );
 }
