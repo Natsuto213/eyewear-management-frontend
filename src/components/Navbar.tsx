@@ -1,11 +1,16 @@
 import React, { useState } from "react";
-import logo from "../assets/Sora_logo.png";
-import { Link, NavLink, useLocation } from "react-router-dom";
-import { Search, ShoppingCart } from "lucide-react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+
+import { Search, ShoppingCart, User } from "lucide-react";
+import { apiLogout } from "@/app/userApi";
+import logo from "@/assets/Sora_logo.png";
 
 export default function Navbar() {
   const [showSearch, setShowSearch] = useState(false);
   const location = useLocation();
+  const token = localStorage.getItem("access_token");
+  const isLoggedIn = !!token;
+  const navigate = useNavigate();
 
   const isActiveTab = (path) => {
     return location.pathname + location.search === path;
@@ -69,7 +74,6 @@ export default function Navbar() {
             </button>
           </div>
 
-
           {/* Cart Icon with Badge */}
           <Link
             to="/cart"
@@ -78,13 +82,33 @@ export default function Navbar() {
             <ShoppingCart className="size-5 text-gray-600 group-hover:text-black transition" />
           </Link>
 
-          {/* Login Link */}
-          <Link
-            to="/login"
-            className="text-sm font-medium text-gray-600 hover:text-black transition"
-          >
-            Đăng nhập
-          </Link>
+          {!isLoggedIn ? (
+            <Link
+              to="/login"
+              className="text-sm font-medium text-gray-600 hover:text-black transition"
+            >
+              Đăng nhập
+            </Link>
+          ) : (
+            <>
+              <Link
+                to="/profile"
+                className="p-2 hover:bg-gray-100 rounded-lg transition"
+              >
+                <User className="size-5 text-gray-600 hover:text-black transition" />
+              </Link>
+
+              <button
+                onClick={() => {
+                  apiLogout();
+                  navigate("/", { replace: true });
+                }}
+                className="text-sm font-medium text-gray-600 hover:text-black transition"
+              >
+                Đăng xuất
+              </button>
+            </>
+          )}
         </div>
       </div>
     </header>

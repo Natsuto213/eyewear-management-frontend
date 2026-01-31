@@ -17,14 +17,14 @@ export default function ProductDetail() {
     const [error, setError] = useState(null);
 
     const [prescriptionData, setPrescriptionData] = useState({
-        leftCan: "", // Cận thị trái
-        leftVien: "", // Viễn thị trái
-        leftLoan: "", // Loạn thị trái
-        leftLao: "", // Lão thị trái
-        rightCan: "", // Cận thị phải
-        rightVien: "", // Viễn thị phải
-        rightLoan: "", // Loạn thị phải
-        rightLao: "", // Lão thị phải
+        leftCan: "0", // Cận thị trái
+        leftVien: "0", // Viễn thị trái
+        leftLoan: "0", // Loạn thị trái
+        leftLao: "0", // Lão thị trái
+        rightCan: "0", // Cận thị phải
+        rightVien: "0", // Viễn thị phải
+        rightLoan: "0", // Loạn thị phải
+        rightLao: "0", // Lão thị phải
         file: null,
     });
 
@@ -54,14 +54,14 @@ export default function ProductDetail() {
                 setOpenAccordion(null);
                 setMethod("manual");
                 setPrescriptionData({
-                    leftCan: "",
-                    leftVien: "",
-                    leftLoan: "",
-                    leftLao: "",
-                    rightCan: "",
-                    rightVien: "",
-                    rightLoan: "",
-                    rightLao: "",
+                    leftCan: "0", // Cận thị trái
+                    leftVien: "0", // Viễn thị trái
+                    leftLoan: "0", // Loạn thị trái
+                    leftLao: "0", // Lão thị trái
+                    rightCan: "0", // Cận thị phải
+                    rightVien: "0", // Viễn thị phải
+                    rightLoan: "0", // Loạn thị phải
+                    rightLao: "0", // Lão thị phải
                     file: null,
                 });
             } catch (err) {
