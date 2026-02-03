@@ -84,6 +84,7 @@ export default function Navbar() {
           >
             <ShoppingCart className="size-5 text-gray-600 group-hover:text-black transition" />
           </Link>
+          
 
           {/* Login Link */}
           <Link
