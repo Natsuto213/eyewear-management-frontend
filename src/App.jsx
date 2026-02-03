@@ -1,52 +1,45 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import React from 'react'
+import { Routes, Route } from "react-router"; // Dùng react-router
+import '@/App.css'
 
-import HomePage from "./views/Homepage";
-import LoginPage from "./views/Loginpage";
-import RegisterPage from "./views/Registerpage";
-import AllProduct from "./views/AllProduct";
-import Profilepage from "./views/Profilepage";
+import HomePage from './views/Homepage';
+import LoginPage from './views/LoginPage';
+import RegisterPage from './views/RegisterPage';
+import ProfilePage from './views/ProfilePage';
+import Account from './components/Account';
 
-import Account from "./components/PF/Account";
-
-import CSBH from "./views/CSBHpage";
-import CSMH from "./views/CSMHpage";
-import CSDT from "./views/CSDTpage";
-
+import AllProductLayout from './views/AllProduct/AllProductLayout'
+import AllProductFilter from './views/AllProduct/AllProductFilter';
 import ProductDetail from "./views/ProductDetail";
-import CartPage from "./views/CartPage";
-import ConfirmPage from "./views/ConfirmPage";
+import CSMHpage from './views/CSMHpage';
+import CSDTpage from './views/CSDTpage';
+import CSBHpage from './views/CSBHpage';
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Public pages */}
-        <Route path="/" element={<HomePage />} />
-        <Route path="/all-product" element={<AllProduct />} />
-        <Route path="/product/:id" element={<ProductDetail />} />
+    <Routes>
+      <Route index element={<HomePage />} />
 
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+      <Route path="/all-product" element={<AllProductLayout />} >
+        <Route index element={<AllProductFilter />} />
+        <Route path="gong" element={<AllProductFilter />} />
+        <Route path="trong" element={<AllProductFilter />} />
+        <Route path="kinhaptrong" element={<AllProductFilter />} />
+      </Route>
 
-        {/* Policy pages */}
-        <Route path="/bao-hanh" element={<CSBH />} />
-        <Route path="/chinh-sach-mua-hang" element={<CSMH />} />
-        <Route path="/chinh-sach-doi-tra" element={<CSDT />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/chinh-sach-mua-hang" element={<CSMHpage />} />
+      <Route path="/chinh-sach-doi-tra" element={<CSDTpage />} />
+      <Route path="/bao-hanh" element={<CSBHpage />} />
 
-        {/* Cart & Confirm */}
-        <Route path="/cart" element={<CartPage />} />
-        <Route path="/confirm" element={<ConfirmPage />} />
+      <Route path="/profile" element={<ProfilePage />}>
+        <Route path="account" element={<Account />} />
+      </Route>
 
-        {/* Profile layout */}
-        <Route path="/profile" element={<Profilepage />}>
-          <Route path="account" element={<Account />} />
-        </Route>
-
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/login" />} />
-      </Routes>
-    </BrowserRouter>
+      <Route path="/product/:id" element={<ProductDetail />} />
+    </Routes>
   );
 }
 
-export default App;
+export default App; 
