@@ -1,15 +1,22 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Search, ShoppingCart, User } from "lucide-react";
 import { apiLogout } from "../app/userApi";
-import logo from "../assets/logo.png";
+import logo from "@/assets/logo.png";
 
 export default function Navbar() {
   const [showSearch, setShowSearch] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(
+    !!localStorage.getItem("access_token")
+  );
+
   const location = useLocation();
-  const token = localStorage.getItem("access_token");
-  const isLoggedIn = !!token;
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // mỗi lần đổi route thì check token lại (đơn giản & hiệu quả)
+    setIsLoggedIn(!!localStorage.getItem("access_token"));
+  }, [location.pathname, location.search]);
 
   const isActiveTab = (path: string): boolean => {
     return location.pathname + location.search === path;
@@ -22,6 +29,12 @@ export default function Navbar() {
     { name: "Kính áp tròng", path: "/all-product/kinhaptrong" },
     { name: "Về chúng tôi", path: "/about-us" },
   ];
+
+  const handleLogout = async () => {
+    await apiLogout();         // ✅ gọi API + xoá token
+    setIsLoggedIn(false);      // ✅ navbar update ngay
+    navigate("/", { replace: true });
+  };
 
   return (
     <header className="w-full bg-white shadow-sm">
@@ -99,10 +112,7 @@ export default function Navbar() {
               </Link>
 
               <button
-                onClick={() => {
-                  apiLogout();
-                  navigate("/", { replace: true });
-                }}
+                onClick={handleLogout}
                 className="text-sm font-medium text-gray-600 transition hover:text-black"
               >
                 Đăng xuất

@@ -46,9 +46,25 @@ export async function apiUpdateMyInfo(payload: {
   return res.data;
 }
 
-export function apiLogout() {
-  localStorage.removeItem("access_token");
+export async function apiLogout() {
+  const token = localStorage.getItem("access_token");
+
+  try {
+    await axios.post(
+      `${BASE_URL}/auth/logout`,
+      {},
+      {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      }
+    );
+  } catch (err) {
+    console.warn("Logout API failed:", err);
+  } finally {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token"); // nếu bạn có dùng
+  }
 }
+
 
 export async function apiSignup(payload: {
   username: string;
@@ -61,4 +77,6 @@ export async function apiSignup(payload: {
   const res = await axios.post(`${BASE_URL}/users`, payload);
   return res.data;
 }
+
+
 

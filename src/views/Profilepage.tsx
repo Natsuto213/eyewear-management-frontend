@@ -1,6 +1,6 @@
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import Profile from "../components/PF/Profile";
+import Profile from "../components/Profile";
 
 
 

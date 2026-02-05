@@ -14,6 +14,8 @@ import ProductDetail from "./views/ProductDetail";
 import CSMHpage from './views/CSMHpage';
 import CSDTpage from './views/CSDTpage';
 import CSBHpage from './views/CSBHpage';
+import Cart from './views/CartPage';
+import Confirm from './views/ConfirmPage';
 
 function App() {
   return (
@@ -32,6 +34,8 @@ function App() {
       <Route path="/chinh-sach-mua-hang" element={<CSMHpage />} />
       <Route path="/chinh-sach-doi-tra" element={<CSDTpage />} />
       <Route path="/bao-hanh" element={<CSBHpage />} />
+      <Route path="/cart" element={<Cart />} />
+      <Route path="/confirm" element={<Confirm />} />
 
       <Route path="/profile" element={<ProfilePage />}>
         <Route path="account" element={<Account />} />
