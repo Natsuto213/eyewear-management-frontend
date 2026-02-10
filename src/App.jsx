@@ -6,14 +6,11 @@ import HomePage from './views/Homepage';
 import LoginPage from './views/LoginPage';
 import RegisterPage from './views/RegisterPage';
 import ProfilePage from './views/ProfilePage';
-import Account from './components/Account';
+import Account from './views/AccountPage';
 
 import AllProductLayout from './views/AllProduct/AllProductLayout'
 import AllProductFilter from './views/AllProduct/AllProductFilter';
 import ProductDetail from "./views/ProductDetail";
-import CSMHpage from './views/CSMHpage';
-import CSDTpage from './views/CSDTpage';
-import CSBHpage from './views/CSBHpage';
 import Cart from './views/CartPage';
 import Confirm from './views/ConfirmPage';
 
@@ -31,9 +28,6 @@ function App() {
 
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
-      <Route path="/chinh-sach-mua-hang" element={<CSMHpage />} />
-      <Route path="/chinh-sach-doi-tra" element={<CSDTpage />} />
-      <Route path="/bao-hanh" element={<CSBHpage />} />
       <Route path="/cart" element={<Cart />} />
       <Route path="/confirm" element={<Confirm />} />
 

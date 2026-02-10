@@ -1,7 +1,7 @@
 import axios from "axios";
 import { api } from "./api"; // nếu file api.ts nằm cùng folder, đúng thì giữ
 
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = "https://api-eyewear.purintech.id.vn";
 
 export async function apiLogin(username: string, password: string) {
   const res = await axios.post(`${BASE_URL}/auth/token`, { username, password });

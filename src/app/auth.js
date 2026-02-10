@@ -1,7 +1,7 @@
 // src/api/auth.js
 import axios from "axios";
 
-const BASE_URL = "http://localhost:8080"; 
+const BASE_URL = "https://api-eyewear.purintech.id.vn"; 
 
 export async function login(username, password) {
   const res = await axios.post(`${BASE_URL}/auth/token`, {
