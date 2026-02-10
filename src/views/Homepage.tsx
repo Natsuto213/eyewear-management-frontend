@@ -8,7 +8,6 @@ import banner from "@/assets/Sale_banner.png";
 import { ArrowRight } from "lucide-react";
 
 export default function HomePage() {
-
     useEffect(() => {
         console.log(
             "ACCESS TOKEN IN HOMEPAGE =",

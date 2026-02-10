@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from "react-router";
 import './App.css'
 
-import HomePage from './views/Homepage';
+import HomePage from './views/HomePage';
 import LoginPage from './views/LoginPage';
 import RegisterPage from './views/RegisterPage';
 import ProfilePage from './views/ProfilePage';
@@ -12,6 +12,7 @@ import Account from './components/Account';
 import AllProductLayout from './views/AllProduct/AllProductLayout'
 import AllProductFilter from './views/AllProduct/AllProductFilter';
 import ProductDetail from "./views/ProductDetail";
+import ConfirmPage from './components/Confirm';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <BrowserRouter>
@@ -33,7 +34,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       </Route>
 
       <Route path="/product/:id" element={<ProductDetail />} />
-
+      <Route path="/confirm" element={<ConfirmPage />} />
+      
     </Routes>
   </BrowserRouter>
 )
