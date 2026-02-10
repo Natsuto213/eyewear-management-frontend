@@ -1,6 +1,6 @@
 //Component sản phẩm tương tự
 import { Link } from "react-router-dom";
-import ProductCard from "../Common/ProductCard";
+import ProductCard from "./ProductCard";
 
 export default function RelatedSection({ title, products}) {
   if (!products || products.length === 0) return null;

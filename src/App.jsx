@@ -11,7 +11,7 @@ import Account from './components/Account';
 
 import AllProductLayout from './views/AllProduct/AllProductLayout'
 import AllProductFilter from './views/AllProduct/AllProductFilter';
-import ProductDetail from "./views/ProductDetail";
+import ProductDetail from './views/ProductDetail';
 
 
 
