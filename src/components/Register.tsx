@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { apiSignup } from "@/app/userApi";
-import loginImg from "@/assets/login.png";
+import { apiSignup } from "@/lib/userApi";
+import loginImg from "@/../public/login.png";
 
 const Register: React.FC = () => {
     const navigate = useNavigate();

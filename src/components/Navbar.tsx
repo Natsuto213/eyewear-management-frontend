@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 
 import { Search, ShoppingCart, User } from "lucide-react";
-import { apiLogout } from "@/app/userApi";
-import logo from "@/assets/Sora_logo.png";
+import { apiLogout } from "@/lib/userApi";
+import logo from "@/../public/Sora_logo.png";
 
 export default function Navbar() {
   const [showSearch, setShowSearch] = useState(false);

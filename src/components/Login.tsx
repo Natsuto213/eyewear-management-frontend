@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { apiLogin } from "@/app/userApi";
-import loginImg from "@/assets/login.png";
+import { apiLogin } from "@/lib/userApi";
+import loginImg from "@/../public/login.png";
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();

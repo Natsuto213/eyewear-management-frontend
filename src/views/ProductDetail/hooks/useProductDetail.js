@@ -26,7 +26,7 @@ export function useProductDetail(id) {
         setError(null);
         setLoading(true);
 
-        const res = await fetch(`http://localhost:8080/api/products/${id}`);
+        const res = await fetch(`https://api-eyewear.purintech.id.vn/api/products/${id}`);
         if (!res.ok) throw new Error("Không tìm thấy sản phẩm!");
 
         const data = await res.json();

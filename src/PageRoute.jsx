@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import './App.css'
+import './PageRoute.css'
 
 import HomePage from './views/HomePage';
 import LoginPage from './views/LoginPage';
@@ -13,8 +13,6 @@ import AllProductLayout from './views/AllProduct/AllProductLayout'
 import AllProductFilter from './views/AllProduct/AllProductFilter';
 import ProductDetail from "./views/ProductDetail";
 import ConfirmPage from './components/Confirm';
-
-
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>

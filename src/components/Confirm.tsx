@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { api } from "@/lib/api";
 
 type PaymentMethod = "bank" | "cod" | "deposit"; // Thêm deposit vào PaymentMethod
 
@@ -41,8 +42,27 @@ export default function ConfirmPage() {
         else setDiscountValue(0);
     };
 
-    const handlePay = () => {
-        navigate("/success");
+    const handlePay = async () => {
+        try {
+            // 👉 Chuyển khoản PayOS
+            if (payment === "bank") {
+                const res = await api.post("/payos/create-payment", {
+                    amount: Math.round(total * 1000), // PayOS dùng VND
+                    description: "Thanh toán đơn hàng",
+                });
+
+                navigate("/payment-qr", {
+                    state: res.data,
+                });
+                return;
+            }
+
+            // 👉 COD / Deposit
+            navigate("/success");
+        } catch (err) {
+            console.error(err);
+            alert("Không thể tạo thanh toán PayOS");
+        }
     };
 
     const inputBase =

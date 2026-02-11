@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { NavLink, Outlet, useMatch, useNavigate } from "react-router-dom";
-import { apiLogout } from "@/app/userApi";
+import { apiLogout } from "@/lib/userApi";
 
 const Profile: React.FC = () => {
   const isAccountPage = useMatch("/profile/account");
