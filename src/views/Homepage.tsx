@@ -4,7 +4,7 @@ import { ImageWithFallback } from "@/components/ImageWithFallback";
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import banner from "@/../public/Sale_banner.png";
+import banner from "@/assets/Sale_banner.png";
 import { ArrowRight } from "lucide-react";
 
 export default function HomePage() {

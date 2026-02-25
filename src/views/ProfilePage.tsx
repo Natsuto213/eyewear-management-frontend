@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
 import { NavLink, Outlet, useMatch, useNavigate } from "react-router-dom";
-import { apiLogout } from "@/lib/userApi";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import { apiLogout } from "../lib/userApi";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 type OrderStatus = "shipping" | "waiting" | "delivered";
 

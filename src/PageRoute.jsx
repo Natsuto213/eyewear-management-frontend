@@ -7,12 +7,13 @@ import HomePage from './views/HomePage';
 import LoginPage from './views/LoginPage';
 import RegisterPage from './views/RegisterPage';
 import ProfilePage from './views/ProfilePage';
-import Account from './components/Account';
+import Account from './views/AccountPage';
 
 import AllProductLayout from './views/AllProduct/AllProductLayout'
 import AllProductFilter from './views/AllProduct/AllProductFilter';
 import ProductDetail from "./views/ProductDetail";
-import ConfirmPage from './components/Confirm';
+import Cart from './views/CartPage';
+import Confirm from './views/ConfirmPage';
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
@@ -28,15 +29,14 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/cart" element={<Cart />} />
+      <Route path="/confirm" element={<Confirm />} />
 
       <Route path="/profile" element={<ProfilePage />}>
         <Route path="account" element={<Account />} />
       </Route>
 
-
       <Route path="/product/:id" element={<ProductDetail />} />
-      <Route path="/confirm" element={<ConfirmPage />} />
-      
     </Routes>
   </BrowserRouter>,
 );

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { apiGetMyInfo, apiUpdateMyInfo } from "@/lib/userApi";
+import { apiGetMyInfo, apiUpdateMyInfo } from "../lib/userApi";
 
 type FormState = {
   email: string;
