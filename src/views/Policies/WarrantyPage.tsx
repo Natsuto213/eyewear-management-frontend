@@ -317,7 +317,7 @@ export default function WarrantyPage() {
                     </div>
                 </div>
             </main >
-
+            
             <Footer />
         </div >
     )
