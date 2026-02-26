@@ -1,10 +1,11 @@
 import { useEffect } from "react";  
 import { useNavigate, Link } from "react-router-dom";
-import { ImageWithFallback } from "../components/ImageWithFallback";
 
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
-import banner from "../assets/Sale_banner.png";
+import { ImageWithFallback } from "@/components/ImageWithFallback";
+
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import banner from "@/assets/Sale_banner.png";
 import { ArrowRight } from "lucide-react";
 
 export default function HomePage() {

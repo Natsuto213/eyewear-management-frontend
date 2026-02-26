@@ -213,7 +213,7 @@ const ConfirmPage: React.FC = () => {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <div className="font-semibold text-zinc-900">Chuyển khoản</div>
+                      <div className="font-semibold text-zinc-900">VNPAY</div>
                       <div className="mt-1 text-sm text-zinc-600">
                         Thanh toán qua ngân hàng/QR
                       </div>
@@ -272,9 +272,9 @@ const ConfirmPage: React.FC = () => {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <div className="font-semibold text-zinc-900">Đặt cọc</div>
+                      <div className="font-semibold text-zinc-900">MOMO</div>
                       <div className="mt-1 text-sm text-zinc-600">
-                        Đặt cọc để giữ chỗ
+                        Chuyển qua ví điện tử
                       </div>
                     </div>
                     <div
@@ -460,4 +460,6 @@ const ConfirmPage: React.FC = () => {
   );
 };
 
+
 export default ConfirmPage;
+

@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { apiGetMyInfo, apiUpdateMyInfo } from "../app/userApi";
+
+import { apiGetMyInfo, apiUpdateMyInfo } from "../lib/userApi";
+
 
 type FormState = {
   email: string;
@@ -176,4 +178,6 @@ const Input: React.FC<InputProps> = ({
       />
     </div>
   );
+
 };
+

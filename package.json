@@ -10,10 +10,18 @@
     "preview": "vite preview"
   },
   "dependencies": {
+
     "@fortawesome/fontawesome-free": "^7.1.0",
     "@tailwindcss/postcss": "^4.1.18",
     "axios": "^1.13.3",
     "lucide-react": "^0.563.0",
+
+    "@payos/node": "^2.0.4",
+    "@tailwindcss/vite": "^4.1.18",
+    
+    "express": "^5.2.1",
+    
+
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.12.0"

@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { Outlet, useSearchParams, useLocation } from "react-router-dom";
 import { Filter, SlidersHorizontal } from "lucide-react";
 
-import { api } from "../../app/api";
-import Navbar from "../../components/Navbar";
-import Footer from "../../components/Footer";
+
+import { api } from "@/lib/api";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+
 
 export default function AllProductLayout() {
     const [allProducts, setAllProducts] = useState<any[]>([]);

@@ -1,20 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react"; // Đã thêm useEffect vào đây
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Search, ShoppingCart, User } from "lucide-react";
-import { apiLogout } from "../app/userApi";
+import { apiLogout } from "@/lib/userApi";
 import logo from "@/assets/logo.png";
 
 export default function Navbar() {
   const [showSearch, setShowSearch] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(
-    !!localStorage.getItem("access_token")
-  );
-
+  // Khai báo isLoggedIn và setIsLoggedIn để quản lý trạng thái đăng nhập
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("access_token"));
+  
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // mỗi lần đổi route thì check token lại (đơn giản & hiệu quả)
+    // Mỗi lần đổi route hoặc có thay đổi, cập nhật lại trạng thái login
     setIsLoggedIn(!!localStorage.getItem("access_token"));
   }, [location.pathname, location.search]);
 
@@ -31,9 +30,13 @@ export default function Navbar() {
   ];
 
   const handleLogout = async () => {
-    await apiLogout();         // ✅ gọi API + xoá token
-    setIsLoggedIn(false);      // ✅ navbar update ngay
-    navigate("/", { replace: true });
+    try {
+      await apiLogout();         // ✅ gọi API + xoá token
+      setIsLoggedIn(false);      // ✅ navbar update ngay
+      navigate("/", { replace: true });
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   return (
@@ -87,7 +90,7 @@ export default function Navbar() {
             </button>
           </div>
 
-          {/* Cart */}
+          {/* Cart Icon */}
           <Link
             to="/cart"
             className="group relative rounded-lg p-2 transition hover:bg-gray-100"
@@ -98,7 +101,7 @@ export default function Navbar() {
           {!isLoggedIn ? (
             <Link
               to="/login"
-              className="text-sm font-medium text-gray-600 transition hover:text-black"
+              className="text-sm font-medium text-gray-600 hover:text-black transition"
             >
               Đăng nhập
             </Link>
@@ -106,14 +109,14 @@ export default function Navbar() {
             <>
               <Link
                 to="/profile"
-                className="rounded-lg p-2 transition hover:bg-gray-100"
+                className="p-2 hover:bg-gray-100 rounded-lg transition"
               >
-                <User className="size-5 text-gray-600 transition hover:text-black" />
+                <User className="size-5 text-gray-600 hover:text-black transition" />
               </Link>
 
               <button
                 onClick={handleLogout}
-                className="text-sm font-medium text-gray-600 transition hover:text-black"
+                className="text-sm font-medium text-gray-600 hover:text-black transition"
               >
                 Đăng xuất
               </button>
