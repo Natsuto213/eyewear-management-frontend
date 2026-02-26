@@ -91,20 +91,13 @@ export default function Footer() {
                             </li>
                             <li>
                                 <Link
-                                    to="/chinh-sach-doi-tra"
-                                    className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition group"
-                                >
-                                    <RefreshCw className="size-4 group-hover:rotate-180 transition-transform duration-500" />
-                                    <span>Chính sách đổi trả</span>
-                                </Link>
-                            </li>
-                            <li>
-                                <Link
-                                    to="/bao-hanh"
+                                    to="/warranty"
                                     className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition group"
                                 >
                                     <Shield className="size-5 group-hover:translate-x-1 transition-transform" />
-                                    <span>Bảo hành sản phẩm</span>
+                                    <span>Bảo Hành - </span>
+                                    <RefreshCw className="size-4 group-hover:rotate-180 transition-transform duration-500" />
+                                    <span>Đổi Trả</span>
                                 </Link>
                             </li>
                         </ul>
@@ -167,28 +160,10 @@ export default function Footer() {
             </div>
 
             {/* Bottom Bar */}
-            <div className="border-t border-gray-300 bg-gray-100">
-                <div className="max-w-7xl mx-auto px-4 py-6">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                        <p className="text-sm text-gray-600 text-center md:text-left">
-                            © 2026 Kính Mắt Sora. All rights reserved.
-                        </p>
-                        <div className="flex gap-6 text-sm">
-                            <Link
-                                to="/privacy"
-                                className="text-gray-600 hover:text-blue-600 transition"
-                            >
-                                Chính sách bảo mật
-                            </Link>
-                            <Link
-                                to="/terms"
-                                className="text-gray-600 hover:text-blue-600 transition"
-                            >
-                                Điều khoản sử dụng
-                            </Link>
-                        </div>
-                    </div>
-                </div>
+            <div className="border-t border-gray-300 bg-gray-100 py-6 text-center">
+                <p className="text-sm text-gray-600">
+                    © 2026 Kính Mắt Sora. All rights reserved.
+                </p>
             </div>
         </footer>
     );
