@@ -1,181 +1,162 @@
 /**
- * index.jsx (ProductDetail Page)
- * Chức năng:
- * - Là page chính render chi tiết sản phẩm theo :id
- * - Lắp ráp các component, không chứa logic dài (logic đã tách ra hooks/utils)
+ * index.jsx - ProductDetail Page
+ * ================================
+ * Trang chi tiết sản phẩm. Đây là "bộ khung" lắp ráp các component lại với nhau.
+ * Tất cả logic phức tạp đã được tách vào hooks/ và utils/ để file này gọn, dễ đọc.
+ *
+ * Luồng hoạt động:
+ *  1. Lấy :id từ URL (useParams)
+ *  2. Fetch dữ liệu sản phẩm qua useProductDetail hook
+ *  3. Hiển thị LoadingState hoặc ErrorState nếu cần
+ *  4. Khi có dữ liệu → phân loại sản phẩm (Gọng/Tròng/Kính áp tròng) qua productHelpers
+ *  5. Render layout 2 cột: trái (Gallery) | phải (Info + Form + Cart)
+ *  6. Bên dưới: RelatedSection sản phẩm bổ trợ + sản phẩm tương tự
+ *
+ * Quan trọng:
+ *  - Khi :id thay đổi (người dùng xem sản phẩm khác), useEffect reset đơn thuốc + scroll lên đầu
  */
 
-import React, { useCallback, useEffect, useState, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 
-import Navbar from "../../components/Navbar";
-import Footer from "../../components/Footer";
-import { ImageWithFallback } from "../../components/ImageWithFallback";
+// ── Layout chung ──
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
+// ── Components con ──
 import ProductGallery from "./components/ProductGallery";
-import PrescriptionForm from "./components/PrescriptionForm";
+import ProductInfo from "./components/ProductInfo";
+import AddToCartBar from "./components/AddToCartBar";
+import InfoAccordion from "./components/InfoAccordion";
 import RelatedSection from "./components/RelatedSection";
-
 import LoadingState from "./components/LoadingState";
 import ErrorState from "./components/ErrorState";
-import QuantitySelector from "./components/QuantitySelector";
-import InfoAccordion from "./components/InfoAccordion";
 
+// ── Custom Hooks ──
 import { useProductDetail } from "./hooks/useProductDetail";
-import { usePrescriptionInput } from "./hooks/usePrescriptionInput";
-import { getRelatedProducts } from "./utils/getRelatedProducts";
+import { usePrescription } from "./hooks/usePrescription";
 
-// validate.js nằm trong views/ProductDetail/utils/
-import { validateEyeDegree } from "./utils/validate";
+// ── Utilities ──
+import { getProductFlags, getRelatedLists } from "./utils/productHelpers";
 
 export default function ProductDetailPage() {
-  const { id } = useParams();
+    // ─── Lấy id sản phẩm từ URL (/product/:id) ────────────────────────────────
+    const { id } = useParams();
 
-  // 1) Fetch product theo id
-  const { product, loading, error } = useProductDetail(id);
+    // ─── Hook 1: Fetch dữ liệu sản phẩm từ API ────────────────────────────────
+    const { product, loading, error } = useProductDetail(id);
 
-  // 2) UI state đơn giản
-  const [quantity, setQuantity] = useState(1);
-  const [openAccordion, setOpenAccordion] = useState(null);
-  const didMountRef = useRef(false);
+    // ─── Hook 2: Quản lý state form đơn thuốc mắt ─────────────────────────────
+    const {
+        data: rxData,       // Dữ liệu 10 fields đơn thuốc
+        errors: rxErrors,     // Lỗi validate từng field
+        updateField: onUpdateRx,   // Hàm cập nhật 1 field
+        validateOnBlur: onBlurRx,     // Hàm validate khi rời ô input
+        validateAll: validateAllRx, // Hàm validate toàn bộ trước khi thêm vào giỏ
+        resetPrescription,             // Hàm reset form về mặc định (0 hết)
+    } = usePrescription();
 
-  // 3) State & handler cho phần đơn thuốc
-  // Pass current product id so the hook can persist per-product draft in sessionStorage
-  const rx = usePrescriptionInput(id, validateEyeDegree);
+    // ─── Ref: đánh dấu đã mount lần đầu chưa ─────────────────────────────────
+    // Mục đích: phân biệt "lần đầu vào trang (F5)" vs "chuyển sang id khác"
+    // - Lần đầu mount: isMounted = false → KHÔNG reset (giữ data từ localStorage)
+    // - Đổi id sau đó:  isMounted = true  → reset form + scroll lên đầu
+    const isMounted = useRef(false);
 
-  /**
-   * Reset UI khi id đổi:
-   * - quantity về 1
-   * - accordion đóng lại
-   * - đơn thuốc reset
-   * - scroll lên đầu
-   */
-  useEffect(() => {
-    setQuantity(1);
-    setOpenAccordion(null);
-    // Only reset prescription when switching between products, not on initial mount
-    // This avoids clearing the draft on page refresh (F5). sessionStorage retains data per tab.
-    if (!didMountRef.current) {
-      didMountRef.current = true;
-    } else {
-      rx.resetPrescription();
-    }
-    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+    /**
+     * useEffect: Khi id thay đổi (người dùng điều hướng sang sản phẩm khác)
+     *  → Reset form đơn thuốc về 0
+     *  → Scroll lên đầu trang
+     *
+     * Lần đầu mount (F5): bỏ qua reset để giữ dữ liệu đã lưu trong localStorage.
+     */
+    useEffect(() => {
+        // Lần đầu mount: chỉ đánh dấu đã mount, không reset
+        if (!isMounted.current) {
+            isMounted.current = true;
+            return;
+        }
+        // Từ lần thứ 2 trở đi (id thực sự thay đổi): reset form và scroll lên đầu
+        resetPrescription();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [id]); // Chỉ chạy khi id thay đổi
 
-  // ====== useCallback CHỈ DÙNG KHI child có React.memo ======
-  // QuantitySelector là React.memo => onDecrease/onIncrease nên ổn định reference
-  const handleDecrease = useCallback(() => {
-    setQuantity((q) => Math.max(1, q - 1));
-  }, []);
+    // ─── Hiển thị màn hình loading/lỗi ────────────────────────────────────────
+    if (loading) return <LoadingState />;
+    if (error || !product) return <ErrorState message={error} />;
 
-  const handleIncrease = useCallback(() => {
-    setQuantity((q) => q + 1);
-  }, []);
+    // ─── Phân loại sản phẩm: Gọng / Tròng / Kính áp tròng ────────────────────
+    const flags = getProductFlags(product);
+    const { isFrame, isLenses, isContact } = flags;
 
-  // InfoAccordion là React.memo => onToggle nên ổn định reference
-  const handleToggleAccordion = useCallback((index) => {
-    setOpenAccordion((current) => (current === index ? null : index));
-  }, []);
-  // ===========================================================
+    // ─── Lấy danh sách sản phẩm liên quan ─────────────────────────────────────
+    const {
+        complementaryTitle,
+        complementaryProducts,
+        similarTitle,
+        similarProducts,
+    } = getRelatedLists(product, flags);
 
-  if (loading) return <LoadingState />;
-  if (error || !product) return <ErrorState message={error} />;
+    // ─── Render trang ──────────────────────────────────────────────────────────
+    return (
+        <div className="w-full bg-white font-sans text-black antialiased min-h-screen">
+            <Navbar />
 
-  // 4) Tính loại sản phẩm + related
-  const {
-    isFrame,
-    isLenses,
-    isContact,
-    complementaryProducts,
-    similarProducts,
-  } = getRelatedProducts(product);
+            {/* ── Vùng nội dung chính (max 1400px, có padding responsive) ── */}
+            <main className="max-w-350 mx-auto px-4 md:px-10 py-8">
 
-  return (
-    <div className="w-full bg-white font-sans text-black antialiased">
-      <Navbar />
+                {/* ── GRID 2 CỘT: 60% Gallery | 40% Thông tin ── */}
+                {/* Mobile: 1 cột dọc / Desktop: 2 cột ngang */}
+                <div className="grid grid-cols-1 lg:grid-cols-[60%_40%] gap-8 items-start">
 
-      <div className="max-w-[1400px] mx-auto px-4 md:px-10 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[60%_40%] gap-8 items-start">
-          <ProductGallery images={product.imageUrls} name={product.name} />
+                    {/* ── CỘT TRÁI: Gallery ảnh sản phẩm ── */}
+                    <ProductGallery
+                        images={product.imageUrls}
+                        name={product.name}
+                    />
 
-          <div className="flex flex-col pl-4 lg:pl-10">
-            <h1 className="text-xl md:text-2xl font-bold uppercase">
-              {product.name}, mã hàng: {product.sku}
-            </h1>
+                    {/* ── CỘT PHẢI: Thông tin + Form + Nút thêm giỏ ── */}
+                    <div className="flex flex-col lg:pl-6">
 
-            <div className="text-2xl font-bold text-red-600 mb-6 font-mono">
-              {product.price.toLocaleString()}đ
-            </div>
+                        {/* Tên, SKU, Brand, Giá, thông số đặc trưng */}
+                        <ProductInfo product={product} isContact={isContact} />
 
-            {/* 4 Ảnh nhỏ dưới giá tiền */}
-            <div className="grid grid-cols-4 gap-2 mb-8">
-              {product.imageUrls?.slice(0, 4).map((url, i) => (
-                <div
-                  key={i}
-                  className="aspect-square border border-teal-500/30 overflow-hidden cursor-pointer p-1 bg-white"
-                >
-                  <ImageWithFallback
-                    src={url}
-                    className="w-full h-full object-cover"
-                  />
+                        {/* AddToCartBar xử lý toàn bộ business logic:
+                - PrescriptionForm (nếu là Gọng/Tròng)
+                - Checkbox "mua đơn lẻ" / Nút mở Modal chọn sản phẩm kèm
+                - QuantitySelector + Nút "Thêm vào giỏ" */}
+                        <AddToCartBar
+                            product={product}
+                            isFrame={isFrame}
+                            isLenses={isLenses}
+                            isContact={isContact}
+                            rxData={rxData}
+                            rxErrors={rxErrors}
+                            onUpdateRx={onUpdateRx}
+                            onBlurRx={onBlurRx}
+                            validateAllRx={validateAllRx}
+                        />
+
+                        {/* Accordion: Mô tả / Vận chuyển / Bảo hành / Cửa hàng */}
+                        <InfoAccordion description={product.Description} />
+                    </div>
                 </div>
-              ))}
-            </div>
+            </main>
 
-            {/* Form đơn thuốc chỉ hiện cho Tròng/Kính áp tròng */}
-            {(isLenses || isContact) && (
-              <PrescriptionForm
-                method={rx.method}
-                setMethod={rx.setMethod}
-                data={rx.prescriptionData}
-                onUpdate={rx.updateField}
-                onFileChange={rx.handleFileChange}
-                previewUrl={rx.previewUrl}
-                errors={rx.errors}
-                onBlurAction={rx.handleBlurAction}
-              />
-            )}
-
-            <div className="space-y-4 mb-10">
-              <div className="flex gap-4 items-center">
-                <QuantitySelector
-                  quantity={quantity}
-                  onDecrease={handleDecrease}
-                  onIncrease={handleIncrease}
-                />
-
-                <button className="flex-1 border border-teal-500 text-teal-500 h-10 font-bold uppercase hover:bg-teal-50">
-                  THÊM VÀO GIỎ HÀNG
-                </button>
-              </div>
-
-              <button className="w-full bg-white border border-teal-500 text-teal-500 h-10 font-bold uppercase hover:bg-teal-500 hover:text-white transition-all">
-                MUA NGAY
-              </button>
-            </div>
-
-            <InfoAccordion
-              openAccordion={openAccordion}
-              onToggle={handleToggleAccordion}
-              description={product.Description}
+            {/* ── SECTION SẢN PHẨM BỔ TRỢ (Gọng ↔ Tròng) ── */}
+            {/* Chỉ hiển thị khi có sản phẩm bổ trợ */}
+            <RelatedSection
+                title={complementaryTitle}
+                products={complementaryProducts}
             />
-          </div>
+
+            {/* ── SECTION SẢN PHẨM TƯƠNG TỰ ── */}
+            <RelatedSection
+                title={similarTitle}
+                products={similarProducts}
+            />
+
+            <Footer />
         </div>
-      </div>
-
-      {/* Section bổ trợ (chỉ Gong/Trong) */}
-      {(isFrame || isLenses) && (
-        <RelatedSection
-          title={isFrame ? "TRÒNG KÍNH BỔ TRỢ" : "GỌNG KÍNH BỔ TRỢ"}
-          products={complementaryProducts}
-        />
-      )}
-
-      <RelatedSection title="SẢN PHẨM TƯƠNG TỰ" products={similarProducts} />
-
-      <Footer />
-    </div>
-  );
+    );
 }

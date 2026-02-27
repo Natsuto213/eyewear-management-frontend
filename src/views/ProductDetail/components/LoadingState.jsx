@@ -1,20 +1,19 @@
 /**
  * LoadingState.jsx
- * Chức năng:
- * - Hiển thị UI loading cho ProductDetail
+ * =================
+ * Hiển thị màn hình loading (đang tải) khi đang fetch dữ liệu sản phẩm.
+ * Đơn giản, dễ hiểu: spinner teal + chữ "Đang tải...".
  */
 
-import React from "react";
-
-function LoadingState() {
+export default function LoadingState() {
   return (
-    <div className="w-full h-screen flex items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
-      <p className="ml-4 font-bold text-teal-800 uppercase tracking-widest">
-        Đang lấy dữ liệu...
+    <div className="w-full min-h-screen flex flex-col items-center justify-center gap-4">
+      {/* Spinner xoay tròn */}
+      <div className="w-12 h-12 border-4 border-gray-200 border-t-teal-500 rounded-full animate-spin" />
+      {/* Chữ thông báo */}
+      <p className="text-teal-700 font-semibold tracking-widest uppercase text-sm">
+        Đang tải sản phẩm...
       </p>
     </div>
   );
 }
-
-export default LoadingState;
