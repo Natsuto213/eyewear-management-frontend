@@ -1,137 +1,195 @@
-import { useState, createContext, useContext, useEffect } from "react";
+import { useState, createContext, useContext, useEffect, useCallback } from "react";
+import {
+    addCartItemApi,
+    updateCartQtyApi,
+    getAllCartApi,
+    deleteCartItemApi,
+    deleteAllCartApi,
+    mapApiItemToLocal,
+} from "../api/cartApi";
 
-const ShoppingContext = createContext()
+const ShoppingContext = createContext();
 
-//sẽ truyền xuống con các feild: 
-/*
-    cartQty: number
-    totalPrice: number
-    carItems: CartItem[]
-    increaseQty: (id:number) => void
-    decreaseQty: (id:number) => void
-    addCartItem:(item:ProductItem) => void
-    removeCartItem: (id:number) => void
-    clearCart: () => void
-*/
-
-/* cartItem sẽ chứa [] với dữ liệu là const payload = {
-           productId: product.id,
-            priceProduct: product.price,                        // Giá sản phẩm chính
-            nameProduct: product.name,                          // Tên sản phẩm chính
-            imgProduct: product.imageUrls,                      // Ảnh sản phẩm chính
-            quantity,
-            prescription: rxData,                               // Tất cả loại đều gửi đơn thuốc                              // TODO: Giá dịch vụ cắt kính theo đơn (do backend tính)
-            pairedProductId: pairedProduct?.id ?? null,         // null nếu mua đơn lẻ
-            pricePairedProduct: pairedProduct?.price ?? null,   // Giá sản phẩm kèm
-            namePairedProduct: pairedProduct?.name ?? null,     // Tên sản phẩm kèm
-            imgPairedProduct: pairedProduct?.image ?? null, 
-        }; */
+// ═══════════════════════════════════════════════════════════════
+// ShoppingContextProvider
+// ───────────────────────
+// Quản lý giỏ hàng HOÀN TOÀN qua API backend.
+//
+// ⚙️ Cách hoạt động (rất đơn giản):
+//   1. Khi mở trang   → gọi GET /getAllCart → hiển thị lên UI
+//   2. Khi thêm/sửa/xóa → gọi API tương ứng → gọi lại GET để cập nhật UI
+//   3. Backend tự xử lý logic trùng đơn → Frontend chỉ cần gọi API
+//
+// 🔒 Kiểm tra đăng nhập:
+//   Chỉ check ở hàm addCartItem (khi bấm "Thêm vào giỏ hàng")
+//   Nếu chưa đăng nhập → hiện popup yêu cầu đăng nhập
+// ═══════════════════════════════════════════════════════════════
 export function ShoppingContextProvider({ children }) {
-    const [cartItems, setCarrItems] = useState(() => {
-        const jsonCartItems = localStorage.getItem("shopping_cart")
-        return jsonCartItems ? JSON.parse(jsonCartItems) : []
-    })
 
+    // ── State chính ──
+    const [cartItems, setCartItems] = useState([]);         // Mảng sản phẩm trong giỏ
+    const [loading, setLoading] = useState(false);           // Đang gọi API?
+    const [showLoginPopup, setShowLoginPopup] = useState(false); // Hiện popup đăng nhập?
+
+    // ══════════════════════════════════════════════════════════════
+    // fetchCart — Lấy toàn bộ giỏ hàng từ server
+    // ──────────────────────────────────────────────────────────────
+    // Gọi GET /api/cart/getAllCart
+    // → Server trả về mảng sản phẩm
+    // → Chuyển đổi sang format hiển thị (mapApiItemToLocal)
+    // → Lưu vào state cartItems
+    // ══════════════════════════════════════════════════════════════
+    const fetchCart = useCallback(async () => {
+        // Chưa đăng nhập → không gọi API (sẽ bị lỗi 401)
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+            setCartItems([]);
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const apiItems = await getAllCartApi();              // Gọi API
+            const localItems = apiItems.map(mapApiItemToLocal); // Chuyển đổi format
+            setCartItems(localItems);                           // Cập nhật state → UI tự render lại
+        } catch (err) {
+            console.error("❌ Lỗi tải giỏ hàng:", err);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    // ── Tự động tải giỏ hàng khi mở trang ──
     useEffect(() => {
-        localStorage.setItem("shopping_cart", JSON.stringify(cartItems))
-    }, [cartItems])
+        fetchCart();
+    }, [fetchCart]);
 
-    /**
-     *  - Nếu TRÙNG → tăng quantity của item đó lên
-     *  - Nếu CHƯA CÓ → thêm item mới vào cuối giỏ
-     */
-    const addCartItem = (newItem) => {
-        console.log("Thêm vào giỏ:", newItem);
-        const existingItem = cartItems.find(
-            (item) =>
-                item.productId === newItem.productId &&
-                item.pairedProductId === newItem.pairedProductId
-        );
-        if (existingItem) {
-            const updatedCart = cartItems.map((item) => {
-                const isSameItem =
-                    item.productId === newItem.productId &&
-                    item.pairedProductId === newItem.pairedProductId;
+    // ══════════════════════════════════════════════════════════════
+    // addCartItem — Thêm sản phẩm vào giỏ
+    // ──────────────────────────────────────────────────────────────
+    // 🔒 Kiểm tra đăng nhập:
+    //   - Chưa login → hiện popup → dừng lại
+    //   - Đã login → gọi API thêm → tải lại giỏ hàng
+    //
+    // Backend tự xử lý:
+    //   - Nếu sản phẩm + đơn thuốc trùng → tăng quantity
+    //   - Nếu mới → tạo dòng mới
+    // ══════════════════════════════════════════════════════════════
+    const addCartItem = async (newItem) => {
+        // Bước 1: Kiểm tra đăng nhập
+        console.log("Theem vao gio hang", newItem)
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+            setShowLoginPopup(true);  // Hiện popup "Hãy đăng nhập để mua hàng"
+            return;                    // Dừng — không thêm gì
+        }
 
-                if (isSameItem) {
-                    return { ...item, quantity: item.quantity + newItem.quantity };
-                }
-                return item; // Item khác: giữ nguyên
-            });
-
-            setCarrItems(updatedCart);
-        } else {
-            // Chưa có → thêm item mới vào giỏ 
-            setCarrItems([...cartItems, newItem]);
+        // Bước 2: Gọi API thêm sản phẩm
+        try {
+            await addCartItemApi(newItem, newItem.quantity);
+            await fetchCart();  // Bước 3: Tải lại giỏ hàng để UI cập nhật
+            console.log("✅ Thêm vào giỏ thành công:", newItem);
+        } catch (err) {
+            console.error("❌ Lỗi thêm vào giỏ:", err);
+            console.error("❌ Response data:", err.response?.data);
+            console.error("❌ Response status:", err.response?.status);
         }
     };
 
-    const increaseQty = (productId, pairedProductId) => {
-        console.log("Tăng số lượng cho productId:", productId, "pairedProductId:", pairedProductId);
-        const updatedCart = cartItems.map(item => {
-            const isSameItem = item.productId === productId && item.pairedProductId === pairedProductId;
-            if (isSameItem) {
-                return { ...item, quantity: item.quantity + 1 };
-            } else {
-                return item;
-            }
-        })
-        setCarrItems(updatedCart);
-    }
+    // ──────────────────────────────────────────────────────────
+    // increaseQty — Tăng số lượng 1 đơn vị
+    // ──────────────────────────────────────────────────────────
+    // Gọi từ: CartPage, Navbar dropdown (bấm nút +)
+    // Dùng: PUT /api/cart/update (không phải POST /add)
+    // ──────────────────────────────────────────────────────────
+    const increaseQty = async (cartItemId) => {
+        const item = cartItems.find((i) => i.cartItemId === cartItemId);
+        if (!item) return;
 
-    const decreaseQty = (productId, pairedProductId) => {
-        console.log("Giảm số lượng cho productId:", productId, "pairedProductId:", pairedProductId);
-        const existingItem = cartItems.find(item => item.productId === productId
-            && item.pairedProductId === pairedProductId);
-        if (existingItem) {
-            if (existingItem.quantity === 1) {
-                // Xóa item khỏi giỏ nếu giảm xuống 0
-                removeCartItem(productId, pairedProductId);
-            } else {
-                const updateCart = cartItems.map(item => {
-                    const isSameItem = item.productId === productId && item.pairedProductId === pairedProductId;
-                    if (isSameItem) {
-                        return { ...item, quantity: item.quantity - 1 };
-                    } else {
-                        return item;
-                    }
-                })
-                setCarrItems(updateCart);
-            }
+        try {
+            await updateCartQtyApi(cartItemId, item.quantity + 1);  // PUT với quantity mới
+            await fetchCart();
+        } catch (err) {
+            console.error("❌ Lỗi tăng số lượng:", err);
         }
+    };
 
-    }
+    // ──────────────────────────────────────────────────────────
+    // decreaseQty — Giảm số lượng 1 đơn vị
+    // ──────────────────────────────────────────────────────────
+    // Nếu quantity = 1 → xóa luôn (DELETE)
+    // Nếu quantity > 1 → giảm 1 (PUT /api/cart/update)
+    // ──────────────────────────────────────────────────────────
+    const decreaseQty = async (cartItemId) => {
+        const item = cartItems.find((i) => i.cartItemId === cartItemId);
+        if (!item) return;
 
-    const removeCartItem = (productId, pairedProductId) => {
-        console.log("Xóa item với productId:", productId, "pairedProductId:", pairedProductId);
-        const updatedCart = cartItems.filter(item => !(item.productId === productId
-            && item.pairedProductId === pairedProductId));
-        setCarrItems(updatedCart);
-    }
+        try {
+            if (item.quantity === 1) {
+                await deleteCartItemApi(cartItemId);            // Xóa luôn
+            } else {
+                await updateCartQtyApi(cartItemId, item.quantity - 1); // PUT với quantity mới
+            }
+            await fetchCart();
+        } catch (err) {
+            console.error("❌ Lỗi giảm số lượng:", err);
+        }
+    };
 
-    // ── Tính tổng số lượng sản phẩm trong giỏ ──────────────────────────────
+    // ══════════════════════════════════════════════════════════════
+    // removeCartItem — Xóa 1 sản phẩm khỏi giỏ
+    // ──────────────────────────────────────────────────────────────
+    // Nhận vào: cartItemId → gọi API DELETE → tải lại giỏ
+    // ══════════════════════════════════════════════════════════════
+    const removeCartItem = async (cartItemId) => {
+        try {
+            await deleteCartItemApi(cartItemId);
+            await fetchCart();
+        } catch (err) {
+            console.error("❌ Lỗi xóa sản phẩm:", err);
+        }
+    };
+
+    // ══════════════════════════════════════════════════════════════
+    // clearCart — Xóa toàn bộ giỏ hàng
+    // ══════════════════════════════════════════════════════════════
+    const clearCart = async () => {
+        try {
+            await deleteAllCartApi();
+            await fetchCart();
+        } catch (err) {
+            console.error("❌ Lỗi xóa toàn bộ:", err);
+        }
+    };
+
+    // ── Tính tổng số lượng sản phẩm ──
     const cartQty = cartItems.reduce((total, item) => total + item.quantity, 0);
 
-    // ── Tính tổng tiền toàn bộ giỏ hàng ────────────────────────────────────
-    // Mỗi item có thể có pairedProduct (mua kèm) → cộng cả 2 giá
-    // priceProduct: giá sản phẩm chính
-    // pricePairedProduct: giá sản phẩm kèm (null nếu mua đơn lẻ → dùng ?? 0)
+    // ── Tính tổng tiền — dùng item.price từ server (đã tính sẵn) ──
     const totalPrice = cartItems.reduce((total, item) => {
-        const itemPrice = item.priceProduct + (item.pricePairedProduct ?? 0);
-        return total + item.quantity * itemPrice;
-    }, 0); // ← initialValue = 0 bắt buộc phải có
+        return total + item.price * item.quantity;
+    }, 0);
 
-    // ── Truyền tất cả giá trị/hàm xuống toàn bộ cây component con ──────────
+    // ══════════════════════════════════════════════════════════════
+    // Truyền tất cả giá trị & hàm xuống toàn bộ component con
+    // ══════════════════════════════════════════════════════════════
     return (
         <ShoppingContext.Provider
             value={{
-                cartItems,
-                cartQty,
-                totalPrice,
-                increaseQty,
-                decreaseQty,
-                removeCartItem,
-                addCartItem,
+                cartItems,          // Mảng sản phẩm trong giỏ
+                cartQty,            // Tổng số lượng
+                totalPrice,         // Tổng tiền
+                loading,            // Đang tải?
+
+                addCartItem,        // Thêm sản phẩm (có check login)
+                increaseQty,        // Tăng số lượng (nhận cartItemId)
+                decreaseQty,        // Giảm số lượng (nhận cartItemId)
+                removeCartItem,     // Xóa 1 sản phẩm (nhận cartItemId)
+                clearCart,          // Xóa toàn bộ
+                fetchCart,          // Tải lại giỏ từ server
+
+                showLoginPopup,     // Trạng thái popup đăng nhập
+                setShowLoginPopup,  // Bật/tắt popup đăng nhập
             }}
         >
             {children}
@@ -140,11 +198,10 @@ export function ShoppingContextProvider({ children }) {
 }
 
 /**
- * useShoppingContext - Custom hook để dùng giỏ hàng ở bất kỳ component con nào
+ * useShoppingContext — Custom hook để dùng giỏ hàng ở bất kỳ component nào
  *
- * Ví dụ dùng trong AddToCartBar:
- *   const { addCartItem } = useShoppingContext();
- *   addCartItem(payload);
+ * Cách dùng:
+ *   const { addCartItem, cartItems } = useShoppingContext();
  */
 // eslint-disable-next-line react-refresh/only-export-components
 export function useShoppingContext() {

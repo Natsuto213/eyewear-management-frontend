@@ -3,10 +3,10 @@ import { useShoppingContext } from "../contexts/ShoppingContext";
 import { formatCurrency } from "../helpers/common";
 
 /**
- * CartItem — hiển thị 1 dòng trong giỏ hàng.
+ * CartItem — hiển thị 1 dòng trong dropdown giỏ hàng (Navbar).
  *
- * Props:
- *   productId          — ID sản phẩm chính
+ * Props (từ {...item} spread):
+ *   cartItemId         — ID duy nhất từ server (dùng cho tăng/giảm/xóa)
  *   nameProduct        — Tên sản phẩm chính
  *   imgProduct         — Ảnh sản phẩm chính
  *   priceProduct       — Giá sản phẩm chính
@@ -17,7 +17,7 @@ import { formatCurrency } from "../helpers/common";
  *   pricePairedProduct — Giá sản phẩm kèm
  */
 const CartItem = ({
-    productId,
+    cartItemId,
     nameProduct,
     imgProduct,
     priceProduct,
@@ -29,7 +29,7 @@ const CartItem = ({
 }) => {
     const { increaseQty, decreaseQty, removeCartItem } = useShoppingContext();
 
-    const hasPaired = pairedProductId;
+    const hasPaired = pairedProductId != null;
     const lineTotal = (priceProduct + (pricePairedProduct ?? 0)) * quantity;
 
     return (
@@ -104,7 +104,7 @@ const CartItem = ({
                     {/* Nút giảm */}
                     <button
                         type="button"
-                        onClick={() => decreaseQty(productId, pairedProductId)}
+                        onClick={() => decreaseQty(cartItemId)}
                         className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-teal-100 text-gray-600 hover:text-teal-700 transition-colors active:scale-90"
                     >
                         <Minus size={13} strokeWidth={2.5} />
@@ -118,7 +118,7 @@ const CartItem = ({
                     {/* Nút tăng */}
                     <button
                         type="button"
-                        onClick={() => increaseQty(productId, pairedProductId)}
+                        onClick={() => increaseQty(cartItemId)}
                         className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-teal-100 text-gray-600 hover:text-teal-700 transition-colors active:scale-90"
                     >
                         <Plus size={13} strokeWidth={2.5} />
@@ -137,7 +137,7 @@ const CartItem = ({
             <td className="py-3 pl-2 pr-4 align-middle text-center">
                 <button
                     type="button"
-                    onClick={() => removeCartItem(productId, pairedProductId)}
+                    onClick={() => removeCartItem(cartItemId)}
                     aria-label="Xóa sản phẩm"
                     className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                 >

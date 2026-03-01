@@ -8,15 +8,17 @@ import { useShoppingContext } from "../views/Cart/contexts/ShoppingContext";
 import CartItem from "../views/Cart/components/CartItem";
 import { formatCurrency } from "../views/Cart/helpers/common";
 
-// Kiểu dữ liệu cho 1 item trong giỏ hàng — khớp với payload ở AddToCartBar
+// Kiểu dữ liệu cho 1 item trong giỏ hàng — khớp với format từ API (qua mapApiItemToLocal)
 interface CartItemType {
+    cartItemId: number;
     productId: number;
+    pairedProductId: number | null;
     nameProduct: string;
     imgProduct: string | string[];
     priceProduct: number;
     quantity: number;
-    prescription: Record<string, string>;
-    pairedProductId: number | null;
+    price: number;
+    prescription: Record<string, string> | null;
     namePairedProduct: string | null;
     imgPairedProduct: string | null;
     pricePairedProduct: number | null;
@@ -127,7 +129,7 @@ export default function Navbar() {
                                             <tbody>
                                                 {(cartItems as CartItemType[]).map((item) => (
                                                     <CartItem
-                                                        key={`${item.productId}-${item.pairedProductId}`}
+                                                        key={item.cartItemId}
                                                         {...item}
                                                     />
                                                 ))}

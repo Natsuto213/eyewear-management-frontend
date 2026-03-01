@@ -12,7 +12,7 @@ import Account from './views/AccountPage';
 import AllProductLayout from './views/AllProduct/AllProductLayout'
 import AllProductFilter from './views/AllProduct/AllProductFilter';
 import ProductDetail from "./views/ProductDetail";
-import Cart from './views/CartPage';
+import Cart from './views/Cart/components/CartPage';
 import Confirm from './views/ConfirmPage';
 import { ShoppingContextProvider } from './views/Cart/contexts/ShoppingContext';
 

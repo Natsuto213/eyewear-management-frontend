@@ -44,6 +44,7 @@ export default function LensModal({ isOpen, onClose, onSelect, filterType, title
                 const res = await api.get("/api/products/search");
 
                 // Map dữ liệu API thành format đơn giản hơn để dùng trong modal
+                // Giữ lại frameId, lensId, contactLensId → AddToCartBar cần để gọi API cart/add
                 const mapped = res.data.map((p) => ({
                     id: p.id,
                     name: p.name,
@@ -51,6 +52,9 @@ export default function LensModal({ isOpen, onClose, onSelect, filterType, title
                     brand: p.Brand,
                     image: p.Image_URL,
                     productType: p.Product_Type,
+                    frameId: p.frameId ?? null,           // ID gọng (có khi là Gọng kính)
+                    lensId: p.lensId ?? null,             // ID tròng (có khi là Tròng kính)
+                    contactLensId: p.contactLensId ?? null, // ID kính áp tròng
                 }));
 
                 // Chỉ giữ lại sản phẩm thuộc loại cần tìm (Tròng kính hoặc Gọng kính)

@@ -108,17 +108,30 @@ export default function AddToCartBar({
         }
 
         // Bước 3: Tạo payload
+        // Gồm thông tin sản phẩm chính + sản phẩm kèm + đơn thuốc + loại sản phẩm
+        // Các field "productType", "frameId", "lensId", "contactLensId" → dùng khi gọi API cart/add
         const payload = {
             productId: product.id,
             priceProduct: product.price,                        // Giá sản phẩm chính
             nameProduct: product.name,                          // Tên sản phẩm chính
             imgProduct: product.imageUrls,                      // Ảnh sản phẩm chính
             quantity,
-            prescription: rxData,                               // Tất cả loại đều gửi đơn thuốc                              // TODO: Giá dịch vụ cắt kính theo đơn (do backend tính)
-            pairedProductId: pairedProduct?.id ?? null,         // null nếu mua đơn lẻ
+            prescription: rxData,                               // Tất cả loại đều gửi đơn thuốc
+
+            // ── Loại sản phẩm + ID riêng theo loại (dùng cho API) ──
+            productType: product.Product_Type,                  // "Gọng kính" | "Tròng kính" | "Kính áp tròng"
+            frameId: product.frameId ?? null,                   // ID gọng (chỉ có khi là Gọng kính)
+            lensId: product.lensId ?? null,                     // ID tròng (chỉ có khi là Tròng kính)
+            contactLensId: product.contactLensId ?? null,       // ID kính áp tròng
+
+            // ── Sản phẩm kèm (null nếu mua đơn lẻ) ──
+            pairedProductId: pairedProduct?.id ?? null,
             pricePairedProduct: pairedProduct?.price ?? null,   // Giá sản phẩm kèm
             namePairedProduct: pairedProduct?.name ?? null,     // Tên sản phẩm kèm
-            imgPairedProduct: pairedProduct?.image ?? null, // Ảnh sản phẩm kèm
+            imgPairedProduct: pairedProduct?.image ?? null,     // Ảnh sản phẩm kèm
+            pairedProductType: pairedProduct?.productType ?? null, // Loại sản phẩm kèm (dùng cho API)
+            pairedFrameId: pairedProduct?.frameId ?? null,      // frameId của sản phẩm kèm (nếu là Gọng)
+            pairedLensId: pairedProduct?.lensId ?? null,        // lensId của sản phẩm kèm (nếu là Tròng)
         };
 
         addCartItem(payload);
