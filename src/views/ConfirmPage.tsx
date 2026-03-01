@@ -1,205 +1,179 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { apiGetMyInfo } from "../lib/userApi";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import axios from "axios";
 
-type PaymentMethod = "bank" | "cod" | "deposit"; // Thêm deposit vào PaymentMethod
+type PaymentMethod = "bank" | "cod" | "deposit";
+
+interface LocationItem {
+  code: number;
+  name: string;
+}
 
 const ConfirmPage: React.FC = () => {
   const navigate = useNavigate();
+  const [loadingUser, setLoadingUser] = useState(true);
 
-  // Demo data (bạn có thể thay bằng dữ liệu từ cart/store)
-  const items = useMemo(
-    () => [
-      { id: "1", name: "Tên sản phẩm", price: 129, qty: 1 },
-      { id: "2", name: "Tên sản phẩm", price: 89, qty: 2 },
-    ],
-    []
-  );
+  // --- STATE ---
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [provinces, setProvinces] = useState<LocationItem[]>([]);
+  const [districts, setDistricts] = useState<LocationItem[]>([]);
+  const [wards, setWards] = useState<LocationItem[]>([]);
 
-  const [payment, setPayment] = useState<PaymentMethod>("cod");
-  const [discountCode, setDiscountCode] = useState<string>("");
-  const [discountValue, setDiscountValue] = useState<number>(0);
+  const [tempAddress, setTempAddress] = useState({
+    province: "",
+    district: "",
+    ward: "",
+    detail: "",
+  });
 
   const [form, setForm] = useState({
     fullName: "",
     phone: "",
     email: "",
     address: "",
-    province: "",
-    district: "",
-    ward: "",
-    note: "",
   });
+
+  const [payment, setPayment] = useState<PaymentMethod>("cod");
+  const [discountValue, setDiscountValue] = useState<number>(0);
+
+  // --- FETCH DATA ---
+  useEffect(() => {
+    const initData = async () => {
+      try {
+        const res = await apiGetMyInfo();
+        const u = res?.result ?? res;
+        if (u) {
+          setForm((prev) => ({
+            ...prev,
+            fullName: u.name || "",
+            phone: u.phone || "",
+            email: u.email || "",
+          }));
+        }
+        const provinceRes = await axios.get("https://provinces.open-api.vn/api/p/");
+        setProvinces(provinceRes.data);
+      } catch (err) {
+        console.error("Lỗi khởi tạo:", err);
+      } finally {
+        setLoadingUser(false);
+      }
+    };
+    initData();
+  }, []);
+
+  // --- LOGIC ADDRESS ---
+  const handleProvinceChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = e.target.selectedOptions[0];
+    const code = selected.getAttribute("data-code");
+    const name = e.target.value;
+    setTempAddress({ ...tempAddress, province: name, district: "", ward: "" });
+    setWards([]);
+    if (code) {
+      const res = await axios.get(`https://provinces.open-api.vn/api/p/${code}?depth=2`);
+      setDistricts(res.data.districts);
+    }
+  };
+
+  const handleDistrictChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = e.target.selectedOptions[0];
+    const code = selected.getAttribute("data-code");
+    const name = e.target.value;
+    setTempAddress({ ...tempAddress, district: name, ward: "" });
+    if (code) {
+      const res = await axios.get(`https://provinces.open-api.vn/api/d/${code}?depth=2`);
+      setWards(res.data.wards);
+    }
+  };
+
+  const confirmNewAddress = () => {
+    const full = `${tempAddress.detail}, ${tempAddress.ward}, ${tempAddress.district}, ${tempAddress.province}`;
+    setForm({ ...form, address: full });
+    setIsModalOpen(false);
+  };
+
+  // --- BILL CALCULATION ---
+  const items = useMemo(() => [
+    { id: "1", name: "Sản phẩm A", price: 129, qty: 1 },
+    { id: "2", name: "Sản phẩm B", price: 89, qty: 2 },
+  ], []);
 
   const subtotal = items.reduce((s, it) => s + it.price * it.qty, 0);
   const shippingFee = subtotal >= 200 ? 0 : 15;
   const total = Math.max(0, subtotal - discountValue) + shippingFee;
 
-  const applyDiscount = () => {
-    const code = discountCode.trim().toUpperCase();
-    if (code === "SAVE10") setDiscountValue(10);
-    else if (code === "SAVE20") setDiscountValue(20);
-    else setDiscountValue(0);
-  };
-
   const handlePay = () => {
+    if (!form.address || form.address.includes("Chưa có")) {
+      alert("Vui lòng cập nhật địa chỉ giao hàng!");
+      return;
+    }
     navigate("/success");
   };
 
-  const inputBase =
-    "w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none transition " +
-    "placeholder:text-zinc-400 focus:border-red-500 focus:ring-4 focus:ring-red-100 " +
-    "hover:border-zinc-300";
+  const inputBase = "w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-red-500 focus:ring-4 focus:ring-red-100";
+
+  if (loadingUser) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-red-500 border-t-transparent"></div>
+      </div>
+    );
+  }
 
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-zinc-50">
-        {/* Header */}
-        <div className="sticky top-0 z-10 border-b border-zinc-200 bg-white/80 backdrop-blur">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-            <div className="flex items-center gap-3">
-              <Link
-                to="/"
-                className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-900"
-              >
-                ← Về trang chủ
-              </Link>
-              <div className="h-5 w-px bg-zinc-200" />
-              <div className="text-sm text-zinc-500">Xác nhận đơn hàng</div>
-            </div>
-
-            <Link
-              to="/all-product"
-              className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-900"
-            >
-              Tiếp tục mua sắm
-            </Link>
-          </div>
-        </div>
-
-        {/* Content */}
+      <div className="min-h-screen bg-zinc-50 pb-12">
         <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 lg:grid-cols-[1.2fr_0.8fr]">
-          {/* Left: Shipping + Payment */}
+          
+          {/* CỘT TRÁI */}
           <div className="space-y-6">
-            {/* Shipping info */}
-            <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
-              <div className="mb-4 flex items-center justify-between">
-                <h1 className="text-xl font-semibold text-zinc-900">
-                  Thông tin giao hàng
-                </h1>
-                <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-600">
-                  Bước 2/3
-                </span>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
+            {/* PHẦN THÔNG TIN GIAO HÀNG */}
+            <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+              <h1 className="mb-6 text-xl font-bold">Thông tin giao hàng</h1>
+              <div className="grid gap-5 sm:grid-cols-2">
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-700">
-                    Họ và tên
-                  </label>
-                  <input
-                    className={inputBase}
-                    value={form.fullName}
-                    onChange={(e) => setForm({ ...form, fullName: e.target.value })}
-                    placeholder="Nguyễn Văn A"
-                  />
+                  <label className="mb-2 block text-sm font-medium">Họ và tên</label>
+                  <input className={inputBase} value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
                 </div>
-
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-700">
-                    Số điện thoại
-                  </label>
-                  <input
-                    className={inputBase}
-                    value={form.phone}
-                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                    placeholder="090xxxxxxx"
-                  />
+                  <label className="mb-2 block text-sm font-medium">Số điện thoại</label>
+                  <input className={inputBase} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
                 </div>
-
                 <div className="sm:col-span-2">
-                  <label className="mb-2 block text-sm font-medium text-zinc-700">
-                    Email
-                  </label>
-                  <input
-                    className={inputBase}
-                    value={form.email}
-                    onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    placeholder="email@domain.com"
-                  />
+                  <label className="mb-2 block text-sm font-medium">Email</label>
+                  <input className={`${inputBase} bg-zinc-50 cursor-not-allowed`} value={form.email} readOnly />
                 </div>
-
                 <div className="sm:col-span-2">
-                  <label className="mb-2 block text-sm font-medium text-zinc-700">
-                    Địa chỉ chi tiết
-                  </label>
-                  <input
-                    className={inputBase}
-                    value={form.address}
-                    onChange={(e) => setForm({ ...form, address: e.target.value })}
-                    placeholder="Số nhà, tên đường..."
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-700">
-                    Tỉnh/Thành phố
-                  </label>
-                  <input
-                    className={inputBase}
-                    value={form.province}
-                    onChange={(e) => setForm({ ...form, province: e.target.value })}
-                    placeholder="Hồ Chí Minh"
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-700">
-                    Quận/Huyện
-                  </label>
-                  <input
-                    className={inputBase}
-                    value={form.district}
-                    onChange={(e) => setForm({ ...form, district: e.target.value })}
-                    placeholder="Quận 1"
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-700">
-                    Phường/Xã
-                  </label>
-                  <input
-                    className={inputBase}
-                    value={form.ward}
-                    onChange={(e) => setForm({ ...form, ward: e.target.value })}
-                    placeholder="Phường Bến Nghé"
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-700">
-                    Ghi chú
-                  </label>
-                  <input
-                    className={inputBase}
-                    value={form.note}
-                    onChange={(e) => setForm({ ...form, note: e.target.value })}
-                    placeholder="Giao giờ hành chính..."
-                  />
+                  <label className="mb-2 block text-sm font-medium">Địa chỉ nhận hàng</label>
+                  <div className="flex flex-col gap-3">
+                    <textarea 
+                      className={`${inputBase} bg-zinc-50 min-h-[80px] cursor-default italic text-zinc-500`} 
+                      value={form.address || "Vui lòng bấm nút bên dưới để cập nhật địa chỉ..."} 
+                      readOnly 
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => setIsModalOpen(true)}
+                      className="rounded-xl bg-zinc-900 px-6 py-3 text-sm font-bold text-white hover:bg-zinc-800 transition"
+                    >
+                      + Cập nhật địa chỉ
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
+            </section>
 
-            {/* Payment method */}
+            {/* PHẦN THANH TOÁN */}
             <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
               <h2 className="mb-4 text-xl font-semibold text-zinc-900">
                 Hình thức thanh toán
               </h2>
 
               <div className="grid gap-3 sm:grid-cols-2">
+                {/* VNPAY */}
                 <button
                   type="button"
                   onClick={() => setPayment("bank")}
@@ -213,7 +187,7 @@ const ConfirmPage: React.FC = () => {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <div className="font-semibold text-zinc-900">Chuyển khoản</div>
+                      <div className="font-semibold text-zinc-900">VNPAY</div>
                       <div className="mt-1 text-sm text-zinc-600">
                         Thanh toán qua ngân hàng/QR
                       </div>
@@ -229,6 +203,7 @@ const ConfirmPage: React.FC = () => {
                   </div>
                 </button>
 
+                {/* COD */}
                 <button
                   type="button"
                   onClick={() => setPayment("cod")}
@@ -258,7 +233,7 @@ const ConfirmPage: React.FC = () => {
                   </div>
                 </button>
 
-                {/* Nút Đặt cọc */}
+                {/* MOMO (Hiển thị kiểu Deposit) */}
                 <button
                   type="button"
                   onClick={() => setPayment("deposit")}
@@ -272,9 +247,9 @@ const ConfirmPage: React.FC = () => {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <div className="font-semibold text-zinc-900">Đặt cọc</div>
+                      <div className="font-semibold text-zinc-900">MOMO</div>
                       <div className="mt-1 text-sm text-zinc-600">
-                        Đặt cọc để giữ chỗ
+                        Chuyển qua ví điện tử
                       </div>
                     </div>
                     <div
@@ -289,7 +264,7 @@ const ConfirmPage: React.FC = () => {
                 </button>
               </div>
 
-              {/* Hiển thị thông tin chi tiết cho Chuyển khoản ngân hàng */}
+              {/* BANK INFO */}
               {payment === "bank" && (
                 <div className="mt-4 rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                   <div className="text-sm font-semibold text-zinc-900">
@@ -305,156 +280,134 @@ const ConfirmPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Hiển thị thông tin chi tiết cho COD */}
-              {payment === "cod" && (
-                <div className="mt-4 rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
-                  <div className="text-sm font-semibold text-zinc-900">
-                    Thông tin COD
-                  </div>
-                  <div className="mt-2 text-sm text-zinc-700">
-                    Bạn sẽ thanh toán khi nhận hàng. Vui lòng chuẩn bị tiền mặt khi giao hàng đến địa chỉ của bạn.
-                  </div>
-                </div>
-              )}
+              {/* COD INFO */}
+{payment === "cod" && (
+  <div className="mt-4 rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+    <div className="text-sm font-semibold text-zinc-900 flex items-center gap-2">
+      <span className="h-2 w-2 rounded-full bg-orange-500"></span>
+      Thông tin COD
+    </div>
+    
+    <div className="mt-2 text-sm text-zinc-700">
+      {/* Logic kiểm tra đơn hàng > 5 triệu (Giả sử đơn vị của total là VND) */}
+      {total > 5000000 ? (
+        <div className="space-y-4">
+          <p className="text-red-600 font-medium">
+            ⚠️ Đơn hàng của bạn trên 5.000.000đ. Vui lòng đặt cọc trước 20% (
+            <b>{(total * 0.2).toLocaleString()}đ</b>) để xác nhận đơn hàng.
+          </p>
+          
+          <div className="flex flex-wrap gap-3">
+            <button 
+              type="button"
+              className="flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs font-semibold hover:bg-zinc-100 transition shadow-sm"
+              onClick={() => console.log("Thanh toán cọc qua VNPAY")}
+            >
+              <img src="https://vnpay.vn/wp-content/uploads/2020/07/Icon-VNPAY-QR.png" alt="vnpay" className="h-4 w-4" />
+              Cọc qua VNPAY
+            </button>
+            
+            <button 
+              type="button"
+              className="flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-xs font-semibold hover:bg-zinc-100 transition shadow-sm"
+              onClick={() => console.log("Thanh toán cọc qua Momo")}
+            >
+              <div className="h-4 w-4 rounded bg-[#A50064] flex items-center justify-center text-[8px] text-white">M</div>
+              Cọc qua Momo
+            </button>
+          </div>
+          
+          <p className="text-xs text-zinc-500 italic">
+            * Sau khi cọc, số tiền còn lại sẽ được thanh toán khi nhận hàng.
+          </p>
+        </div>
+      ) : (
+        <p>
+          Bạn sẽ thanh toán khi nhận hàng. Vui lòng chuẩn bị tiền mặt khi giao hàng đến địa chỉ của bạn.
+        </p>
+      )}
+    </div>
+  </div>
+)}
 
-              {/* Hiển thị thông tin đặt cọc khi người dùng chọn Đặt cọc */}
+              {/* DEPOSIT INFO */}
               {payment === "deposit" && (
                 <div className="mt-4 rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                   <div className="text-sm font-semibold text-zinc-900">
-                    Thông tin đặt cọc (demo)
+                    Ví điện tử MOMO (demo)
                   </div>
                   <div className="mt-2 text-sm text-zinc-700">
-                    Số tiền đặt cọc: <span className="font-medium">500,000 VND</span>
-                    <br />
-                    Nội dung: <span className="font-medium">DEPOSIT-ORDER</span>
+                    
+                    
+                    Nội dung: <span className="font-medium">......</span>
                   </div>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Right: Order summary */}
+          {/* CỘT PHẢI: TỔNG KẾT */}
           <div className="space-y-6">
-            <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-zinc-900">Giỏ hàng</h2>
-                <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-600">
-                  {items.reduce((s, it) => s + it.qty, 0)} sp
-                </span>
-              </div>
-
+            <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-lg font-bold">Tóm tắt đơn hàng (đợi api )</h2>
               <div className="space-y-3">
                 {items.map((it) => (
-                  <div
-                    key={it.id}
-                    className="flex items-center justify-between rounded-2xl border border-zinc-200 p-4 transition hover:border-zinc-300 hover:shadow-sm"
-                  >
-                    <div className="min-w-0">
-                      <div className="truncate font-semibold text-zinc-900">
-                        {it.name}
-                      </div>
-                      <div className="mt-1 text-sm text-zinc-600">
-                        ${it.price} × {it.qty}
-                      </div>
+                  <div key={it.id} className="flex justify-between border-b border-zinc-100 pb-3">
+                    <div>
+                      <p className="font-medium">{it.name}</p>
+                      <p className="text-xs text-zinc-500">3.000.000</p>
                     </div>
-                    <div className="ml-4 text-sm font-semibold text-zinc-900">
-                      ${(it.price * it.qty).toFixed(2)}
-                    </div>
+                    <span className="font-bold">3.000.000</span>
                   </div>
                 ))}
               </div>
 
-              {/* Discount */}
-              <div className="mt-5 rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
-                <div className="mb-2 text-sm font-semibold text-zinc-900">
-                  Mã giảm giá
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    className={[inputBase, "bg-white", "py-2.5"].join(" ")}
-                    value={discountCode}
-                    onChange={(e) => setDiscountCode(e.target.value)}
-                    placeholder="VD: SAVE10"
-                  />
-                  <button
-                    type="button"
-                    onClick={applyDiscount}
-                    className="rounded-xl bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-zinc-800 active:translate-y-0"
-                  >
-                    Áp dụng
-                  </button>
-                </div>
-                <div className="mt-2 text-xs text-zinc-500">
-                  Demo: <span className="font-medium">SAVE10</span>,{" "}
-                  <span className="font-medium">SAVE20</span>
+              <div className="mt-6 space-y-3 border-t pt-4">
+                <div className="flex justify-between text-sm"><span>Tạm tính</span><span>6,000,000</span></div>
+                <div className="flex justify-between text-sm text-green-600"><span>Giảm giá(đợi api)</span><span>0</span></div>
+                <div className="flex justify-between text-sm font-bold pt-2 border-t">
+                  <span className="text-base">Tổng cộng</span>
+                  <span className="text-xl text-red-600">6.000.000</span>
                 </div>
               </div>
 
-              {/* Totals */}
-              <div className="mt-5 space-y-2 text-sm">
-                <div className="flex items-center justify-between text-zinc-700">
-                  <span>Tạm tính</span>
-                  <span className="font-medium">${subtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex items-center justify-between text-zinc-700">
-                  <span>Giảm giá</span>
-                  <span className="font-medium">-${discountValue.toFixed(2)}</span>
-                </div>
-                <div className="flex items-center justify-between text-zinc-700">
-                  <span>Phí giao hàng</span>
-                  <span className="font-medium">
-                    {shippingFee === 0 ? "Miễn phí" : `$${shippingFee.toFixed(2)}`}
-                  </span>
-                </div>
-
-                <div className="my-3 h-px bg-zinc-200" />
-
-                <div className="flex items-center justify-between">
-                  <span className="text-base font-semibold text-zinc-900">Tổng</span>
-                  <span className="text-lg font-extrabold text-zinc-900">
-                    ${total.toFixed(2)}
-                  </span>
-                </div>
-              </div>
-
-              {/* CTA */}
-              <button
-                type="button"
-                onClick={handlePay}
-                className={[ 
-                  "mt-5 w-full rounded-2xl bg-red-600 px-5 py-3.5",
-                  "text-sm font-semibold text-white transition",
-                  "hover:-translate-y-0.5 hover:bg-red-700 hover:shadow-lg",
-                  "active:translate-y-0 active:shadow-md",
-                  "focus:outline-none focus:ring-4 focus:ring-red-200",
-                ].join(" ")}
-              >
-                Thanh toán ngay
+              <button onClick={handlePay} className="mt-6 w-full rounded-2xl bg-red-600 py-4 font-bold text-white shadow-lg hover:bg-red-700 transition">
+                XÁC NHẬN ĐẶT HÀNG
               </button>
-
-              <div className="mt-3 text-center text-xs text-zinc-500">
-                Bằng việc thanh toán, bạn đồng ý với{" "}
-                <Link
-                  to="/"
-                  className="font-medium text-zinc-700 underline-offset-2 hover:underline"
-                >
-                  điều khoản
-                </Link>
-                .
-              </div>
-            </div>
-
-            {/* Note card */}
-            <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
-              <div className="text-sm font-semibold text-zinc-900">Gợi ý</div>
-              <div className="mt-2 text-sm text-zinc-600">
-                Mẹo: đơn từ <span className="font-semibold text-zinc-800">$200</span>{" "}
-                được miễn phí ship.
-              </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* --- MODAL CHỌN ĐỊA CHỈ --- */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-zinc-900/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
+          <div className="relative w-full max-w-lg rounded-3xl bg-white p-8 shadow-2xl">
+            <h3 className="mb-6 text-xl font-bold">Địa chỉ giao hàng mới</h3>
+            <div className="space-y-4">
+              <select className={inputBase} onChange={handleProvinceChange} value={tempAddress.province}>
+                <option value="">Chọn Tỉnh/Thành</option>
+                {provinces.map(p => <option key={p.code} data-code={p.code} value={p.name}>{p.name}</option>)}
+              </select>
+              <select className={inputBase} onChange={handleDistrictChange} disabled={!tempAddress.province} value={tempAddress.district}>
+                <option value="">Chọn Quận/Huyện</option>
+                {districts.map(d => <option key={d.code} data-code={d.code} value={d.name}>{d.name}</option>)}
+              </select>
+              <select className={inputBase} onChange={(e) => setTempAddress({...tempAddress, ward: e.target.value})} disabled={!tempAddress.district} value={tempAddress.ward}>
+                <option value="">Chọn Phường/Xã</option>
+                {wards.map(w => <option key={w.code} value={w.name}>{w.name}</option>)}
+              </select>
+              <input className={inputBase} placeholder="Số nhà, tên đường..." onChange={(e) => setTempAddress({...tempAddress, detail: e.target.value})} />
+            </div>
+            <div className="mt-8 flex gap-3">
+              <button onClick={() => setIsModalOpen(false)} className="flex-1 rounded-xl bg-zinc-100 py-3 font-semibold text-zinc-600 hover:bg-zinc-200">Hủy</button>
+              <button onClick={confirmNewAddress} className="flex-1 rounded-xl bg-red-600 py-3 font-semibold text-white hover:bg-red-700">Xác nhận</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </>
   );

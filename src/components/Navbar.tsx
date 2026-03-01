@@ -99,9 +99,9 @@ export default function Navbar() {
               </Link>
 
               <button
-                onClick={() => {
-                  apiLogout();
-                  navigate("/", { replace: true });
+                onClick={async () => {
+                  await apiLogout();
+                  window.location.href = "/";
                 }}
                 className="text-sm font-medium text-gray-600 hover:text-black transition"
               >

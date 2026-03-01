@@ -15,17 +15,12 @@ import ProductDetail from "./views/ProductDetail";
 import Cart from './views/CartPage';
 import Confirm from './views/ConfirmPage';
 
+import WarrantyPage from './views/Policies/WarrantyPage';
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <Routes>
       <Route index element={<HomePage />} />
-
-      <Route path="/all-product" element={<AllProductLayout />}>
-        <Route index element={<AllProductFilter />} />
-        <Route path="gong" element={<AllProductFilter />} />
-        <Route path="trong" element={<AllProductFilter />} />
-        <Route path="kinhaptrong" element={<AllProductFilter />} />
-      </Route>
 
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
@@ -36,7 +31,16 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <Route path="account" element={<Account />} />
       </Route>
 
+      <Route path="/all-product" element={<AllProductLayout />}>
+        <Route index element={<AllProductFilter />} />
+        <Route path="gong" element={<AllProductFilter />} />
+        <Route path="trong" element={<AllProductFilter />} />
+        <Route path="kinhaptrong" element={<AllProductFilter />} />
+      </Route>
+
       <Route path="/product/:id" element={<ProductDetail />} />
+
+      <Route path='/warranty' element={<WarrantyPage />} />
     </Routes>
   </BrowserRouter>,
 );

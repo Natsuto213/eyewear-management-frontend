@@ -1,16 +1,13 @@
 import axios from "axios";
 import { api } from "./api"; // nếu file api.ts nằm cùng folder, đúng thì giữ
 
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = "https://api-eyewear.purintech.id.vn";
 
 export async function apiLogin(username: string, password: string) {
   const res = await axios.post(`${BASE_URL}/auth/token`, { username, password });
 
-  // ✅ log nằm ĐÚNG chỗ: trong function
   console.log("LOGIN RESPONSE =", res.status, res.data, res.headers);
 
-  // Backend của bạn trả: { code: 1000, result: {...} }
-  // => token thường nằm trong result.accessToken hoặc result.token
   const token =
     res.data?.result?.accessToken ||
     res.data?.result?.access_token ||
