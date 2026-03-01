@@ -46,8 +46,11 @@ export default function LoginPopup({ onClose }) {
                 </p>
 
                 {/* Nút đăng nhập — chuyển đến trang /login */}
+                {/* onClick={onClose}: TẮT popup trước khi chuyển trang
+                    Nếu không tắt → login xong quay lại vẫn thấy popup */}
                 <Link
                     to="/login"
+                    onClick={onClose}
                     className="block w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl transition-colors mb-3"
                 >
                     Đăng nhập ngay

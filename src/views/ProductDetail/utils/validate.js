@@ -98,7 +98,7 @@ export function validateADD(value) {
 export function validatePD(value) {
     const num = parseNum(value);
     if (num === null) return { isValid: false, message: "Vui lòng nhập số" };
-    if (num < 25 || num > 40) return { isValid: false, message: "Từ 25 đến 40 mm" };
+
     // PD thường đo được 0.5mm, không cần bội số 0.25
     return { isValid: true, message: "" };
 }

@@ -36,12 +36,21 @@ import ErrorState from "./components/ErrorState";
 import { useProductDetail } from "./hooks/useProductDetail";
 import { usePrescription } from "./hooks/usePrescription";
 
+// ── Shopping Context (để lấy trạng thái popup đăng nhập) ──
+import { useShoppingContext } from "@/views/Cart/contexts/ShoppingContext";
+
+// ── Login Popup ──
+import LoginPopup from "@/views/Cart/components/LoginPopup";
+
 // ── Utilities ──
 import { getProductFlags, getRelatedLists } from "./utils/productHelpers";
 
 export default function ProductDetailPage() {
     // ─── Lấy id sản phẩm từ URL (/product/:id) ────────────────────────────────
     const { id } = useParams();
+
+    // ─── Lấy trạng thái popup đăng nhập từ ShoppingContext ────────────────────
+    const { showLoginPopup, setShowLoginPopup } = useShoppingContext();
 
     // ─── Hook 1: Fetch dữ liệu sản phẩm từ API ────────────────────────────────
     const { product, loading, error } = useProductDetail(id);
@@ -101,6 +110,11 @@ export default function ProductDetailPage() {
     return (
         <div className="w-full bg-white font-sans text-black antialiased min-h-screen">
             <Navbar />
+
+            {/* ── Popup đăng nhập — hiện khi chưa login mà bấm "Thêm vào giỏ" ── */}
+            {showLoginPopup && (
+                <LoginPopup onClose={() => setShowLoginPopup(false)} />
+            )}
 
             {/* ── Vùng nội dung chính (max 1400px, có padding responsive) ── */}
             <main className="max-w-350 mx-auto px-4 md:px-10 py-8">

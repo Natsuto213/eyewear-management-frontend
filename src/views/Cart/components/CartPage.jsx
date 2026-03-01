@@ -29,7 +29,6 @@ import { formatCurrency } from "../helpers/common";
 import EmptyCart from "./EmptyCart";
 import CartTable from "./CartTable";
 import OrderSummary from "./OrderSummary";
-import LoginPopup from "./LoginPopup";
 
 // ── Hàm tạo key DUY NHẤT cho mỗi item trong giỏ ──
 // Dùng cartItemId từ server (mỗi item có ID duy nhất)
@@ -48,8 +47,6 @@ export default function CartPage() {
         decreaseQty,        // Hàm giảm số lượng (nhận cartItemId)
         removeCartItem,     // Hàm xóa 1 sản phẩm (nhận cartItemId)
         loading,            // Đang tải dữ liệu từ API?
-        showLoginPopup,     // Có đang hiện popup đăng nhập?
-        setShowLoginPopup,  // Hàm bật/tắt popup đăng nhập
     } = useShoppingContext();
 
     // Hook điều hướng — dùng để chuyển trang khi nhấn "Đặt hàng"
@@ -155,10 +152,6 @@ export default function CartPage() {
     if (cartItems.length === 0) {
         return (
             <>
-                {/* Popup đăng nhập — hiện khi cần */}
-                {showLoginPopup && (
-                    <LoginPopup onClose={() => setShowLoginPopup(false)} />
-                )}
                 <EmptyCart />
             </>
         );
@@ -169,10 +162,6 @@ export default function CartPage() {
     // ═══════════════════════════════════════════════════════════
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Popup đăng nhập — hiện khi cần */}
-            {showLoginPopup && (
-                <LoginPopup onClose={() => setShowLoginPopup(false)} />
-            )}
 
             <div className="max-w-6xl mx-auto px-4 py-10">
 
