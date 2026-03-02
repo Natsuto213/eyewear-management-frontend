@@ -1,52 +1,69 @@
 /**
  * useProductDetail.js
- * Chức năng:
- * - Fetch sản phẩm theo id
- * - Quản lý loading/error/product
- * - Tách khỏi index.jsx để page gọn
+ * ====================
+ * Custom Hook: Fetch thông tin chi tiết 1 sản phẩm từ API theo id.
+ *
+ * Cách hoạt động:
+ *  1. Khi id thay đổi → tự động gọi lại API
+ *  2. Dùng biến `ignore` để tránh setState sau khi component đã unmount
+ *     (tránh lỗi memory leak và cảnh báo của React)
+ *  3. Dùng axios (từ @/lib/api) đã cấu hình sẵn baseURL và token
+ *
+ * Trả về:
+ *  - product: dữ liệu sản phẩm (object) hoặc null
+ *  - loading: true khi đang fetch
+ *  - error:   chuỗi lỗi hoặc null
  */
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import { api } from "@/lib/api"; // axios instance đã cấu hình sẵn baseURL
 
-/**
- * useProductDetail
- * @param {string|number} id - id sản phẩm từ router params
- * @returns {{product: any, loading: boolean, error: string|null}}
- */
 export function useProductDetail(id) {
-  const [product, setProduct] = useState(null); // dữ liệu sản phẩm
-  const [loading, setLoading] = useState(true); // trạng thái loading
-  const [error, setError] = useState(null); // lỗi khi fetch
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState(null);
 
   useEffect(() => {
-    let ignore = false; // tránh setState khi component unmount / id đổi quá nhanh
+    // Nếu không có id → không fetch
+    if (!id) return;
+
+    // Biến cờ: khi component unmount hoặc id đổi, React sẽ chạy cleanup
+    // → ignore = true → không setState nữa, tránh memory leak
+    let ignore = false;
 
     async function fetchProduct() {
       try {
-        setError(null);
         setLoading(true);
+        setError(null);
+        setProduct(null);
 
-        const res = await fetch(`https://api-eyewear.purintech.id.vn/api/products/${id}`);
-        if (!res.ok) throw new Error("Không tìm thấy sản phẩm!");
+        // Gọi API: GET /api/products/:id
+        const response = await api.get(`/api/products/${id}`);
 
-        const data = await res.json();
-        if (!ignore) setProduct(data);
+        // Chỉ cập nhật state nếu vẫn đang xem sản phẩm này
+        if (!ignore) {
+          setProduct(response.data);
+        }
       } catch (err) {
         if (!ignore) {
-          setProduct(null);
-          setError(err?.message || "Có lỗi xảy ra");
+          // Lấy message lỗi từ response API nếu có, không thì dùng message mặc định
+          const message = err?.response?.data?.message || "Không thể tải sản phẩm";
+          setError(message);
         }
       } finally {
-        if (!ignore) setLoading(false);
+        if (!ignore) {
+          setLoading(false);
+        }
       }
     }
 
-    if (id) fetchProduct();
+    fetchProduct();
 
-    return () => { //Khi component unmount hoặc id đổi (effect cũ bị dọn dẹp), React sẽ chạy cleanup
+    // Cleanup function: chạy khi id đổi hoặc component unmount
+    return () => {
       ignore = true;
     };
-  }, [id]);
+  }, [id]); // Chỉ chạy lại khi id thay đổi
 
   return { product, loading, error };
 }

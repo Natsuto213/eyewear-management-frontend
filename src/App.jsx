@@ -11,7 +11,7 @@ import Account from './views/AccountPage';
 import AllProductLayout from './views/AllProduct/AllProductLayout'
 import AllProductFilter from './views/AllProduct/AllProductFilter';
 import ProductDetail from "./views/ProductDetail";
-import Cart from './views/CartPage';
+
 import Confirm from './views/ConfirmPage';
 
 function App() {
@@ -28,7 +28,7 @@ function App() {
 
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
-      <Route path="/cart" element={<Cart />} />
+      
       <Route path="/confirm" element={<Confirm />} />
 
       <Route path="/profile" element={<ProfilePage />}>
