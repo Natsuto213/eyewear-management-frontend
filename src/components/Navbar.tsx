@@ -31,7 +31,7 @@ export default function Navbar() {
     const token = localStorage.getItem("access_token");
     const isLoggedIn = !!token;
     const navigate = useNavigate();
-    const { cartItems, cartQty, totalPrice } = useShoppingContext()
+    const { cartItems, cartQty, totalPrice, fetchCart } = useShoppingContext()
 
     const isActiveTab = (path) => {
         return location.pathname + location.search === path;

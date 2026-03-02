@@ -53,8 +53,8 @@ function buildCartApiBody(item, quantity) {
 
     // Bước 2: Lấy thông số đơn thuốc
     const rx = item.prescription || {};
-    const pdRight = parseFloat(rx.rightPD) || 0;
-    const pdLeft = parseFloat(rx.leftPD) || 0;
+    const pdRight = parseFloat(rx.rightPD) || null;
+    const pdLeft = parseFloat(rx.leftPD) || null;
 
     // Bước 3: Tính tổng giá
     const totalPrice = (item.priceProduct ?? 0) + (item.pricePairedProduct ?? 0);
@@ -70,21 +70,21 @@ function buildCartApiBody(item, quantity) {
         price: totalPrice || null,
 
         // Đơn thuốc mắt phải
-        rightEyeSph: parseFloat(rx.rightSPH) || 0,
-        rightEyeCyl: parseFloat(rx.rightCYL) || 0,
-        rightEyeAxis: parseFloat(rx.rightAXIS) || 0,
-        rightEyeAdd: parseFloat(rx.rightADD) || 0,
+        rightEyeSph: parseFloat(rx.rightSPH) || null,
+        rightEyeCyl: parseFloat(rx.rightCYL) || null,
+        rightEyeAxis: parseFloat(rx.rightAXIS) || null,
+        rightEyeAdd: parseFloat(rx.rightADD) || null,
 
         // Đơn thuốc mắt trái
-        leftEyeSph: parseFloat(rx.leftSPH) || 0,
-        leftEyeCyl: parseFloat(rx.leftCYL) || 0,
-        leftEyeAxis: parseFloat(rx.leftAXIS) || 0,
-        leftEyeAdd: parseFloat(rx.leftADD) || 0,
+        leftEyeSph: parseFloat(rx.leftSPH) || null,
+        leftEyeCyl: parseFloat(rx.leftCYL) || null,
+        leftEyeAxis: parseFloat(rx.leftAXIS) || null,
+        leftEyeAdd: parseFloat(rx.leftADD) || null,
 
         // Khoảng cách đồng tử (PD)
         pdRight,
         pdLeft,
-        pd: pdRight + pdLeft,
+        pd: pdRight && pdLeft ? pdRight + pdLeft : null,
     };
 }
 
