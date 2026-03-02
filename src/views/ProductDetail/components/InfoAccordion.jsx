@@ -1,33 +1,58 @@
 /**
  * InfoAccordion.jsx
- * Chức năng:
- * - Accordion phần mô tả / vận chuyển / bảo hành / tìm cửa hàng
- * - Dùng React.memo để tránh re-render không cần thiết
+ * ==================
+ * Accordion hiển thị các thông tin bổ sung của sản phẩm:
+ *  - Mô tả sản phẩm
+ *  - Chính sách vận chuyển
+ *  - Chính sách bảo hành
+ *  - Tìm cửa hàng gần nhất
+ *
+ * Click vào tiêu đề → mở/đóng phần nội dung bên dưới (toggle).
+ * Nếu đang mở → click lại → đóng.
  */
 
-import React from "react";
+import { useState } from "react";
 import { ACCORDION_ITEMS } from "../utils/constants";
 
-function InfoAccordion({ openAccordion, onToggle, description }) {
+/**
+ * @param {string} description - Mô tả sản phẩm từ API (field Description)
+ */
+export default function InfoAccordion({ description }) {
+  // ─── State: index của mục đang mở (-1 = đóng hết) ───────────────────────
+  const [openIndex, setOpenIndex] = useState(-1);
+
+  /**
+   * toggleAccordion - Mở mục nếu đang đóng, đóng mục nếu đang mở
+   * @param {number} index - Index của mục được click
+   */
+  function toggleAccordion(index) {
+    setOpenIndex((prev) => (prev === index ? -1 : index));
+  }
+
   return (
-    <div className="border-t">
-      {ACCORDION_ITEMS.map((item, index) => (
-        <div key={index} className="border-b">
+    <div className="border-t border-gray-200 mt-6">
+      {ACCORDION_ITEMS.map((title, index) => (
+        <div key={index} className="border-b border-gray-200">
+          {/* ── Nút tiêu đề (click để toggle) ── */}
           <button
-            onClick={() => onToggle(index)}
-            className="w-full py-4 flex justify-between font-bold uppercase text-[15px]"
+            onClick={() => toggleAccordion(index)}
+            className="w-full py-4 flex justify-between items-center text-left font-bold uppercase text-sm tracking-wide hover:text-teal-600 transition-colors"
           >
-            <span>{item}</span>
-            <span>{openAccordion === index ? "−" : "+"}</span>
+            <span>{title}</span>
+            {/* Dấu + hoặc − */}
+            <span className="text-xl text-teal-500 leading-none">
+              {openIndex === index ? "−" : "+"}
+            </span>
           </button>
 
+          {/* ── Nội dung (ẩn/hiện bằng max-height animation) ── */}
           <div
-            className={`overflow-hidden transition-all duration-300 ${
-              openAccordion === index ? "max-h-32 pb-4" : "max-h-0"
-            }`}
+            className={`overflow-hidden transition-all duration-300 ease-in-out
+              ${openIndex === index ? "max-h-60 pb-4" : "max-h-0"}`}
           >
-            <p className="text-[13px] text-gray-500 italic">
-              {index === 0 ? description : "Đang cập nhật..."}
+            <p className="text-sm text-gray-500 leading-relaxed italic">
+              {/* Mục đầu tiên (Mô tả) hiển thị nội dung từ API */}
+              {index === 0 ? (description || "Chưa có mô tả sản phẩm.") : "Đang cập nhật..."}
             </p>
           </div>
         </div>
@@ -35,5 +60,3 @@ function InfoAccordion({ openAccordion, onToggle, description }) {
     </div>
   );
 }
-
-export default React.memo(InfoAccordion);
