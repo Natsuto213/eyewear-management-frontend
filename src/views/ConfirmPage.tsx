@@ -17,7 +17,7 @@ const ConfirmPage: React.FC = () => {
   const [loadingUser, setLoadingUser] = useState(true);
 
   // --- STATE DỮ LIỆU THỰC TẾ ---
-  const [cartItems, setCartItems] = useState<any[]>([]); 
+  const [cartItems, setCartItems] = useState<any[]>([]);
 
   // --- STATE FORM & ĐỊA CHỈ ---
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -26,9 +26,12 @@ const ConfirmPage: React.FC = () => {
   const [wards, setWards] = useState<LocationItem[]>([]);
 
   const [tempAddress, setTempAddress] = useState({
-    province: "",
-    district: "",
-    ward: "",
+    provinceCode: "",
+    provinceName: "",
+    districtCode: "",
+    districtName: "",
+    wardCode: "",
+    wardName: "",
     detail: "",
   });
 
@@ -40,6 +43,7 @@ const ConfirmPage: React.FC = () => {
   });
 
   const [payment, setPayment] = useState<PaymentMethod>("cod");
+  const [isSaveToProfile, setIsSaveToProfile] = useState(false);
 
   // --- FETCH DATA (USER & SESSION STORAGE) ---
   useEffect(() => {
@@ -61,10 +65,18 @@ const ConfirmPage: React.FC = () => {
           setCartItems(JSON.parse(savedCart));
         }
 
-        const provinceRes = await axios.get("https://provinces.open-api.vn/api/p/");
-        setProvinces(provinceRes.data);
+        // Fetch provinces
+        const provinceRes = await axios.get("https://api-eyewear.purintech.id.vn/ghn/provinces");
+        const pData = provinceRes.data?.result || provinceRes.data; // Lấy mảng bên trong result
+
+        if (Array.isArray(pData)) {
+          setProvinces(pData);
+        } else {
+          setProvinces([]);
+        }
       } catch (err) {
         console.error("Lỗi khởi tạo:", err);
+        setProvinces([]); // Handle error gracefully
       } finally {
         setLoadingUser(false);
       }
@@ -82,41 +94,93 @@ const ConfirmPage: React.FC = () => {
 
   // --- XỬ LÝ ĐỊA CHỈ ---
   const handleProvinceChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selected = e.target.selectedOptions[0];
-    const code = selected.getAttribute("data-code");
-    const name = e.target.value;
-    setTempAddress({ ...tempAddress, province: name, district: "", ward: "" });
-    setWards([]);
-    if (code) {
-      const res = await axios.get(`https://provinces.open-api.vn/api/p/${code}?depth=2`);
-      setDistricts(res.data.districts);
+    const pId = e.target.value; // Đây chính là ID số
+    const pName = e.target.selectedOptions[0].text;
+    
+    if (!pId) return;
+
+    setTempAddress({ 
+      ...tempAddress, 
+      provinceCode: pId, 
+      provinceName: pName, 
+      districtCode: "", 
+      wardCode: "" 
+    });
+
+    try {
+      const res = await axios.get(`https://api-eyewear.purintech.id.vn/ghn/districts?provinceId=${pId}`);
+      const dData = res.data?.result || res.data;
+      setDistricts(Array.isArray(dData) ? dData : []);
+      setWards([]);
+    } catch (err) {
+      console.error("Lỗi load quận:", err);
     }
   };
 
   const handleDistrictChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selected = e.target.selectedOptions[0];
-    const code = selected.getAttribute("data-code");
-    const name = e.target.value;
-    setTempAddress({ ...tempAddress, district: name, ward: "" });
-    if (code) {
-      const res = await axios.get(`https://provinces.open-api.vn/api/d/${code}?depth=2`);
-      setWards(res.data.wards);
+    // 1. Lấy ID trực tiếp từ value (vì Kiên đã để value={dId} ở phần render rồi)
+    const dId = e.target.value; 
+    if (!dId) return;
+
+    // 2. Lấy tên Quận để hiển thị chuỗi địa chỉ sau này
+    const dName = e.target.selectedOptions[0].text;
+
+    // 3. Cập nhật state (Lưu ý: dùng districtCode để khớp với value={tempAddress.districtCode} trong Modal)
+    setTempAddress({ 
+      ...tempAddress, 
+      districtCode: dId, 
+      districtName: dName, 
+      ward: "" 
+    });
+
+    try {
+      // 4. Gọi API - Network chắc chắn sẽ nhảy ở đây
+      const res = await axios.get(`https://api-eyewear.purintech.id.vn/ghn/wards?districtId=${dId}`);
+      
+      // 5. Lấy mảng result từ API
+      const wData = res.data?.result || res.data;
+      setWards(Array.isArray(wData) ? wData : []);
+      
+      console.log("Đã tải phường xã cho quận:", dName);
+    } catch (err) {
+      console.error("Lỗi khi gọi API phường xã:", err);
     }
   };
 
   const confirmNewAddress = () => {
-    const full = `${tempAddress.detail}, ${tempAddress.ward}, ${tempAddress.district}, ${tempAddress.province}`;
+    const { detail, wardName, districtName, provinceName } = tempAddress;
+    // Kiểm tra xem các trường này có bị undefined không
+    if(!detail || !wardName) {
+      alert("Vui lòng nhập đầy đủ thông tin địa chỉ!");
+      return;
+    }
+    const full = `${detail}, ${wardName}, ${districtName}, ${provinceName}`;
     setForm({ ...form, address: full });
     setIsModalOpen(false);
   };
 
-  const handlePay = () => {
+  const handlePay = async () => {
     if (!form.address || form.address.includes("Vui lòng")) {
       alert("Vui lòng cập nhật địa chỉ giao hàng!");
       return;
     }
-    console.log("Dữ liệu đơn hàng:", { customer: form, items: cartItems, total });
-    navigate("/success");
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Phiên đăng nhập hết hạn, vui lòng đăng nhập lại!");
+        return;
+      }
+
+      // Logic đặt đơn hàng thực tế của Kiên ở đây
+      console.log("Dữ liệu đơn hàng:", { customer: form, items: cartItems, total });
+      
+      // Nếu mọi thứ OK thì mới chuyển hướng
+      navigate("/success");
+    } catch (err: any) {
+      console.error("Lỗi cập nhật địa chỉ:", err.response?.data || err.message);
+      alert("Không thể cập nhật địa chỉ vào hồ sơ. Vui lòng kiểm tra lại!");
+    }
   };
 
   const inputBase = "w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-red-500 focus:ring-4 focus:ring-red-100";
@@ -134,7 +198,6 @@ const ConfirmPage: React.FC = () => {
       <Navbar />
       <div className="min-h-screen bg-zinc-50 pb-12">
         <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 lg:grid-cols-[1.2fr_0.8fr]">
-          
           <div className="space-y-6">
             {/* THÔNG TIN GIAO HÀNG */}
             <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
@@ -155,12 +218,12 @@ const ConfirmPage: React.FC = () => {
                 <div className="sm:col-span-2">
                   <label className="mb-2 block text-sm font-medium">Địa chỉ nhận hàng</label>
                   <div className="flex flex-col gap-3">
-                    <textarea 
-                      className={`${inputBase} bg-zinc-50 min-h-[80px] cursor-default italic text-zinc-500`} 
-                      value={form.address || "Vui lòng bấm nút bên dưới để cập nhật địa chỉ..."} 
-                      readOnly 
+                    <textarea
+                      className={`${inputBase} bg-zinc-50 min-h-[80px] cursor-default italic text-zinc-500`}
+                      value={form.address || "Vui lòng bấm nút bên dưới để cập nhật địa chỉ..."}
+                      readOnly
                     />
-                    <button 
+                    <button
                       type="button"
                       onClick={() => setIsModalOpen(true)}
                       className="rounded-xl bg-zinc-900 px-6 py-3 text-sm font-bold text-white hover:bg-zinc-800 transition"
@@ -182,6 +245,7 @@ const ConfirmPage: React.FC = () => {
               </h2>
 
               <div className="grid gap-4 sm:grid-cols-3">
+                {/* VNPAY */}
                 <button
                   type="button"
                   onClick={() => setPayment("bank")}
@@ -191,9 +255,14 @@ const ConfirmPage: React.FC = () => {
                 >
                   <img src="https://sandbox.vnpayment.vn/paymentv2/Images/brands/logo-vnpay.png" alt="VNPAY" className="h-8 mb-2 object-contain" />
                   <span className={`text-xs font-bold ${payment === "bank" ? "text-red-700" : "text-zinc-500"}`}>VNPAY</span>
-                  {payment === "bank" && <div className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white shadow-sm italic text-[10px]">✓</div>}
+                  {payment === "bank" && (
+                    <div className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white shadow-sm italic text-[10px]">
+                      ✓
+                    </div>
+                  )}
                 </button>
 
+                {/* MoMo */}
                 <button
                   type="button"
                   onClick={() => setPayment("deposit")}
@@ -203,9 +272,14 @@ const ConfirmPage: React.FC = () => {
                 >
                   <div className="h-8 w-8 rounded-lg bg-[#A50064] flex items-center justify-center text-white font-bold text-lg mb-2 shadow-sm">M</div>
                   <span className={`text-xs font-bold ${payment === "deposit" ? "text-pink-700" : "text-zinc-500"}`}>MoMo</span>
-                  {payment === "deposit" && <div className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-pink-500 text-white shadow-sm italic text-[10px]">✓</div>}
+                  {payment === "deposit" && (
+                    <div className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-pink-500 text-white shadow-sm italic text-[10px]">
+                      ✓
+                    </div>
+                  )}
                 </button>
 
+                {/* COD */}
                 <button
                   type="button"
                   onClick={() => setPayment("cod")}
@@ -218,42 +292,12 @@ const ConfirmPage: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
                   </svg>
                   <span className={`text-xs font-bold ${payment === "cod" ? "text-orange-700" : "text-zinc-500"}`}>COD</span>
-                  {payment === "cod" && <div className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-orange-500 text-white shadow-sm italic text-[10px]">✓</div>}
+                  {payment === "cod" && (
+                    <div className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-orange-500 text-white shadow-sm italic text-[10px]">
+                      ✓
+                    </div>
+                  )}
                 </button>
-              </div>
-
-              <div className="mt-6">
-                {payment === "bank" && (
-                  <div className="animate-in fade-in slide-in-from-top-2 rounded-2xl bg-zinc-50 p-5 border border-dashed border-zinc-300">
-                    <p className="text-sm font-bold text-zinc-900 mb-3">Thanh toán qua VNPAY:</p>
-                    <ul className="text-xs text-zinc-600 space-y-2 list-disc pl-4">
-                      <li>Hỗ trợ thẻ nội địa và quốc tế.</li>
-                      <li>Thanh toán nhanh qua QR code.</li>
-                    </ul>
-                  </div>
-                )}
-                {payment === "deposit" && (
-                  <div className="animate-in fade-in slide-in-from-top-2 rounded-2xl bg-zinc-50 p-5 border border-dashed border-zinc-300 text-xs">
-                    <p className="font-bold mb-2">Chuyển qua ví MOMO:</p>
-                    <p>Số điện thoại: <b>09x xxx xxxx</b></p>
-                    <p>Chủ TK: <b>NGUYEN VAN KIEN</b></p>
-                  </div>
-                )}
-                {payment === "cod" && (
-                  <div className="animate-in fade-in slide-in-from-top-2 rounded-2xl bg-zinc-50 p-5 border border-dashed border-zinc-300">
-                    {total > 5000000 ? (
-                      <div className="space-y-3">
-                        <p className="font-bold text-red-600 text-sm">Cần đặt cọc 20%: {(total * 0.2).toLocaleString()}đ</p>
-                        <div className="flex gap-2">
-                          <button className="flex-1 rounded-lg bg-white border py-2 text-[10px] font-bold">CỌC VNPAY</button>
-                          <button className="flex-1 rounded-lg bg-white border py-2 text-[10px] font-bold">CỌC MOMO</button>
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="text-sm text-zinc-600 italic">Thanh toán tiền mặt khi nhận hàng.</p>
-                    )}
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -262,7 +306,7 @@ const ConfirmPage: React.FC = () => {
           <div className="space-y-6">
             <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm sticky top-6">
               <h2 className="mb-4 text-lg font-bold text-zinc-900">Tóm tắt đơn hàng</h2>
-              
+
               <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
                 {cartItems.length > 0 ? (
                   cartItems.map((it) => (
@@ -272,9 +316,7 @@ const ConfirmPage: React.FC = () => {
                         <p className="font-medium text-zinc-800 line-clamp-1">{it.nameProduct}</p>
                         <p className="text-xs text-zinc-500">x{it.quantity}</p>
                       </div>
-                      <div className="text-right font-bold">
-                        {(it.price * it.quantity).toLocaleString()}đ
-                      </div>
+                      <div className="text-right font-bold">{(it.price * it.quantity).toLocaleString()}đ</div>
                     </div>
                   ))
                 ) : (
@@ -297,8 +339,8 @@ const ConfirmPage: React.FC = () => {
                 </div>
               </div>
 
-              <button 
-                onClick={handlePay} 
+              <button
+                onClick={handlePay}
                 disabled={cartItems.length === 0}
                 className="mt-6 w-full rounded-2xl bg-red-600 py-4 font-bold text-white shadow-lg hover:bg-red-700 transition disabled:bg-zinc-300"
               >
@@ -306,37 +348,112 @@ const ConfirmPage: React.FC = () => {
               </button>
             </div>
           </div>
-
         </div>
       </div>
 
       {/* MODAL ĐỊA CHỈ */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/60 backdrop-blur-sm">
-          <div className="relative w-full max-w-lg rounded-3xl bg-white p-8 shadow-2xl">
-            <h3 className="mb-6 text-xl font-bold">Địa chỉ giao hàng mới</h3>
-            <div className="space-y-4">
-              <select className={inputBase} onChange={handleProvinceChange} value={tempAddress.province}>
-                <option value="">Chọn Tỉnh/Thành</option>
-                {provinces.map(p => <option key={p.code} data-code={p.code} value={p.name}>{p.name}</option>)}
-              </select>
-              <select className={inputBase} onChange={handleDistrictChange} disabled={!tempAddress.province} value={tempAddress.district}>
-                <option value="">Chọn Quận/Huyện</option>
-                {districts.map(d => <option key={d.code} data-code={d.code} value={d.name}>{d.name}</option>)}
-              </select>
-              <select className={inputBase} onChange={(e) => setTempAddress({...tempAddress, ward: e.target.value})} disabled={!tempAddress.district} value={tempAddress.ward}>
-                <option value="">Chọn Phường/Xã</option>
-                {wards.map(w => <option key={w.code} value={w.name}>{w.name}</option>)}
-              </select>
-              <input className={inputBase} placeholder="Số nhà, tên đường..." onChange={(e) => setTempAddress({...tempAddress, detail: e.target.value})} />
-            </div>
-            <div className="mt-8 flex gap-3">
-              <button onClick={() => setIsModalOpen(false)} className="flex-1 rounded-xl bg-zinc-100 py-3 font-semibold">Hủy</button>
-              <button onClick={confirmNewAddress} className="flex-1 rounded-xl bg-red-600 py-3 font-semibold text-white">Xác nhận</button>
-            </div>
-          </div>
-        </div>
-      )}
+{isModalOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/60 backdrop-blur-sm">
+    <div className="relative w-full max-w-lg rounded-3xl bg-white p-8 shadow-2xl">
+      <h3 className="mb-6 text-xl font-bold">Địa chỉ giao hàng mới</h3>
+      <div className="space-y-4">
+        
+        {/* CHỌN TỈNH */}
+        <select 
+          className={inputBase} 
+          onChange={handleProvinceChange} 
+          // Quan trọng: value phải là ID để đồng bộ với state
+          value={tempAddress.provinceCode || ""} 
+        >
+          <option value="">Chọn Tỉnh/Thành</option>
+          {provinces.map((p: any) => {
+            // Kiểm tra các trường hợp tên trường ID của GHN
+            const pId = p.ProvinceID || p.provinceId || p.code || p.id;
+            const pName = p.ProvinceName || p.provinceName || p.name;
+            return (
+              <option key={pId} value={pId}>
+                {pName}
+              </option>
+            );
+          })}
+        </select>
+
+        {/* CHỌN QUẬN */}
+        <select
+          className={inputBase}
+          onChange={handleDistrictChange}
+          disabled={!districts.length}
+          value={tempAddress.districtCode || ""}
+        >
+          <option value="">Chọn Quận/Huyện</option>
+          {districts.map((d: any) => {
+            const dId = d.DistrictID || d.districtId || d.code || d.id;
+            const dName = d.DistrictName || d.districtName || d.name;
+            return (
+              <option key={dId} value={dId}>
+                {dName}
+              </option>
+            );
+          })}
+        </select>
+
+        {/* CHỌN PHƯỜNG */}
+        <select
+          className={inputBase}
+          onChange={(e) => setTempAddress({ 
+            ...tempAddress, 
+            wardCode: e.target.value, 
+            wardName: e.target.selectedOptions[0].text 
+          })}
+          disabled={!wards.length}
+          value={tempAddress.wardCode || ""}
+        >
+          <option value="">Chọn Phường/Xã</option>
+          {wards.map((w: any) => {
+            const wId = w.WardCode || w.wardCode || w.code;
+            const wName = w.WardName || w.wardName || w.name;
+            return (
+              <option key={wId} value={wId}>
+                {wName}
+              </option>
+            );
+          })}
+        </select>
+
+        <input
+          className={inputBase}
+          placeholder="Số nhà, tên đường..."
+          onChange={(e) => setTempAddress({ ...tempAddress, detail: e.target.value })}
+        />
+      </div>
+      <div 
+  className="flex items-center gap-3 mt-4 p-2 cursor-pointer hover:bg-zinc-50 rounded-lg transition"
+  onClick={() => setIsSaveToProfile(!isSaveToProfile)} // Khi click vào vùng này sẽ đảo filter
+>
+  <input 
+    type="checkbox" 
+    checked={isSaveToProfile} 
+    readOnly // Vì mình handle click ở thẻ div cha
+    className="h-5 w-5 rounded border-zinc-300 text-red-600 focus:ring-red-500"
+  />
+  <span className="text-sm font-medium text-zinc-600">
+    Cập nhật địa chỉ này vào thông tin cá nhân
+  </span>
+</div>
+      
+      
+      <div className="mt-8 flex gap-3">
+        <button onClick={() => setIsModalOpen(false)} className="flex-1 rounded-xl bg-zinc-100 py-3 font-semibold">
+          Hủy
+        </button>
+        <button onClick={confirmNewAddress} className="flex-1 rounded-xl bg-red-600 py-3 font-semibold text-white">
+          Xác nhận
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+      
       <Footer />
     </>
   );

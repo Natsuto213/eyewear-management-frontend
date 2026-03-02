@@ -176,7 +176,10 @@ export default function Navbar() {
                 <User className="size-5 text-gray-600 hover:text-black" />
               </Link>
               <button
-                onClick={handleLogout}
+                onClick={async () => {
+                  await apiLogout();
+                  window.location.href = "/";
+                }}
                 className="text-sm font-medium text-gray-600 hover:text-black transition"
               >
                 Đăng xuất
