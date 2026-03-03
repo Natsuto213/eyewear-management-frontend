@@ -155,8 +155,10 @@ const Profilepage: React.FC = () => {
                 </NavLink>
 
                 <a
-                  href="/login"
-                  onClick={handleLogout}
+                  onClick={async () => {
+                    await apiLogout();
+                    window.location.href = "/";
+                  }}
                   className={[navBase, "text-zinc-600 hover:bg-red-50 hover:text-red-700"].join(" ")}
                 >
                   <span>Đăng xuất</span>

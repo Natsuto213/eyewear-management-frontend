@@ -13,10 +13,11 @@ import AllProductLayout from './views/AllProduct/AllProductLayout'
 import AllProductFilter from './views/AllProduct/AllProductFilter';
 import ProductDetail from "./views/ProductDetail";
 import Cart from './views/Cart/components/CartPage';
-import Confirm from './views/ConfirmPage';
+import Confirm from './views/Confirm/Confirm';
+import WarrantyPage from './views/Policies/WarrantyPage';
+
 import { ShoppingContextProvider } from './views/Cart/contexts/ShoppingContext';
 
-import WarrantyPage from './views/Policies/WarrantyPage';
 
 ReactDOM.createRoot(document.getElementById("root")).render(
     <ShoppingContextProvider>
@@ -37,9 +38,12 @@ ReactDOM.createRoot(document.getElementById("root")).render(
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/confirm" element={<Confirm />} />
 
+                <Route path="/warranty" element={<WarrantyPage />} />
+
                 <Route path="/profile" element={<ProfilePage />}>
                     <Route path="account" element={<Account />} />
                 </Route>
+
                 <Route path="/product/:id" element={<ProductDetail />} />
             </Routes>
         </BrowserRouter>
