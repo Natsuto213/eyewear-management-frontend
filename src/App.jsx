@@ -12,7 +12,7 @@ import AllProductLayout from './views/AllProduct/AllProductLayout'
 import AllProductFilter from './views/AllProduct/AllProductFilter';
 import ProductDetail from "./views/ProductDetail";
 
-import Confirm from './views/ConfirmPage';
+import Confirm from './views/Confirm/Confirm';
 
 function App() {
   return (

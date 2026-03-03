@@ -13,7 +13,7 @@ import AllProductLayout from './views/AllProduct/AllProductLayout'
 import AllProductFilter from './views/AllProduct/AllProductFilter';
 import ProductDetail from "./views/ProductDetail";
 import Cart from './views/Cart/components/CartPage';
-import Confirm from './views/ConfirmPage';
+import Confirm from './views/Confirm/Confirm';
 import { ShoppingContextProvider } from './views/Cart/contexts/ShoppingContext';
 
 ReactDOM.createRoot(document.getElementById("root")).render(
