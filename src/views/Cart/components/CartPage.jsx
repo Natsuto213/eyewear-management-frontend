@@ -30,6 +30,9 @@ import EmptyCart from "./EmptyCart";
 import CartTable from "./CartTable";
 import OrderSummary from "./OrderSummary";
 
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+
 // ── Hàm tạo key DUY NHẤT cho mỗi item trong giỏ ──
 // Dùng cartItemId từ server (mỗi item có ID duy nhất)
 function getItemKey(item) {
@@ -162,6 +165,7 @@ export default function CartPage() {
     // ═══════════════════════════════════════════════════════════
     return (
         <div className="min-h-screen bg-gray-50">
+            <Navbar />
 
             <div className="max-w-6xl mx-auto px-4 py-10">
 
@@ -207,6 +211,8 @@ export default function CartPage() {
                     />
                 </div>
             </div>
+
+            <Footer />
         </div>
     );
 }

@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import { apiGetMyInfo } from "@/lib/userApi";
-import Navbar from "../../components/Navbar";
-import Footer from "../../components/Footer";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import ShippingForm from "./ShippingForm";
 import PaymentMethods from "./PaymentMethods";
 import OrderSummary from "./OrderSummary";
@@ -187,6 +187,9 @@ const ConfirmPage: React.FC = () => {
     <>
       <Navbar />
       <div className="min-h-screen bg-zinc-50 pb-12">
+        
+        {console.log(payment)}
+
         <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="space-y-6">
             <ShippingForm

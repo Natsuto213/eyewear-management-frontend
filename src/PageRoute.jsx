@@ -14,7 +14,12 @@ import AllProductFilter from './views/AllProduct/AllProductFilter';
 import ProductDetail from "./views/ProductDetail";
 import Cart from './views/Cart/components/CartPage';
 import Confirm from './views/Confirm/Confirm';
+
 import WarrantyPage from './views/Policies/WarrantyPage';
+
+import SuccessPage from './views/SuccessPage';
+import CancelPage from './views/CancelPage';
+
 
 import { ShoppingContextProvider } from './views/Cart/contexts/ShoppingContext';
 
@@ -39,6 +44,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
                 <Route path="/confirm" element={<Confirm />} />
 
                 <Route path="/warranty" element={<WarrantyPage />} />
+
+                <Route path="/success" element={<SuccessPage />} />
+                <Route path="/cancel" element={<CancelPage />} />
 
                 <Route path="/profile" element={<ProfilePage />}>
                     <Route path="account" element={<Account />} />
