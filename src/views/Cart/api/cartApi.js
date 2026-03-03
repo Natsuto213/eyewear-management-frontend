@@ -23,6 +23,51 @@ import { api } from "@/lib/api";
 // → cần dựa vào productType để biết gán vào field nào
 // ═══════════════════════════════════════════════════════════════
 
+/**
+ * parsePrescription — Chuyển giá trị đơn thuốc từ chuỗi sang số
+ *
+ * @param {string} value - Giá trị user nhập, ví dụ: "0", "-1.5", ""
+ * @param {boolean} needPrescription - Có cả frameId + lensId không?
+ * @returns {number|null}
+ *
+ * 3 trường hợp:
+ *   1. Có cả frame + lens (needPrescription = true):
+ *      → Luôn giữ giá trị, kể cả 0. Trống/sai → mặc định 0
+ *      parsePrescription("0", true)     → 0
+ *      parsePrescription("-1.5", true)  → -1.5
+ *      parsePrescription("", true)      → 0
+ *
+ *   2. Chỉ có 1 ID (needPrescription = false), giá trị = 0 hoặc trống:
+ *      → null
+ *      parsePrescription("0", false)    → null
+ *      parsePrescription("", false)     → null
+ *
+ *   3. Chỉ có 1 ID (needPrescription = false), giá trị ≠ 0:
+ *      → Giữ nguyên giá trị
+ *      parsePrescription("-1.5", false) → -1.5
+ *      parsePrescription("180", false)  → 180
+ */
+function parsePrescription(value, needPrescription) {
+    // Chuyển chuỗi thành số
+    const number = parseFloat(value);
+
+    // Trường hợp 1: Có cả frame + lens → luôn giữ giá trị (kể cả 0)
+    if (needPrescription) {
+        // Nếu chuyển thất bại (NaN) → mặc định 0
+        if (isNaN(number)) {
+            return 0;
+        }
+        return number;
+    }
+
+    // Trường hợp 2 & 3: Chỉ có 1 ID
+    // Nếu NaN hoặc = 0 → null, nếu ≠ 0 → giữ giá trị
+    if (isNaN(number) || number === 0) {
+        return null;
+    }
+    return number;
+}
+
 function buildCartApiBody(item, quantity) {
     // Bước 1: Xác định frameId, lensId, contactLensId
     let frameId = null;
@@ -53,8 +98,10 @@ function buildCartApiBody(item, quantity) {
 
     // Bước 2: Lấy thông số đơn thuốc
     const rx = item.prescription || {};
-    const pdRight = parseFloat(rx.rightPD) || null;
-    const pdLeft = parseFloat(rx.leftPD) || null;
+
+    // Kiểm tra sản phẩm có cần đơn thuốc không?
+    // Chỉ cần đơn thuốc khi mua Gọng kính + Tròng kính cùng lúc
+    const needPrescription = frameId !== null && lensId !== null;
 
     // Bước 3: Tính tổng giá
     const totalPrice = (item.priceProduct ?? 0) + (item.pricePairedProduct ?? 0);
@@ -70,21 +117,23 @@ function buildCartApiBody(item, quantity) {
         price: totalPrice || null,
 
         // Đơn thuốc mắt phải
-        rightEyeSph: parseFloat(rx.rightSPH) || null,
-        rightEyeCyl: parseFloat(rx.rightCYL) || null,
-        rightEyeAxis: parseFloat(rx.rightAXIS) || null,
-        rightEyeAdd: parseFloat(rx.rightADD) || null,
+        rightEyeSph: parsePrescription(rx.rightSPH, needPrescription),
+        rightEyeCyl: parsePrescription(rx.rightCYL, needPrescription),
+        rightEyeAxis: parsePrescription(rx.rightAXIS, needPrescription),
+        rightEyeAdd: parsePrescription(rx.rightADD, needPrescription),
 
         // Đơn thuốc mắt trái
-        leftEyeSph: parseFloat(rx.leftSPH) || null,
-        leftEyeCyl: parseFloat(rx.leftCYL) || null,
-        leftEyeAxis: parseFloat(rx.leftAXIS) || null,
-        leftEyeAdd: parseFloat(rx.leftADD) || null,
+        leftEyeSph: parsePrescription(rx.leftSPH, needPrescription),
+        leftEyeCyl: parsePrescription(rx.leftCYL, needPrescription),
+        leftEyeAxis: parsePrescription(rx.leftAXIS, needPrescription),
+        leftEyeAdd: parsePrescription(rx.leftADD, needPrescription),
 
         // Khoảng cách đồng tử (PD)
-        pdRight,
-        pdLeft,
-        pd: pdRight && pdLeft ? pdRight + pdLeft : null,
+        pdRight: parsePrescription(rx.rightPD, needPrescription),
+        pdLeft: parsePrescription(rx.leftPD, needPrescription),
+        pd: needPrescription
+            ? parsePrescription(rx.rightPD, true) + parsePrescription(rx.leftPD, true)
+            : null,
     };
 }
 

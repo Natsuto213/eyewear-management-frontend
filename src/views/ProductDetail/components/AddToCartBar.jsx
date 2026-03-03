@@ -183,12 +183,7 @@ export default function AddToCartBar({
 
             {/* ── Ghi chú cho Kính áp tròng ── */}
             {/* Giải thích rõ đây chỉ là thông tin tham khảo, không bắt buộc */}
-            {isContact && (
-                <p className="text-xs text-gray-400 italic -mt-3">
-                    * Thông số độ mắt chỉ để tham khảo khi chọn kính áp tròng có độ.
-                    Sản phẩm này được tính là mua đơn lẻ.
-                </p>
-            )}
+
 
             {/* ── Phần chọn phương án (chỉ Gọng/Tròng) ── */}
             {(isFrame || isLenses) && (
