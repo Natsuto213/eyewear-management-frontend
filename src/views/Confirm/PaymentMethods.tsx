@@ -1,9 +1,9 @@
 import React from "react";
-import momo_logo from "@/assets/Momo_logo.png";
+import vietqr_logo from "@/assets/VietQR_logo.png";
 import vnpay_logo from "@/assets/VnPay_logo.png";
 
 
-type PaymentMethodType = "VNPAY" | "MOMO" | "COD";
+type PaymentMethodType = "VNPAY" | "PAYOS" | "COD";
 
 interface PaymentMethodsProps {
   payment: PaymentMethodType;
@@ -40,13 +40,13 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({ payment, setPayment, to
         {/* MOMO */}
         <button
           type="button"
-          onClick={() => setPayment("MOMO")}
-          className={`group relative flex flex-col items-center justify-center rounded-2xl border-2 p-4 transition-all ${payment === "MOMO" ? "border-pink-500 bg-pink-50 shadow-md" : "border-zinc-100 bg-white hover:border-zinc-200"
+          onClick={() => setPayment("PAYOS")}
+          className={`group relative flex flex-col items-center justify-center rounded-2xl border-2 p-4 transition-all ${payment === "PAYOS" ? "border-pink-500 bg-pink-50 shadow-md" : "border-zinc-100 bg-white hover:border-zinc-200"
             }`}
         >
-          <img src={momo_logo} alt="MOMO" className="h-8 mb-2 object-contain" />
-          <span className={`text-xs font-bold ${payment === "MOMO" ? "text-pink-700" : "text-zinc-500"}`}>MoMo</span>
-          {payment === "MOMO" && <div className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-pink-500 text-white shadow-sm italic text-[10px]">✓</div>}
+          <img src={vietqr_logo} alt="PAYOS" className="h-8 mb-2 object-contain" />
+          <span className={`text-xs font-bold ${payment === "PAYOS" ? "text-pink-700" : "text-zinc-500"}`}>VietQR</span>
+          {payment === "PAYOS" && <div className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-pink-500 text-white shadow-sm italic text-[10px]">✓</div>}
         </button>
 
         {/* COD */}
@@ -83,11 +83,11 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({ payment, setPayment, to
               <span className="text-xs font-bold">Cọc qua VNPAY</span>
             </button>
             <button
-              onClick={() => setPayment("MOMO")}
+              onClick={() => setPayment("PAYOS")}
               className="flex-1 flex items-center justify-center gap-2 py-2 px-4 bg-white border border-zinc-200 rounded-xl hover:border-pink-500 hover:text-pink-600 transition-all shadow-sm"
             >
               <div className="h-4 w-4 bg-[#A50064] text-white text-[10px] flex items-center justify-center rounded">M</div>
-              <span className="text-xs font-bold">Cọc qua MoMo</span>
+              <span className="text-xs font-bold">Cọc qua VietQR</span>
             </button>
           </div>
         </div>

@@ -116,7 +116,7 @@ export default function Navbar() {
 
                             <div className="bg-white rounded-lg overflow-hidden border border-gray-100">
                                 <div className="p-4">
-                                    <h3 className="text-lg font-semibold text-gray-800">Your Cart</h3>
+                                    <h3 className="text-lg font-semibold text-gray-800">Giỏ hàng của bạn</h3>
                                 </div>
 
                                 <hr className="border-gray-100" />

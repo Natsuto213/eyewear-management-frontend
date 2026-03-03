@@ -14,12 +14,12 @@ type PaymentMethodType = "VNPAY" | "MOMO" | "COD";
 const ConfirmPage: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  
+
   const [cartItems, setCartItems] = useState<any[]>([]);
-  const [previewData, setPreviewData] = useState<any>(null); 
-  
+  const [previewData, setPreviewData] = useState<any>(null);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [payment, setPayment] = useState<PaymentMethodType>("COD"); 
+  const [payment, setPayment] = useState<PaymentMethodType>("COD");
   const [selectedCodes, setSelectedCodes] = useState<{ districtCode: string; wardCode: string; provinceCode?: string } | null>(null);
   const [form, setForm] = useState({ fullName: "", phone: "", email: "", address: "" });
 
@@ -31,24 +31,24 @@ const ConfirmPage: React.FC = () => {
         const res = await apiGetMyInfo();
         const u = res?.result ?? res;
         if (u) {
-          setForm(prev => ({ 
-            ...prev, 
-            fullName: u.name || "", 
-            phone: u.phone || "", 
-            email: u.email || "" 
+          setForm(prev => ({
+            ...prev,
+            fullName: u.name || "",
+            phone: u.phone || "",
+            email: u.email || ""
           }));
         }
-        
+
         // Lấy giỏ hàng từ Session
         const saved = sessionStorage.getItem("selected_cart_items");
         if (saved) {
           const items = JSON.parse(saved);
           setCartItems(items);
         }
-      } catch (err) { 
-        console.error("Lỗi khởi tạo:", err); 
-      } finally { 
-        setLoading(false); 
+      } catch (err) {
+        console.error("Lỗi khởi tạo:", err);
+      } finally {
+        setLoading(false);
       }
     };
     initData();
@@ -59,8 +59,8 @@ const ConfirmPage: React.FC = () => {
     if (itemIds.length === 0) return;
     try {
       // FIX: Dùng đúng key 'access_token' từ ảnh Application của Kiên
-      const token = localStorage.getItem("access_token"); 
-      
+      const token = localStorage.getItem("access_token");
+
       const payload: any = {
         cartItemIds: itemIds,
         promotionId: null,
@@ -68,16 +68,16 @@ const ConfirmPage: React.FC = () => {
       };
 
       if (codes?.districtCode && codes?.wardCode) {
-        payload.address = { 
-          districtCode: codes.districtCode, 
-          wardCode: codes.wardCode 
+        payload.address = {
+          districtCode: codes.districtCode,
+          wardCode: codes.wardCode
         };
       }
 
       const res = await axios.post("https://api-eyewear.purintech.id.vn/checkout/preview", payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       if (res.data.result) {
         setPreviewData(res.data.result);
         console.log("✅ Preview Update:", res.data.result);
@@ -97,46 +97,46 @@ const ConfirmPage: React.FC = () => {
 
   // --- 4. HÀM XỬ LÝ KHI XÁC NHẬN ĐỊA CHỈ TỪ MODAL ---
   const handleAddressConfirm = async (addr: string, isSave: boolean, codes: any) => {
-  setForm(prev => ({ ...prev, address: addr }));
-  setSelectedCodes(codes); 
-  
-  if (isSave) {
-    try {
-      const token = localStorage.getItem("access_token");
-      
-      // FIX: Lấy dữ liệu trực tiếp từ tempAddress mà Modal truyền qua codes
-      // Điều này đảm bảo không có trường nào bị "" hoặc undefined
-      const bodyUpdate = {
-        street: codes.street || addr.split(',')[0].trim(),
-        provinceCode: Number(codes.provinceCode),
-        provinceName: codes.provinceName,
-        districtCode: Number(codes.districtCode),
-        districtName: codes.districtName,
-        wardCode: String(codes.wardCode),
-        wardName: codes.wardName
-      };
+    setForm(prev => ({ ...prev, address: addr }));
+    setSelectedCodes(codes);
 
-      console.log("🚀 Payload chuẩn bị gửi lên:", bodyUpdate);
+    if (isSave) {
+      try {
+        const token = localStorage.getItem("access_token");
 
-      const res = await axios.put("https://api-eyewear.purintech.id.vn/users/my-address", 
-        bodyUpdate, 
-        { 
-          headers: { 
-            Authorization: `Bearer ${token}`
-          } 
+        // FIX: Lấy dữ liệu trực tiếp từ tempAddress mà Modal truyền qua codes
+        // Điều này đảm bảo không có trường nào bị "" hoặc undefined
+        const bodyUpdate = {
+          street: codes.street || addr.split(',')[0].trim(),
+          provinceCode: Number(codes.provinceCode),
+          provinceName: codes.provinceName,
+          districtCode: Number(codes.districtCode),
+          districtName: codes.districtName,
+          wardCode: String(codes.wardCode),
+          wardName: codes.wardName
+        };
+
+        console.log("🚀 Payload chuẩn bị gửi lên:", bodyUpdate);
+
+        const res = await axios.put("https://api-eyewear.purintech.id.vn/users/my-address",
+          bodyUpdate,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+
+        if (res.data.code === 1000) {
+          console.log("✅ API my-address thành công!");
         }
-      );
-      
-      if(res.data.code === 1000) {
-        console.log("✅ API my-address thành công!");
+      } catch (err: any) {
+        console.error("❌ Chi tiết lỗi từ Server:", err.response?.data);
+        // Nếu vẫn lỗi 1001, hãy nhìn vào console xem trường nào đang bị undefined/null
       }
-    } catch (err: any) { 
-      console.error("❌ Chi tiết lỗi từ Server:", err.response?.data);
-      // Nếu vẫn lỗi 1001, hãy nhìn vào console xem trường nào đang bị undefined/null
     }
-  }
-  setIsModalOpen(false);
-};
+    setIsModalOpen(false);
+  };
 
   // --- 5. HÀM ĐẶT HÀNG ---
   const handleOrder = async () => {
@@ -158,10 +158,10 @@ const ConfirmPage: React.FC = () => {
 
       // Xử lý cọc nếu cần
       if (previewData?.depositRequired && payment === "COD") {
-        payload.depositPaymentMethod = "VNPAY"; 
+        payload.depositPaymentMethod = "VNPAY";
       }
 
-      const res = await axios.post("https://api-eyewear.purintech.id.vn/orders", payload, {
+      const res = await axios.post("http://localhost:8080/orders", payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -185,33 +185,34 @@ const ConfirmPage: React.FC = () => {
 
   return (
     <>
+      {console.log(payment)}
       <Navbar />
       <div className="min-h-screen bg-zinc-50 pb-12">
         <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="space-y-6">
-            <ShippingForm 
-              form={form} 
-              setForm={setForm} 
-              onOpenModal={() => setIsModalOpen(true)} 
+            <ShippingForm
+              form={form}
+              setForm={setForm}
+              onOpenModal={() => setIsModalOpen(true)}
             />
-            <PaymentMethods 
-              payment={payment} 
-              setPayment={setPayment} 
-              total={previewData?.totalAmount || 0} 
+            <PaymentMethods
+              payment={payment}
+              setPayment={setPayment}
+              total={previewData?.totalAmount || 0}
             />
           </div>
-          <OrderSummary 
-            cartItems={cartItems} 
-            preview={previewData} 
-            onPay={handleOrder} 
+          <OrderSummary
+            cartItems={cartItems}
+            preview={previewData}
+            onPay={handleOrder}
           />
         </div>
       </div>
 
-      <AddressModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onConfirm={handleAddressConfirm} 
+      <AddressModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={handleAddressConfirm}
       />
       <Footer />
     </>

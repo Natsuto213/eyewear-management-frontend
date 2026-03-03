@@ -255,7 +255,7 @@ export default function AddToCartBar({
                     title={needsSelection ? `Vui long tick "${soloLabel}" hoac chon san pham kem` : ""}
                     className={`flex-1 h-10 rounded-lg font-bold uppercase text-sm transition-all duration-200 ${cartBtnClass}`}
                 >
-                    {needsSelection ? "Chua hoan tat lua chon" : "Them vao gio hang"}
+                    {needsSelection ? "Chưa hoàn tất lựa chọn" : "Thêm vào giỏ hàng"}
                 </button>
             </div>
 

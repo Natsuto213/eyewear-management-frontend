@@ -1,4 +1,4 @@
-import { useEffect } from "react";  
+import { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 
@@ -169,6 +169,11 @@ export default function HomePage() {
             </section>
         );
     }
+
+    useEffect(() => {
+        const token = localStorage.getItem("access_token");
+        console.log("Access Token:", token);
+    }, []);
 
     return (
         <>
