@@ -181,15 +181,6 @@ export default function AddToCartBar({
                 onBlur={onBlurRx}
             />
 
-            {/* ── Ghi chú cho Kính áp tròng ── */}
-            {/* Giải thích rõ đây chỉ là thông tin tham khảo, không bắt buộc */}
-            {isContact && (
-                <p className="text-xs text-gray-400 italic -mt-3">
-                    * Thông số độ mắt chỉ để tham khảo khi chọn kính áp tròng có độ.
-                    Sản phẩm này được tính là mua đơn lẻ.
-                </p>
-            )}
-
             {/* ── Phần chọn phương án (chỉ Gọng/Tròng) ── */}
             {(isFrame || isLenses) && (
                 <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-3">
