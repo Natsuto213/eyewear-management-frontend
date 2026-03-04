@@ -179,8 +179,6 @@ const ConfirmPage: React.FC = () => {
           districtName: selectedCodes.districtName,
           wardCode: String(selectedCodes.wardCode), 
           wardName: selectedCodes.wardName,
-          // Nếu API cần thêm số nhà/tên đường thì truyền thêm vào đây
-          // street: selectedCodes.street 
         }
       };
 
