@@ -37,7 +37,7 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({ payment, setPayment, to
           {payment === "VNPAY" && <div className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white shadow-sm italic text-[10px]">✓</div>}
         </button>
 
-        {/* MOMO */}
+        {/* PAYOS */}
         <button
           type="button"
           onClick={() => setPayment("PAYOS")}

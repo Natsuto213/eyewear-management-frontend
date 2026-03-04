@@ -38,6 +38,18 @@ const ConfirmPage: React.FC = () => {
             email: u.email || "",
             address: u.address || "",
           }));
+
+          if (u.provinceCode && u.districtCode && u.wardCode) {
+            setSelectedCodes({
+              provinceCode: u.provinceCode,
+              provinceName: u.provinceName,
+              districtCode: u.districtCode,
+              districtName: u.districtName,
+              wardCode: u.wardCode,
+              wardName: u.wardName,
+              street: u.street // Hoặc tách số nhà từ chuỗi u.address
+            });
+          }
         }
 
         // Lấy giỏ hàng từ Session
@@ -141,8 +153,12 @@ const ConfirmPage: React.FC = () => {
 
   // --- 5. HÀM ĐẶT HÀNG ---
   const handleOrder = async () => {
-    if (!form.address) {
-      return alert("Vui lòng chọn địa chỉ giao hàng!");
+    if (!form.fullName || !form.phone) {
+      return alert("Vui lòng điền đầy đủ tên và số điện thoại người nhận!");
+    }
+
+    if (!selectedCodes || !selectedCodes.provinceCode || !selectedCodes.districtCode || !selectedCodes.wardCode) {
+      return alert("Hệ thống thiếu thông tin mã vùng (Tỉnh/Huyện/Xã). Vui lòng nhấn nút 'Thay đổi' để chọn lại địa chỉ giao hàng cho chính xác nhé!");
     }
 
     try {
@@ -155,6 +171,17 @@ const ConfirmPage: React.FC = () => {
         recipientEmail: form.email,
         note: "Giao hàng từ web",
         paymentMethod: payment,
+
+        address: {
+          provinceCode: Number(selectedCodes.provinceCode),
+          provinceName: selectedCodes.provinceName,
+          districtCode: Number(selectedCodes.districtCode),
+          districtName: selectedCodes.districtName,
+          wardCode: String(selectedCodes.wardCode), 
+          wardName: selectedCodes.wardName,
+          // Nếu API cần thêm số nhà/tên đường thì truyền thêm vào đây
+          // street: selectedCodes.street 
+        }
       };
 
       // Xử lý cọc nếu cần
