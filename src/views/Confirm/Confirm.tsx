@@ -161,7 +161,7 @@ const ConfirmPage: React.FC = () => {
         payload.depositPaymentMethod = "VNPAY";
       }
 
-      const res = await axios.post("http://localhost:8080/orders", payload, {
+      const res = await axios.post("https://api-eyewear.purintech.id.vn/orders", payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

@@ -86,7 +86,6 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({ payment, setPayment, to
               onClick={() => setPayment("PAYOS")}
               className="flex-1 flex items-center justify-center gap-2 py-2 px-4 bg-white border border-zinc-200 rounded-xl hover:border-pink-500 hover:text-pink-600 transition-all shadow-sm"
             >
-              <div className="h-4 w-4 bg-[#A50064] text-white text-[10px] flex items-center justify-center rounded">M</div>
               <span className="text-xs font-bold">Cọc qua VietQR</span>
             </button>
           </div>
