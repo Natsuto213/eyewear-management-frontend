@@ -35,7 +35,8 @@ const ConfirmPage: React.FC = () => {
             ...prev,
             fullName: u.name || "",
             phone: u.phone || "",
-            email: u.email || ""
+            email: u.email || "",
+            address: u.address || "",
           }));
         }
 
@@ -140,7 +141,7 @@ const ConfirmPage: React.FC = () => {
 
   // --- 5. HÀM ĐẶT HÀNG ---
   const handleOrder = async () => {
-    if (!form.address || form.address.includes("Vui lòng")) {
+    if (!form.address) {
       return alert("Vui lòng chọn địa chỉ giao hàng!");
     }
 
