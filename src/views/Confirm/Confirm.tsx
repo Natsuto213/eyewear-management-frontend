@@ -20,7 +20,16 @@ const ConfirmPage: React.FC = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [payment, setPayment] = useState<PaymentMethodType>("COD");
-  const [selectedCodes, setSelectedCodes] = useState<{ provinceCode?: string; provinceName?: string; districtCode: string; districtName: string; wardCode: string, wardName: string } | null>(null);
+  const [selectedCodes, setSelectedCodes] = useState<{
+    provinceCode?: string,
+    provinceName?: string,
+    districtCode?: string,
+    districtName?: string,
+    wardCode?: string,
+    wardName?: string,
+    street?: string
+  } | null>(null);
+
   const [form, setForm] = useState({ fullName: "", phone: "", email: "", address: "" });
 
   // --- 1. USEEFFECT KHỞI TẠO DỮ LIỆU ---
@@ -50,7 +59,6 @@ const ConfirmPage: React.FC = () => {
             });
           }
         }
-
         // Lấy giỏ hàng từ Session
         const saved = sessionStorage.getItem("selected_cart_items");
         if (saved) {
@@ -125,7 +133,7 @@ const ConfirmPage: React.FC = () => {
           districtCode: Number(codes.districtCode),
           districtName: codes.districtName,
           wardCode: String(codes.wardCode),
-          wardName: codes.wardName
+          wardName: codes.wardName,
         };
 
         console.log("🚀 Payload chuẩn bị gửi lên:", bodyUpdate);
@@ -178,6 +186,7 @@ const ConfirmPage: React.FC = () => {
           districtName: selectedCodes.districtName,
           wardCode: String(selectedCodes.wardCode),
           wardName: selectedCodes.wardName,
+          street: selectedCodes.street
         }
       };
 
