@@ -181,13 +181,6 @@ export default function AddToCartBar({
                 onBlur={onBlurRx}
             />
 
-<<<<<<< HEAD
-=======
-            {/* ── Ghi chú cho Kính áp tròng ── */}
-            {/* Giải thích rõ đây chỉ là thông tin tham khảo, không bắt buộc */}
-
-
->>>>>>> origin/dev/Quang
             {/* ── Phần chọn phương án (chỉ Gọng/Tròng) ── */}
             {(isFrame || isLenses) && (
                 <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-3">
