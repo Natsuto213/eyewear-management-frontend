@@ -9,7 +9,7 @@ import PaymentMethods from "./PaymentMethods";
 import OrderSummary from "./OrderSummary";
 import AddressModal from "./AddressModal";
 
-type PaymentMethodType = "VNPAY" | "MOMO" | "COD";
+type PaymentMethodType = "VNPAY" | "PAYOS" | "COD";
 
 const ConfirmPage: React.FC = () => {
   const navigate = useNavigate();
@@ -20,7 +20,7 @@ const ConfirmPage: React.FC = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [payment, setPayment] = useState<PaymentMethodType>("COD");
-  const [selectedCodes, setSelectedCodes] = useState<{ districtCode: string; wardCode: string; provinceCode?: string } | null>(null);
+  const [selectedCodes, setSelectedCodes] = useState<{ provinceCode?: string; provinceName?: string; districtCode: string; districtName: string; wardCode: string, wardName: string } | null>(null);
   const [form, setForm] = useState({ fullName: "", phone: "", email: "", address: "" });
 
   // --- 1. USEEFFECT KHỞI TẠO DỮ LIỆU ---
@@ -47,7 +47,6 @@ const ConfirmPage: React.FC = () => {
               districtName: u.districtName,
               wardCode: u.wardCode,
               wardName: u.wardName,
-              street: u.street // Hoặc tách số nhà từ chuỗi u.address
             });
           }
         }
@@ -177,7 +176,7 @@ const ConfirmPage: React.FC = () => {
           provinceName: selectedCodes.provinceName,
           districtCode: Number(selectedCodes.districtCode),
           districtName: selectedCodes.districtName,
-          wardCode: String(selectedCodes.wardCode), 
+          wardCode: String(selectedCodes.wardCode),
           wardName: selectedCodes.wardName,
         }
       };
