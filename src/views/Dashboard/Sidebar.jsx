@@ -26,11 +26,8 @@ const Sidebar = ({ role, name }) => {
                 {/* Manager thấy */}
                 {role === "MANAGER" && (
                     <>
-                        <NavLink to="/dashboard/orders" className={linkClass}>
-                            Danh sách Order
-                        </NavLink>
-                        <NavLink to="/dashboard/complaints" className={linkClass}>
-                            Đơn khiếu nại
+                        <NavLink to="manager" className={linkClass}>
+                            Nhập các ô cần thiết bên MANAGER
                         </NavLink>
                     </>
                 )}
@@ -38,11 +35,8 @@ const Sidebar = ({ role, name }) => {
                 {/* Saler thấy */}
                 {role === "SALES STAFF" && (
                     <>
-                        <NavLink to="/sales" className={linkClass}>
+                        <NavLink to="orders" className={linkClass}>
                             Báo cáo doanh thu
-                        </NavLink>
-                        <NavLink to="/customers" className={linkClass}>
-                            Danh sách khách hàng
                         </NavLink>
                     </>
                 )}
