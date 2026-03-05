@@ -1,7 +1,10 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
+import { apiLogout } from '../../lib/userApi'
+import { useNavigate } from 'react-router-dom'
 
-const Sidebar = ({ userRole, userName, onLogout }) => {
+const Sidebar = ({ role, name }) => {
+    const navigate = useNavigate()
 
     const linkClass = ({ isActive }) =>
         `block px-6 py-3 !no-underline [text-decoration:none] transition-colors ${isActive
@@ -14,14 +17,14 @@ const Sidebar = ({ userRole, userName, onLogout }) => {
             {/* Tên app + thông tin user */}
             <div className="border-b border-gray-200 p-5">
                 <div className="text-lg font-bold text-gray-800">EYEWEAR ADMIN</div>
-                <div className="mt-1 text-xs text-gray-400">{userName} ({userRole})</div>
+                <div className="mt-1 text-xs text-gray-400">{name} ({role})</div>
             </div>
 
             {/* Menu */}
             <nav className="mt-2 flex-1">
 
                 {/* Manager thấy */}
-                {userRole === "manager" && (
+                {role === "MANAGER" && (
                     <>
                         <NavLink to="/dashboard/orders" className={linkClass}>
                             Danh sách Order
@@ -33,12 +36,12 @@ const Sidebar = ({ userRole, userName, onLogout }) => {
                 )}
 
                 {/* Saler thấy */}
-                {userRole === "saler" && (
+                {role === "SALES STAFF" && (
                     <>
-                        <NavLink to="/dashboard/sales" className={linkClass}>
+                        <NavLink to="/sales" className={linkClass}>
                             Báo cáo doanh thu
                         </NavLink>
-                        <NavLink to="/dashboard/customers" className={linkClass}>
+                        <NavLink to="/customers" className={linkClass}>
                             Danh sách khách hàng
                         </NavLink>
                     </>
@@ -48,7 +51,10 @@ const Sidebar = ({ userRole, userName, onLogout }) => {
             {/* Nút đăng xuất */}
             <div className="border-t border-gray-200 p-4">
                 <button
-                    onClick={onLogout}
+                    onClick={async () => {
+                        await apiLogout();
+                        navigate("/")
+                    }}
                     className="w-full rounded-lg bg-red-50 px-4 py-2 text-sm font-medium text-red-600
                                hover:bg-red-100"
                 >

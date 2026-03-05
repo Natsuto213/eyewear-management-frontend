@@ -32,8 +32,14 @@ const Loginpage: React.FC = () => {
             if (remember) localStorage.setItem("remember_username", username);
             else localStorage.removeItem("remember_username");
 
+            const { role, name } = res
             await fetchCart(); // Tải lại giỏ hàng sau khi login thành công
-            navigate(roleRedirects(res.role), { replace: true });
+            navigate(roleRedirects(role), {
+                state: {
+                    role,
+                    name
+                }
+            });
         } catch (err: any) {
             setError(err?.response?.data?.message || err?.message || "Login failed");
         } finally {
