@@ -1,0 +1,167 @@
+import { useState } from 'react';
+import { Link, useLocation } from 'react-router';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Badge } from '../ui/badge';
+import { ScrollArea } from '../ui/scroll-area';
+import { Separator } from '../ui/separator';
+import { cn } from '../ui/utils';
+import { type Role, type TabItem, getTabsByRole, getRoleDisplayName } from './navigation';
+import { ChevronLeft, ChevronRight, LogOut } from 'lucide-react';
+import { apiLogout } from "../../lib/userApi";
+
+interface SidebarProps {
+  role: Role;
+  tabs?: TabItem[]; // Allow passing tabs directly
+  userName?: string;
+  userAvatar?: string;
+  onRoleChange?: (role: Role) => void;
+  onLogout?: () => void;
+}
+
+export function Sidebar({
+  role,
+  tabs: customTabs,
+  userName = 'User',
+  userAvatar,
+  onRoleChange,
+  onLogout
+}: SidebarProps) {
+  const [collapsed, setCollapsed] = useState(false);
+  const location = useLocation();
+  const tabs = customTabs || getTabsByRole(role); // Use custom tabs if provided, otherwise get from role
+  const roleDisplayName = getRoleDisplayName(role);
+
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
+
+  const getRoleBadgeColor = (currentRole: Role) => {
+    switch (currentRole) {
+      case 'sales':
+        return 'bg-blue-500';
+      case 'operation':
+        return 'bg-green-500';
+      case 'manager':
+        return 'bg-purple-500';
+      default:
+        return 'bg-gray-500';
+    }
+  };
+
+  return (
+    <div
+      className={cn(
+        "relative h-screen bg-gray-900 text-white transition-all duration-300 flex flex-col",
+        collapsed ? "w-16" : "w-64"
+      )}
+    >
+      {/* Header - User Info */}
+      <div className="p-4 border-b border-gray-800">
+        <div className="flex items-center gap-3">
+          <Avatar className="h-10 w-10 border-2 border-gray-700">
+            <AvatarImage src={userAvatar} alt={userName} />
+            <AvatarFallback className="bg-gray-800">
+              {userName.substring(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+
+          {!collapsed && (
+            <div className="flex-1 min-w-0">
+              <p className="font-medium truncate">{userName}</p>
+              <Badge
+                variant="secondary"
+                className={cn("text-xs mt-1", getRoleBadgeColor(role))}
+              >
+                {roleDisplayName}
+              </Badge>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Navigation Menu */}
+      <ScrollArea className="flex-1">
+        <nav className="p-2 space-y-1">
+          {tabs.map((tab: TabItem) => {
+            const Icon = tab.icon;
+            const active = isActive(tab.path);
+
+            return (
+              <Link
+                key={tab.id}
+                to={tab.path}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
+                  "hover:bg-gray-800",
+                  active && "bg-gray-800 text-white border-l-4 border-blue-500",
+                  !active && "text-gray-400",
+                  collapsed && "justify-center"
+                )}
+                title={collapsed ? tab.label : undefined}
+              >
+                <Icon className="h-5 w-5 shrink-0" />
+                {!collapsed && (
+                  <span className="truncate">{tab.label}</span>
+                )}
+              </Link>
+            );
+          })}
+        </nav>
+      </ScrollArea>
+
+      <Separator className="bg-gray-800" />
+
+      {/* Role Switcher (for demo purposes) */}
+      {onRoleChange && !collapsed && (
+        <div className="p-3 border-t border-gray-800">
+          <p className="text-xs text-gray-400 mb-2 px-1">Switch Role</p>
+          <div className="flex gap-2">
+            {(['sales', 'operation', 'manager'] as Role[]).map((r) => (
+              <button
+                key={r}
+                onClick={() => onRoleChange(r)}
+                className={cn(
+                  "flex-1 px-2 py-1.5 text-xs rounded transition-colors",
+                  r === role
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                )}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Footer - Logout */}
+      <div className="p-3 border-t border-gray-800">
+        {onLogout && (
+          <button
+            onClick={async () => {
+              await apiLogout();
+              window.location.href = "/";
+            }}
+            className="text-sm font-medium text-gray-600 hover:text-black transition"
+            title={collapsed ? "Logout" : undefined}
+          >
+            <LogOut className="h-5 w-5 shrink-0" />
+            {!collapsed && <span>Logout</span>}
+          </button>
+        )}
+      </div>
+
+      {/* Collapse Toggle Button */}
+      <button
+        onClick={() => setCollapsed(!collapsed)}
+        className="absolute -right-3 top-20 bg-gray-900 border border-gray-700 rounded-full p-1 hover:bg-gray-800 transition-colors"
+      >
+        {collapsed ? (
+          <ChevronRight className="h-4 w-4" />
+        ) : (
+          <ChevronLeft className="h-4 w-4" />
+        )}
+      </button>
+    </div>
+  );
+}
