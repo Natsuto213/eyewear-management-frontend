@@ -1,12 +1,12 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './PageRoute.jsx'
-import { BrowserRouter } from 'react-router' 
+import React from "react";
+import ReactDOM from "react-dom/client";
+import PageRoute from "@/PageRoute.jsx";
+import { BrowserRouter } from "react-router-dom";
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
-      <App />
+      <PageRoute />
     </BrowserRouter>
   </React.StrictMode>
-)
+);
