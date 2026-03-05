@@ -9,7 +9,7 @@ import PaymentMethods from "./PaymentMethods";
 import OrderSummary from "./OrderSummary";
 import AddressModal from "./AddressModal";
 
-type PaymentMethodType = "VNPAY" | "MOMO" | "COD";
+type PaymentMethodType = "VNPAY" | "PAYOS" | "COD";
 
 const ConfirmPage: React.FC = () => {
   const navigate = useNavigate();
@@ -20,7 +20,16 @@ const ConfirmPage: React.FC = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [payment, setPayment] = useState<PaymentMethodType>("COD");
-  const [selectedCodes, setSelectedCodes] = useState<{ districtCode: string; wardCode: string; provinceCode?: string } | null>(null);
+  const [selectedCodes, setSelectedCodes] = useState<{
+    provinceCode?: string,
+    provinceName?: string,
+    districtCode?: string,
+    districtName?: string,
+    wardCode?: string,
+    wardName?: string,
+    street?: string
+  } | null>(null);
+
   const [form, setForm] = useState({ fullName: "", phone: "", email: "", address: "" });
 
   // --- 1. USEEFFECT KHỞI TẠO DỮ LIỆU ---
@@ -35,10 +44,21 @@ const ConfirmPage: React.FC = () => {
             ...prev,
             fullName: u.name || "",
             phone: u.phone || "",
-            email: u.email || ""
+            email: u.email || "",
+            address: u.address || "",
           }));
-        }
 
+          if (u.provinceCode && u.districtCode && u.wardCode) {
+            setSelectedCodes({
+              provinceCode: u.provinceCode,
+              provinceName: u.provinceName,
+              districtCode: u.districtCode,
+              districtName: u.districtName,
+              wardCode: u.wardCode,
+              wardName: u.wardName,
+            });
+          }
+        }
         // Lấy giỏ hàng từ Session
         const saved = sessionStorage.getItem("selected_cart_items");
         if (saved) {
@@ -113,7 +133,7 @@ const ConfirmPage: React.FC = () => {
           districtCode: Number(codes.districtCode),
           districtName: codes.districtName,
           wardCode: String(codes.wardCode),
-          wardName: codes.wardName
+          wardName: codes.wardName,
         };
 
         console.log("🚀 Payload chuẩn bị gửi lên:", bodyUpdate);
@@ -140,8 +160,12 @@ const ConfirmPage: React.FC = () => {
 
   // --- 5. HÀM ĐẶT HÀNG ---
   const handleOrder = async () => {
-    if (!form.address || form.address.includes("Vui lòng")) {
-      return alert("Vui lòng chọn địa chỉ giao hàng!");
+    if (!form.fullName || !form.phone) {
+      return alert("Vui lòng điền đầy đủ tên và số điện thoại người nhận!");
+    }
+
+    if (!selectedCodes || !selectedCodes.provinceCode || !selectedCodes.districtCode || !selectedCodes.wardCode) {
+      return alert("Hệ thống thiếu thông tin mã vùng (Tỉnh/Huyện/Xã). Vui lòng nhấn nút 'Thay đổi' để chọn lại địa chỉ giao hàng cho chính xác nhé!");
     }
 
     try {
@@ -154,6 +178,16 @@ const ConfirmPage: React.FC = () => {
         recipientEmail: form.email,
         note: "Giao hàng từ web",
         paymentMethod: payment,
+
+        address: {
+          provinceCode: Number(selectedCodes.provinceCode),
+          provinceName: selectedCodes.provinceName,
+          districtCode: Number(selectedCodes.districtCode),
+          districtName: selectedCodes.districtName,
+          wardCode: String(selectedCodes.wardCode),
+          wardName: selectedCodes.wardName,
+          street: selectedCodes.street
+        }
       };
 
       // Xử lý cọc nếu cần
@@ -161,7 +195,7 @@ const ConfirmPage: React.FC = () => {
         payload.depositPaymentMethod = "VNPAY";
       }
 
-      const res = await axios.post("http://localhost:8080/orders", payload, {
+      const res = await axios.post("https://api-eyewear.purintech.id.vn/orders", payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

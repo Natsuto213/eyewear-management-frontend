@@ -20,6 +20,12 @@ import WarrantyPage from './views/Policies/WarrantyPage';
 import SuccessPage from './views/SuccessPage';
 import CancelPage from './views/CancelPage';
 
+import { ManagerLayout } from './views/Dashboard/Manager/ManagerLayout';
+import ManagerProductView from './views/Dashboard/Manager/ManagerProductView';
+import ManagerStaffView from './views/Dashboard/Manager/ManagerStaffView';
+import ManagerStaticView from './views/Dashboard/Manager/ManagerStaticView';
+import ManagerSalesView from './views/Dashboard/Manager/ManagerSalesView';
+import ManagerPoliciesView from './views/Dashboard/Manager/ManagerPoliciesView';
 
 import { ShoppingContextProvider } from './views/Cart/contexts/ShoppingContext';
 
@@ -30,13 +36,14 @@ ReactDOM.createRoot(document.getElementById("root")).render(
             <Routes>
                 <Route index element={<HomePage />} />
 
-
                 <Route path="/all-product" element={<AllProductLayout />}>
                     <Route index element={<AllProductFilter />} />
                     <Route path="gong" element={<AllProductFilter />} />
                     <Route path="trong" element={<AllProductFilter />} />
                     <Route path="kinhaptrong" element={<AllProductFilter />} />
                 </Route>
+
+                <Route path="/product/:id" element={<ProductDetail />} />
 
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
@@ -52,8 +59,15 @@ ReactDOM.createRoot(document.getElementById("root")).render(
                     <Route path="account" element={<Account />} />
                 </Route>
 
-                <Route path="/product/:id" element={<ProductDetail />} />
+                <Route path="/manager" element={<ManagerLayout />}>
+                    <Route path="product" element={<ManagerProductView />} />
+                    <Route path="staff" element={<ManagerStaffView />} />
+                    <Route path="policies" element={<ManagerPoliciesView />} />
+                    <Route path="sales" element={<ManagerSalesView />} />
+                    <Route path="static" element={<ManagerStaticView />} />
+                </Route>
+
             </Routes>
         </BrowserRouter>
-    </ShoppingContextProvider>
+    </ShoppingContextProvider >
 );
