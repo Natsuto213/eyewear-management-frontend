@@ -42,6 +42,7 @@ export function ShoppingContextProvider({ children }) {
     const fetchCart = useCallback(async () => {
         // Chưa đăng nhập → không gọi API (sẽ bị lỗi 401)
         const token = localStorage.getItem("access_token");
+        console.log("Fetching cart... Token:", token);
         if (!token) {
             setCartItems([]);
             return;

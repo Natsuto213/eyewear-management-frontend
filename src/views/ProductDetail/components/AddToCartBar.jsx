@@ -181,15 +181,6 @@ export default function AddToCartBar({
                 onBlur={onBlurRx}
             />
 
-            {/* ── Ghi chú cho Kính áp tròng ── */}
-            {/* Giải thích rõ đây chỉ là thông tin tham khảo, không bắt buộc */}
-            {isContact && (
-                <p className="text-xs text-gray-400 italic -mt-3">
-                    * Thông số độ mắt chỉ để tham khảo khi chọn kính áp tròng có độ.
-                    Sản phẩm này được tính là mua đơn lẻ.
-                </p>
-            )}
-
             {/* ── Phần chọn phương án (chỉ Gọng/Tròng) ── */}
             {(isFrame || isLenses) && (
                 <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-3">
@@ -264,7 +255,7 @@ export default function AddToCartBar({
                     title={needsSelection ? `Vui long tick "${soloLabel}" hoac chon san pham kem` : ""}
                     className={`flex-1 h-10 rounded-lg font-bold uppercase text-sm transition-all duration-200 ${cartBtnClass}`}
                 >
-                    {needsSelection ? "Chua hoan tat lua chon" : "Them vao gio hang"}
+                    {needsSelection ? "Chưa hoàn tất lựa chọn" : "Thêm vào giỏ hàng"}
                 </button>
             </div>
 

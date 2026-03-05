@@ -24,12 +24,13 @@ interface CartItemType {
 }
 
 export default function Navbar() {
-  const [showSearch, setShowSearch] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("access_token"));
-  
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { cartItems, cartQty, totalPrice } = useShoppingContext();
+
+    const [showSearch, setShowSearch] = useState(false);
+    const location = useLocation();
+    const token = localStorage.getItem("access_token");
+    const isLoggedIn = !!token;
+    const navigate = useNavigate();
+    const { cartItems, cartQty, totalPrice, fetchCart } = useShoppingContext()
 
   // Cập nhật trạng thái đăng nhập khi đổi route
   useEffect(() => {
@@ -122,12 +123,105 @@ export default function Navbar() {
               )}
             </Link>
 
-            {/* Cart Dropdown Preview */}
-            <div className="invisible absolute right-0 mt-0 w-80 translate-y-2 opacity-0 transition-all duration-300 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 z-50">
-              <div className="h-2 w-full bg-transparent"></div> {/* Buffer zone */}
-              <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl">
-                <div className="p-4 bg-white">
-                  <h3 className="text-lg font-semibold text-gray-800">Giỏ hàng của bạn</h3>
+
+                        {/* Search Button */}
+                        <button
+                            onClick={() => setShowSearch(!showSearch)}
+                            className="p-2 hover:bg-gray-100 rounded-lg transition group"
+                        >
+                            <Search className="size-5 text-gray-600 group-hover:text-black transition" />
+                        </button>
+                    </div>
+
+                    {/* Cart Icon with Badge */}
+                    <div className="relative group ml-auto">
+                        {/* Nút Icon Giỏ Hàng */}
+                        <div
+                            className="p-2 hover:bg-gray-100 rounded-lg transition flex items-center relative"
+                        >
+                            <ShoppingCart className="size-5 text-gray-600 group-hover:text-black transition" />
+                            {/* Badge số lượng (nếu cần) */}
+                            <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] px-1.5 rounded-full">
+                                {cartQty}
+                            </span>
+                        </div>
+
+                        {/* Dropdown Menu - Tự động hiện khi hover vào 'group' ở trên */}
+                        <div className="absolute right-0 mt-0 w-160 bg-white border border-gray-200 rounded-lg shadow-xl 
+                  hidden group-hover:block z-50 transition-all duration-300">
+                            {/* Một lớp đệm nhỏ để tránh bị mất hover khi di chuyển chuột từ icon xuống menu */}
+                            <div className="h-2 w-full bg-transparent"></div>
+
+                            <div className="bg-white rounded-lg overflow-hidden border border-gray-100">
+                                <div className="p-4">
+                                    <h3 className="text-lg font-semibold text-gray-800">Giỏ hàng của bạn</h3>
+                                </div>
+
+                                <hr className="border-gray-100" />
+
+                                <div className="max-h-64 overflow-y-auto p-2 space-y-2">
+                                    {cartItems.length === 0 ? (
+                                        <p className="text-sm text-gray-400 text-center py-4">Giỏ hàng trống</p>
+                                    ) : (
+                                        <table className="w-full">
+                                            <tbody>
+                                                {(cartItems as CartItemType[]).map((item) => (
+                                                    <CartItem
+                                                        key={item.cartItemId}
+                                                        {...item}
+                                                    />
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    )}
+                                </div>
+
+                                <hr className="border-gray-100" />
+
+                                <div className="p-4 flex items-center justify-between bg-gray-50">
+                                    <div>
+                                        <p className="text-xs text-gray-400">Tổng cộng</p>
+                                        <p className="font-bold text-red-500 text-base">{formatCurrency(totalPrice)}</p>
+                                    </div>
+                                    <Link
+                                        to="/cart"
+                                        className="inline-block px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium rounded-lg transition-colors"
+                                    >
+                                        Xem giỏ hàng →
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    {!isLoggedIn ? (
+                        <Link
+                            to="/login"
+                            className="text-sm font-medium text-gray-600 hover:text-black transition"
+                        >
+                            Đăng nhập
+                        </Link>
+                    ) : (
+                        <>
+                            <Link
+                                to="/profile"
+                                className="p-2 hover:bg-gray-100 rounded-lg transition"
+                            >
+                                <User className="size-5 text-gray-600 hover:text-black transition" />
+                            </Link>
+
+                            <button
+                                onClick={async () => {
+                                    await apiLogout();
+                                    window.location.href = "/";
+                                }}
+                                className="text-sm font-medium text-gray-600 hover:text-black transition"
+                            >
+                                Đăng xuất
+                            </button>
+                        </>
+                    )}
                 </div>
                 <hr className="border-gray-100" />
                 <div className="max-h-64 overflow-y-auto p-2">
@@ -157,37 +251,8 @@ export default function Navbar() {
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* User Section */}
-          {!isLoggedIn ? (
-            <Link
-              to="/login"
-              className="text-sm font-medium text-gray-600 hover:text-black transition"
-            >
-              Đăng nhập
-            </Link>
-          ) : (
-            <div className="flex items-center gap-3">
-              <Link
-                to="/profile"
-                className="rounded-lg p-2 transition hover:bg-gray-100"
-              >
-                <User className="size-5 text-gray-600 hover:text-black" />
-              </Link>
-              <button
-                onClick={async () => {
-                  await apiLogout();
-                  window.location.href = "/";
-                }}
-                className="text-sm font-medium text-gray-600 hover:text-black transition"
-              >
-                Đăng xuất
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </header>
-  );
+          
+        </header>
+    );
 }

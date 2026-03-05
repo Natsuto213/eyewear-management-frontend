@@ -28,7 +28,7 @@ export default function PrescriptionForm({ data, errors, onUpdate, onBlur }) {
             {/* ── Tiêu đề ── */}
             <div className="mb-4">
                 <h3 className="text-sm font-black uppercase tracking-widest text-teal-800">
-                    Thong so don thuoc mat
+                    THÔNG SỐ ĐƠN THUỐC MẮT
                 </h3>
                 <p className="text-xs text-teal-600 mt-1">
                     Để trống hoặc nhập 0 nếu không có độ. Ví dụ: SPH -3.00 nghĩa là cận 3 độ.
@@ -46,11 +46,11 @@ export default function PrescriptionForm({ data, errors, onUpdate, onBlur }) {
                             </th>
                             {/* Cột Mắt Trái */}
                             <th className="text-center py-2 px-3 text-teal-700 font-semibold">
-                                Mat Trai (OS)
+                                Mắt Trái (OS)
                             </th>
                             {/* Cột Mắt Phải */}
                             <th className="text-center py-2 px-3 text-teal-700 font-semibold">
-                                Mat Phai (OD)
+                                Mắt Phải (OD)
                             </th>
                         </tr>
                     </thead>

@@ -1,3 +1,5 @@
+
+
 import React from "react";
 
 interface OrderSummaryProps {
@@ -126,5 +128,6 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ cartItems, preview, onPay }
     </div>
   );
 };
+
 
 export default OrderSummary;
