@@ -15,16 +15,25 @@ const Loginpage: React.FC = () => {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
+    const roleRedirects = (role: string) => {
+        switch (role) {
+            case "CUSTOMER":
+                return "/";
+            default:
+                return "/dashboard";
+        }
+    }
+
     const handleLogin = async () => {
         setError("");
         setLoading(true);
         try {
-            await apiLogin(username, password);
+            const res = await apiLogin(username, password);
             if (remember) localStorage.setItem("remember_username", username);
             else localStorage.removeItem("remember_username");
 
             await fetchCart(); // Tải lại giỏ hàng sau khi login thành công
-            navigate("/", { replace: true });
+            navigate(roleRedirects(res.role), { replace: true });
         } catch (err: any) {
             setError(err?.response?.data?.message || err?.message || "Login failed");
         } finally {
