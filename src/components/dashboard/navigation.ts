@@ -5,8 +5,9 @@ import {
     BarChart3,
     ShoppingCart,
     Users,
-    Settings,
-    Home
+    ShieldCheck,
+    TrendingUp,
+    Tag
 } from 'lucide-react';
 
 export type Role = 'sales' | 'operation' | 'manager';
@@ -81,7 +82,7 @@ export const roleTabsConfig: RoleTabs[] = [
             {
                 id: 'product',
                 label: 'Danh sách sản phẩm',
-                icon: BarChart3,
+                icon: Package,
                 path: '/manager/product'
             }, {
                 id: 'staff',
@@ -91,17 +92,17 @@ export const roleTabsConfig: RoleTabs[] = [
             }, {
                 id: 'static',
                 label: 'Thống kê doanh thu',
-                icon: Users,
+                icon: TrendingUp,
                 path: '/manager/static'
             }, {
                 id: 'policies',
                 label: 'Chỉnh sửa chính sách',
-                icon: Users,
+                icon: ShieldCheck,
                 path: '/manager/policies'
             }, {
                 id: 'sales',
                 label: 'Chỉnh sửa giảm giá',
-                icon: Users,
+                icon: Tag,
                 path: '/manager/sales'
             },
         ]

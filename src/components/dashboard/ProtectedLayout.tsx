@@ -3,58 +3,36 @@ import { Outlet, useLocation } from 'react-router';
 import { Sidebar } from './Sidebar';
 import { type Role, type TabItem } from './navigation';
 
-interface ProtectedLayoutOptions {
-  tabs: TabItem[];
-  defaultTab?: string;
-  role: Role;
-}
-
 interface ProtectedLayoutProps {
   children?: React.ReactNode;
-  options: ProtectedLayoutOptions;
+  tabs: TabItem[];
+  role: Role;
+  defaultTab?: string;
 }
 
-const layout = (sidebar: React.ReactNode) => {
+export const ProtectedLayout = ({ children, tabs, role, defaultTab }: ProtectedLayoutProps) => {
+  const location = useLocation();
+  const userData = location.state || {};
+
+  // THÊM API XÁC ĐỊNH USER VÀO ĐÂY (hoặc gọi custom hook fetch data ở đây)
+  const userName = userData.name || 'Không lấy được username';
+
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
       {/* Sidebar */}
-      {sidebar}
+      <Sidebar
+        role={role}
+        tabs={tabs}
+        userName={userName}
+      />
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-auto">
         <div className="h-full">
-          <Outlet />
+          {/* Render children nếu có truyền vào, ngược lại sẽ dùng Outlet của react-router */}
+          {children || <Outlet />}
         </div>
       </main>
     </div>
-  );
-};
-
-// THÊM API XÁC ĐỊNH USER VÀO ĐÂY
-const MainLayout = ({ tabs, role, userName = 'Không lấy được username' }:
-  { tabs: TabItem[]; role: Role; userName?: string; children?: React.ReactNode; }) => {
-
-
-  return layout(
-    <Sidebar
-      role={role}
-      tabs={tabs}
-      userName={userName}
-    />
-  );
-};
-
-export const ProtectedLayout = ({ children, options }: ProtectedLayoutProps) => {
-  const location = useLocation();
-  const userData = location.state || {};
-
-  return (
-    <MainLayout
-      tabs={options.tabs}
-      role={options.role}
-      userName={userData.name}
-    >
-      {children || <Outlet />}
-    </MainLayout>
   );
 };
