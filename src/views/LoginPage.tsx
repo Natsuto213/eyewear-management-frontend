@@ -19,6 +19,8 @@ const Loginpage: React.FC = () => {
         switch (role) {
             case "CUSTOMER":
                 return "/";
+            case "MANAGER":
+                return "/manager";
             default:
                 return "/dashboard";
         }

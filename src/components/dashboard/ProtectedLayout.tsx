@@ -1,5 +1,5 @@
 import type React from "react";
-import { Outlet } from 'react-router';
+import { Outlet, useLocation } from 'react-router';
 import { Sidebar } from './Sidebar';
 import { type Role, type TabItem } from './navigation';
 
@@ -31,39 +31,28 @@ const layout = (sidebar: React.ReactNode) => {
 };
 
 // THÊM API XÁC ĐỊNH USER VÀO ĐÂY
-const MainLayout = ({
-  tabs,
-  role,
-  userName = 'John Doe',
-  userAvatar
-}: {
-  tabs: TabItem[];
-  role: Role;
-  userName?: string;
-  userAvatar?: string;
-  children?: React.ReactNode;
-}) => {
-  const handleLogout = () => {
-    console.log('Logging out...');
-    // Handle logout logic here
-  };
+const MainLayout = ({ tabs, role, userName = 'Không lấy được username' }:
+  { tabs: TabItem[]; role: Role; userName?: string; children?: React.ReactNode; }) => {
+
 
   return layout(
     <Sidebar
       role={role}
       tabs={tabs}
       userName={userName}
-      userAvatar={userAvatar}
-      onLogout={handleLogout}
     />
   );
 };
 
 export const ProtectedLayout = ({ children, options }: ProtectedLayoutProps) => {
+  const location = useLocation();
+  const userData = location.state || {};
+
   return (
     <MainLayout
       tabs={options.tabs}
       role={options.role}
+      userName={userData.name}
     >
       {children || <Outlet />}
     </MainLayout>

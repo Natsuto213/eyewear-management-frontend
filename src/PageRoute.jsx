@@ -61,16 +61,16 @@ ReactDOM.createRoot(document.getElementById("root")).render(
                 </Route>
                 <Route path="/dashboard" element={<Dashboard />}>
                     <Route path="orders" element={<OrderTable />} />
-                    <Route path="manager" element={<ManagerLayout />}>
-                        <Route path="product" element={<ManagerProductView />} />
-                        <Route path="staff" element={<ManagerStaffView />} />
-                        <Route path="policies" element={<ManagerPoliciesView />} />
-                        <Route path="sales" element={<ManagerSalesView />} />
-                        <Route path="static" element={<ManagerStaticView />} />
-                    </Route>
                 </Route>
 
-
+                <Route path="/manager" element={<ManagerLayout />}>
+                    <Route index element={<ManagerProductView />} />
+                    <Route path="product" element={<ManagerProductView />} />
+                    <Route path="staff" element={<ManagerStaffView />} />
+                    <Route path="policies" element={<ManagerPoliciesView />} />
+                    <Route path="sales" element={<ManagerSalesView />} />
+                    <Route path="static" element={<ManagerStaticView />} />
+                </Route>
 
             </Routes>
         </BrowserRouter>
