@@ -1,14 +1,16 @@
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { apiLogin } from "../lib/userApi";
+import { apiLogin, apiGetMyInfo } from "../lib/userApi";
 import loginImg from "@/assets/login.png";
 import { useShoppingContext } from "./Cart/contexts/ShoppingContext";
+import { UserContext } from "../lib/UserContext"; // Giả sử bạn dùng Context API
 
 const Loginpage: React.FC = () => {
     const navigate = useNavigate();
     const { fetchCart } = useShoppingContext();
+    const { setCurrentUser } = useContext(UserContext); // Để cập nhật thông tin người dùng trong global state
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [remember, setRemember] = useState(false);
@@ -19,12 +21,40 @@ const Loginpage: React.FC = () => {
         setError("");
         setLoading(true);
         try {
-            await apiLogin(username, password);
-            if (remember) localStorage.setItem("remember_username", username);
-            else localStorage.removeItem("remember_username");
+            // Bước 1: Gọi API đăng nhập và lấy token
+            const token = await apiLogin(username, password);
 
-            await fetchCart(); // Tải lại giỏ hàng sau khi login thành công
-            navigate("/", { replace: true });
+            // Lưu token vào localStorage nếu người dùng chọn "Lưu tài khoản"
+            if (remember) {
+                localStorage.setItem("remember_username", username);
+                localStorage.setItem("access_token", token);
+            } else {
+                localStorage.removeItem("remember_username");
+                localStorage.setItem("access_token", token);
+            }
+
+            // Bước 2: Lấy thông tin người dùng
+            const userInfo = await apiGetMyInfo();
+
+            // Bước 3: Cập nhật global state với thông tin người dùng
+            setCurrentUser(userInfo);
+
+            // Bước 4: Phân quyền và điều hướng người dùng
+            const userRole = userInfo?.role?.name;
+            if (userRole === "CUSTOMER") {
+                navigate("/customer-dashboard");
+            } else if (userRole === "OPERATIONS STAFF") {
+                navigate("/operation-staff/orders");
+            } else if (userRole === "ADMIN") {
+                navigate("/");
+            } else if (userRole === "MANAGER") {
+                navigate("/");
+            } else {
+                navigate("/"); // Nếu không có vai trò rõ ràng, điều hướng về trang chủ
+            }
+
+            // Bước 5: Tiến hành tải lại giỏ hàng sau khi đăng nhập thành công
+            await fetchCart();
         } catch (err: any) {
             setError(err?.response?.data?.message || err?.message || "Login failed");
         } finally {

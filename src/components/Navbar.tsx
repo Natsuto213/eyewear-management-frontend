@@ -173,13 +173,7 @@ export default function Navbar() {
         </div>
       </div>
       
-      {/* Test Button (Optional - moved inside header or outside as needed) */}
-      <Link
-        to="/operation-staff"
-        className="fixed bottom-6 right-6 bg-black text-white px-4 py-2 rounded-xl text-xs opacity-50 hover:opacity-100 transition"
-      >
-        Test Dashboard
-      </Link>
+      
     </header>
   );
 }
