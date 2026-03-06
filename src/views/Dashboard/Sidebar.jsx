@@ -59,4 +59,8 @@ const Sidebar = ({ role, name }) => {
     )
 }
 
+<<<<<<< HEAD
 export default Sidebar
+=======
+export default Sidebar
+>>>>>>> origin/dev/Quang

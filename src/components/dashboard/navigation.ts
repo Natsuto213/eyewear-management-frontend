@@ -82,27 +82,27 @@ export const roleTabsConfig: RoleTabs[] = [
                 id: 'product',
                 label: 'Danh sách sản phẩm',
                 icon: BarChart3,
-                path: '/manager/product'
+                path: '/dashboard/manager/product'
             }, {
                 id: 'staff',
                 label: 'Danh sách nhân sự',
                 icon: Users,
-                path: '/manager/staff'
+                path: '/dashboard/manager/staff'
             }, {
                 id: 'static',
                 label: 'Thống kê doanh thu',
                 icon: Users,
-                path: '/manager/static'
+                path: '/dashboard/manager/static'
             }, {
                 id: 'policies',
                 label: 'Chỉnh sửa chính sách',
                 icon: Users,
-                path: '/manager/policies'
+                path: '/dashboard/manager/policies'
             }, {
                 id: 'sales',
                 label: 'Chỉnh sửa giảm giá',
                 icon: Users,
-                path: '/manager/sales'
+                path: '/dashboard/manager/sales'
             },
         ]
     }

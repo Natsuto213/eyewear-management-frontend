@@ -1,9 +1,8 @@
 import React from 'react'
 
-function ManagerSalesView() {
-  return (
-    <div>ManagerSalesView</div>
-  )
+export default function ManagerSalesView() {
+    return (
+        <div>ManagerSalesView</div>
+    )
 }
 
-export default ManagerSalesView

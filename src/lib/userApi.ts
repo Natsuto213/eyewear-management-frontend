@@ -24,7 +24,7 @@ export async function apiLogin(username: string, password: string) {
     }
 
     localStorage.setItem("access_token", token);
-    return token as string;
+    return res.data.result as any; // trả về toàn bộ data, hoặc bạn có thể chỉ trả về token hoặc user info tùy nhu cầu
 }
 
 // ====== các hàm khác nếu bạn cần ======

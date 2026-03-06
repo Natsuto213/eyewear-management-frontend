@@ -10,14 +10,6 @@
  *   4. Khi đặt hàng → gửi danh sách cartItemId qua trang ConfirmPage
  *   5. Hiện LoginPopup nếu chưa đăng nhập
  *
- * Cây component:
- *   CartPage
- *   ├── LoginPopup            (khi chưa đăng nhập)
- *   ├── EmptyCart              (khi giỏ trống)
- *   └── (khi có sản phẩm)
- *       ├── CartTable            (bảng danh sách + checkbox)
- *       │   └── CartItemRow × N  (mỗi dòng có checkbox + thông tin)
- *       └── OrderSummary         (sidebar — chỉ hiện sản phẩm được tick)
  */
 
 import { useState, useMemo, useEffect } from "react";
