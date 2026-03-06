@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Plus, Pencil, Trash2, Eye } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, Eye, Filter } from 'lucide-react';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
@@ -40,10 +40,11 @@ const roleConfig: Record<string, string> = {
 
 export default function ManagerStaffView() {
     const [search, setSearch] = useState('');
+    const [filterRole, setFilterRole] = useState('');
     const [staff, setStaff] = useState<Staff[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
 
-    // 1. STATE CHO PHÂN TRANG
+    // STATE CHO PHÂN TRANG
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10; // Cố định 10 người/trang
 
@@ -66,19 +67,22 @@ export default function ManagerStaffView() {
         fetchStaff();
     }, []);
 
-    // 2. RESET VỀ TRANG 1 NẾU NGƯỜI DÙNG GÕ TÌM KIẾM
+    // RESET VỀ TRANG 1 NẾU NGƯỜI DÙNG GÕ TÌM KIẾM
     useEffect(() => {
         setCurrentPage(1);
     }, [search]);
 
     // LỌC DỮ LIỆU TÌM KIẾM
-    const filtered = staff.filter(s =>
-        s.Name?.toLowerCase().includes(search.toLowerCase()) ||
-        s.Email?.toLowerCase().includes(search.toLowerCase()) ||
-        s.Role?.toLowerCase().includes(search.toLowerCase())
-    );
+    const filtered = staff.filter(s => {
+        const matchesSearch = s.Name?.toLowerCase().includes(search.toLowerCase()) ||
+            s.Email?.toLowerCase().includes(search.toLowerCase()) ||
+            s.Role?.toLowerCase().includes(search.toLowerCase());
+        const matchesRole = filterRole === "" || s.Role === filterRole
 
-    // 3. TOÁN HỌC PHÂN TRANG
+        return matchesSearch && matchesRole;
+    });
+
+    // TOÁN HỌC PHÂN TRANG
     const totalPages = Math.ceil(filtered.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -107,6 +111,23 @@ export default function ManagerStaffView() {
                             className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white w-56"
                         />
                     </div>
+                    <div className="relative flex items-center">
+                        <Filter className="absolute left-3 h-4 w-4 text-gray-400" />
+                        <select
+                            value={filterRole}
+                            onChange={(e) => setFilterRole(e.target.value)}
+                            className="pl-9 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white appearance-none cursor-pointer"
+                        >
+                            <option value="">Tất cả vai trò</option>
+                            <option value="ADMIN">Admin</option>
+                            <option value="MANAGER">Quản lí</option>
+                            <option value="CUSTOMER">Khách hàng</option>
+                            <option value="SALES STAFF">Nhân viên bán hàng</option>
+                            <option value="OPERATIONS STAFF">Nhân viên kho</option>
+                        </select>
+                    </div>
+
+
                     <button className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-purple-700 transition-colors">
                         <Plus className="h-4 w-4" />
                         Thêm nhân viên
@@ -164,8 +185,8 @@ export default function ManagerStaffView() {
                                 key={page}
                                 onClick={() => setCurrentPage(page)}
                                 className={`px-3 py-1 text-xs rounded transition-colors ${currentPage === page
-                                        ? 'bg-purple-600 text-white font-medium'
-                                        : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
+                                    ? 'bg-purple-600 text-white font-medium'
+                                    : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
                                     }`}
                             >
                                 {page}
@@ -231,9 +252,6 @@ export default function ManagerStaffView() {
                                             </td>
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center justify-center gap-1">
-                                                    <button className="text-gray-400 hover:text-blue-500 transition-colors p-1 rounded hover:bg-blue-50">
-                                                        <Eye className="h-4 w-4" />
-                                                    </button>
                                                     <button className="text-blue-500 hover:text-blue-700 transition-colors p-1 rounded hover:bg-blue-50">
                                                         <Pencil className="h-4 w-4" />
                                                     </button>

@@ -28,8 +28,6 @@ import ManagerSalesView from './views/Dashboard/Manager/ManagerSalesView';
 import ManagerPoliciesView from './views/Dashboard/Manager/ManagerPoliciesView';
 
 import { ShoppingContextProvider } from './views/Cart/contexts/ShoppingContext';
-import Dashboard from './views/Dashboard/Dashboard';
-import OrderTable from './views/Dashboard/SalesStaff/OrderTable';
 
 ReactDOM.createRoot(document.getElementById("root")).render(
     <ShoppingContextProvider>
@@ -58,9 +56,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 
                 <Route path="/profile" element={<ProfilePage />}>
                     <Route path="account" element={<Account />} />
-                </Route>
-                <Route path="/dashboard" element={<Dashboard />}>
-                    <Route path="orders" element={<OrderTable />} />
                 </Route>
 
                 <Route path="/manager" element={<ManagerLayout />}>

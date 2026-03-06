@@ -10,7 +10,7 @@ import { apiLogout } from "../../lib/userApi";
 
 interface SidebarProps {
   role: Role;
-  tabs?: TabItem[]; // Allow passing tabs directly
+  tabs?: TabItem[];
   userName?: string;
 }
 
@@ -21,7 +21,7 @@ export function Sidebar({
 }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
-  const tabs = customTabs || getTabsByRole(role); // Use custom tabs if provided, otherwise get from role
+  const tabs = customTabs || getTabsByRole(role);
   const roleDisplayName = getRoleDisplayName(role);
 
   const isActive = (path: string) => {
