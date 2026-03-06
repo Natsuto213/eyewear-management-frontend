@@ -34,12 +34,7 @@ const Loginpage: React.FC = () => {
 
             const { role, name } = res
             await fetchCart(); // Tải lại giỏ hàng sau khi login thành công
-            navigate(roleRedirects(role), {
-                state: {
-                    role,
-                    name
-                }
-            });
+            navigate(roleRedirects(role));
         } catch (err: any) {
             setError(err?.response?.data?.message || err?.message || "Login failed");
         } finally {

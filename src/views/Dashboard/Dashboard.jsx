@@ -1,11 +1,15 @@
 import React from 'react'
 import { Outlet } from 'react-router-dom'
 import Sidebar from './Sidebar'
-import { useLocation } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 
 const Dashboard = () => {
-    const location = useLocation()
-    const userData = location.state || {}
+    const userSaved = localStorage.getItem("usere");
+    if (!userSaved) {
+        return <Navigate to="/login" />
+    }
+    const userData = JSON.parse(userSaved)
+
     return (
         <div className="flex h-screen overflow-hidden font-sans">
             {/* Sidebar nhận role từ user đang đăng nhập */}
