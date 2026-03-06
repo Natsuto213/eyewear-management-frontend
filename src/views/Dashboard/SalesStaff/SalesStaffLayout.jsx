@@ -1,19 +1,19 @@
 import { Outlet } from 'react-router';
 import { ProtectedLayout } from '@/components/dashboard/ProtectedLayout';
-import { managerTabs } from '@/components/dashboard/navigation';
+import { salesTabs } from '@/components/dashboard/navigation';
 import { Navigate } from 'react-router-dom';
-export const ManagerLayout = () => {
+export const SalesStaffLayout = () => {
     const userSaved = localStorage.getItem("user");
     if (!(userSaved)) {
         return <Navigate to="/login" />
     }
     const userData = JSON.parse(userSaved)
-    if (userData.role !== "MANAGER") {
+    if (userData.role !== "SALES STAFF") {
         return <Navigate to="/login" />
     }
     return (
         <>
-            <ProtectedLayout tabs={managerTabs} role="manager" defaultTab="dashboard" userName={userData.name}>
+            <ProtectedLayout tabs={salesTabs} role="sales" defaultTab="dashboard" userName={userData.name}>
                 <Outlet />
             </ProtectedLayout >
         </>

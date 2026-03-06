@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
-import OrderFilter from './OrderFilter'
-import OrderRow from './OrderRow'
+import OrderFilter from '../ui/OrderFilter'
+import OrderRow from '../ui/OrderRow'
+import { api } from '../../../../lib/api'
 
 // Hàm kiểm tra: giá trị có chứa từ khóa không
 // Nếu keyword rỗng "" → includes("") = true → tự bỏ qua tiêu chí đó
@@ -53,9 +54,21 @@ const OrderTable = () => {
             })
     }
 
+    const fetchAxios = async () => {
+        try {
+            const res = await api.get("api/staff/orders/status-options")
+            console.log("res la gi: ", res)
+        } catch (err) {
+            console.error("Lỗi khi gọi API:", err)
+        } finally {
+            setLoading(false)
+        }
+    }
+
     // Chạy 1 lần khi mở trang
     useEffect(() => {
         fetchOrders()
+        fetchAxios()
     }, [])
 
     // Khi user thay đổi 1 ô lọc bất kỳ

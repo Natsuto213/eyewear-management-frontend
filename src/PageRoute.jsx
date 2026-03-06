@@ -29,6 +29,10 @@ import ManagerPoliciesView from './views/Dashboard/Manager/ManagerPoliciesView';
 
 import { ShoppingContextProvider } from './views/Cart/contexts/ShoppingContext';
 
+import OrderTable from './views/Dashboard/SalesStaff/containers/OrderTable';
+import { SalesStaffLayout } from './views/Dashboard/SalesStaff/SalesStaffLayout';
+import OrderDetail from './views/Dashboard/SalesStaff/ui/OrderDetail';
+
 ReactDOM.createRoot(document.getElementById("root")).render(
     <ShoppingContextProvider>
         <BrowserRouter>
@@ -65,6 +69,12 @@ ReactDOM.createRoot(document.getElementById("root")).render(
                     <Route path="policies" element={<ManagerPoliciesView />} />
                     <Route path="sales" element={<ManagerSalesView />} />
                     <Route path="static" element={<ManagerStaticView />} />
+                </Route>
+
+                <Route path="/sales" element={<SalesStaffLayout />}>
+                    <Route index element={<OrderTable />} />
+                    <Route path="containers/orders" element={<OrderTable />} />
+                    <Route path="ui/orderdetail" element={<OrderDetail />} />
                 </Route>
 
             </Routes>

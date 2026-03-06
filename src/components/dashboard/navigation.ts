@@ -28,13 +28,13 @@ export interface RoleTabs {
 export const roleTabsConfig: RoleTabs[] = [
     {
         role: 'sales',
-        displayName: 'Staff',
+        displayName: 'Sales Staff',
         tabs: [
             {
-                id: 'order-status',
-                label: 'Order Status',
+                id: 'orders',
+                label: 'Danh sach đơn hàng',
                 icon: ShoppingCart,
-                path: '/sales/order-status'
+                path: '/sales/containers/orders'
             }, {
                 id: 'order-detail',
                 label: 'Order Detail',

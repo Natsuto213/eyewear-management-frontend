@@ -4,7 +4,7 @@ export const api = axios.create({
     baseURL: "https://api-eyewear.purintech.id.vn/",
     headers: {
         "Content-Type": "application/json",
-        "Accept": "application/vnd.hal+json",
+        "Accept": "application/json",
     },
 });
 
