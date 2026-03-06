@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Plus, Pencil, Trash2, Eye, Filter } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, Filter } from 'lucide-react';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
@@ -30,12 +30,12 @@ const statusConfig: Record<string, { label: string; className: string }> = {
     Suspended: { label: 'Tạm nghỉ', className: 'bg-red-100 text-red-600' },
 };
 
-const roleConfig: Record<string, string> = {
-    'OPERATIONS STAFF': 'bg-blue-100 text-blue-700',
-    'SALES STAFF': 'bg-purple-100 text-purple-700',
-    'MANAGER': 'bg-orange-100 text-orange-700',
-    'ADMIN': 'bg-red-100 text-red-700',
-    'CUSTOMER': 'bg-gray-100 text-gray-700',
+const roleConfig: Record<string, { label: string; className: string }> = {
+    'ADMIN': { label: 'Admin', className: 'bg-red-100 text-red-700' },
+    'MANAGER': { label: 'Quản lí', className: 'bg-orange-100 text-orange-700' },
+    'OPERATIONS STAFF': { label: 'Nhân viên kho', className: 'bg-blue-100 text-blue-700' },
+    'SALES STAFF': { label: 'Nhân viên bán hàng', className: 'bg-purple-100 text-purple-700' },
+    'CUSTOMER': { label: 'Khách hàng', className: 'bg-cyan-100 text-cyan-700' },
 };
 
 export default function ManagerStaffView() {
@@ -46,7 +46,7 @@ export default function ManagerStaffView() {
 
     // STATE CHO PHÂN TRANG
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10; // Cố định 10 người/trang
+    const itemsPerPage = 10; // Cố định 10 người 1 trang
 
     // GỌI API LẤY DỮ LIỆU USER
     useEffect(() => {
@@ -207,7 +207,7 @@ export default function ManagerStaffView() {
                     <table className="w-full text-sm">
                         <thead>
                             <tr className="bg-gray-50 border-b border-gray-200">
-                                <th className="text-left px-4 py-3 text-gray-600" style={{ fontWeight: 600 }}>Mã NV</th>
+                                <th className="text-center px-4 py-3 text-gray-600" style={{ fontWeight: 600 }}>Mã NV</th>
                                 <th className="text-left px-4 py-3 text-gray-600" style={{ fontWeight: 600 }}>Họ tên</th>
                                 <th className="text-left px-4 py-3 text-gray-600" style={{ fontWeight: 600 }}>Vai trò</th>
                                 <th className="text-left px-4 py-3 text-gray-600" style={{ fontWeight: 600 }}>SĐT</th>
@@ -228,16 +228,18 @@ export default function ManagerStaffView() {
                             ) : currentItems.length > 0 ? (
                                 currentItems.map((s, idx) => {
                                     const status = statusConfig[s.Status] || statusConfig.Active;
+                                    const role = roleConfig[s.Role] || { label: s.Role, className: 'bg-gray-100 text-gray-600' };
+
                                     return (
                                         <tr
                                             key={s.User_ID || idx}
                                             className={`border-b border-gray-100 hover:bg-purple-50 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/40'}`}
                                         >
-                                            <td className="px-4 py-3 text-gray-500">#{s.User_ID}</td>
+                                            <td className="px-4 py-3 text-gray-500 text-center">{s.User_ID}</td>
                                             <td className="px-4 py-3 text-gray-800" style={{ fontWeight: 600 }}>{s.Name}</td>
                                             <td className="px-4 py-3">
-                                                <span className={`inline-block px-2 py-0.5 rounded-full text-xs ${roleConfig[s.Role] || 'bg-gray-100 text-gray-600'}`}>
-                                                    {s.Role}
+                                                <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${role.className}`}>
+                                                    {role.label}
                                                 </span>
                                             </td>
                                             <td className="px-4 py-3 text-gray-600">{s.Phone}</td>
@@ -276,8 +278,6 @@ export default function ManagerStaffView() {
                         </tbody>
                     </table>
                 </div>
-
-
             </div>
         </div>
     );

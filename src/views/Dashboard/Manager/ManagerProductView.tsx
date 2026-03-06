@@ -1,18 +1,24 @@
 import { useEffect, useState } from 'react';
-import { Search, Plus, Pencil, Trash2, Filter } from 'lucide-react'; // Thêm icon Filter cho đẹp
+import { Search, Plus, Pencil, Trash2, Filter } from 'lucide-react'; 
 
 interface Product {
-  Product_ID: number;
-  SKU: string;
-  Product_Name: string;
-  Type_Name: string;
-  Brand_Name: string;
-  Price: number;
+  id: number;
+  name: string;
+  Product_Type: string;
+  Brand: string;
+  price: number;
   Description: string;
+  SKU: string;
 }
 
 const formatPrice = (price: number) =>
   new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+
+const productTypeConfig: Record<string, string> = {
+  'Gọng kính': 'bg-blue-100 text-blue-700',        // Xanh dương
+  'Tròng kính': 'bg-emerald-100 text-emerald-700', // Xanh ngọc / Xanh lá
+  'Kính áp tròng': 'bg-pink-100 text-pink-700',    // Hồng
+};
 
 export default function ManagerProductView() {
   const [search, setSearch] = useState('');
@@ -20,10 +26,14 @@ export default function ManagerProductView() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
+  // STATE CHO PHÂN TRANG
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10; // Cố định 10 sản phẩm 1 trang
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch("https://69a8008637caab4b8c606a09.mockapi.io/api/test");
+        const response = await fetch("https://api-eyewear.purintech.id.vn/api/products/search");
         if (!response.ok) {
           throw new Error("Không tìm thấy api");
         }
@@ -38,23 +48,31 @@ export default function ManagerProductView() {
     fetchProducts();
   }, []);
 
+  // RESET VỀ TRANG 1 NẾU TÌM KIẾM HOẶC LỌC THAY ĐỔI
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, selectedType]);
+
   // LOGIC LỌC (Vừa tìm chữ, vừa khớp loại)
   const filtered = products.filter(p => {
-    // Điều kiện 1: Khớp chữ tìm kiếm
     const matchSearch =
-      p.Product_Name?.toLowerCase().includes(search.toLowerCase()) ||
-      p.SKU?.toLowerCase().includes(search.toLowerCase()) ||
-      p.Brand_Name?.toLowerCase().includes(search.toLowerCase());
+      p.name?.toLowerCase().includes(search.toLowerCase()) ||
+      p.SKU?.toLowerCase().includes(search.toLowerCase());
 
-    // Điều kiện 2: Khớp loại sản phẩm (Nếu selectedType rỗng thì coi như khớp hết)
-    const matchType = selectedType === '' || p.Type_Name === selectedType;
+    const matchType = selectedType === '' || p.Product_Type === selectedType;
 
-    // Trả về sản phẩm thỏa mãn CẢ 2 điều kiện
     return matchSearch && matchType;
   });
 
+  // TOÁN HỌC PHÂN TRANG
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  // Cắt ra 10 sản phẩm tương ứng với trang hiện tại
+  const currentItems = filtered.slice(startIndex, endIndex);
+
   const handleDelete = (id: number) => {
-    setProducts(prev => prev.filter(p => p.Product_ID !== id));
+    setProducts(prev => prev.filter(p => p.id !== id));
   };
 
   return (
@@ -82,7 +100,7 @@ export default function ManagerProductView() {
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
-              className="pl-9 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white cursor-pointer"
+              className="pl-9 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white cursor-pointer appearance-none"
             >
               <option value="">Tất cả phân loại</option>
               <option value="Gọng kính">Gọng kính</option>
@@ -100,12 +118,50 @@ export default function ManagerProductView() {
 
       {/* Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+
+         {/* THANH ĐIỀU HƯỚNG PHÂN TRANG */}
+        <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
+          <p className="text-xs text-gray-500">
+            Hiển thị {filtered.length === 0 ? 0 : startIndex + 1}-{Math.min(endIndex, filtered.length)} / {filtered.length} sản phẩm
+          </p>
+          <div className="flex gap-1">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1 || totalPages === 0}
+              className="px-3 py-1 text-xs border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Trước
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-3 py-1 text-xs rounded transition-colors ${currentPage === page
+                    ? 'bg-purple-600 text-white font-medium'
+                    : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
+                  }`}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages || totalPages === 0}
+              className="px-3 py-1 text-xs border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Sau
+            </button>
+          </div>
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="text-left px-4 py-3 text-gray-600" style={{ fontWeight: 600 }}>Mã SP</th>
-                <th className="text-left px-4 py-3 text-gray-600" style={{ fontWeight: 600 }}>SKU</th>
+              <tr className="bg-gray-50 border-b border-gray-200 ">
+                <th className="text-center px-4 py-3 text-gray-600" style={{ fontWeight: 600 }}>Mã SP</th>
+                <th className="text-center px-4 py-3 text-gray-600" style={{ fontWeight: 600 }}>SKU</th>
                 <th className="text-left px-4 py-3 text-gray-600" style={{ fontWeight: 600 }}>Tên sản phẩm</th>
                 <th className="text-left px-4 py-3 text-gray-600" style={{ fontWeight: 600 }}>Loại</th>
                 <th className="text-left px-4 py-3 text-gray-600" style={{ fontWeight: 600 }}>Thương hiệu</th>
@@ -115,31 +171,32 @@ export default function ManagerProductView() {
               </tr>
             </thead>
             <tbody>
+              {/* Map qua currentItems thay vì filtered */}
               {loading ? (
                 <tr>
                   <td colSpan={8} className="text-center py-12 text-blue-500 font-medium">
                     Đang tải dữ liệu từ API...
                   </td>
                 </tr>
-              ) : filtered.length > 0 ? (
-                filtered.map((product, idx) => (
+              ) : currentItems.length > 0 ? (
+                currentItems.map((product, idx) => (
                   <tr
-                    key={product.Product_ID || idx}
+                    key={product.id || idx}
                     className={`border-b border-gray-100 hover:bg-purple-50 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/40'}`}
                   >
-                    <td className="px-4 py-3 text-gray-500">#{product.Product_ID}</td>
-                    <td className="px-4 py-3 text-purple-700" style={{ fontWeight: 600 }}>{product.SKU}</td>
+                    <td className="px-4 py-3 text-gray-500 text-center">{product.id}</td>
+                    <td className="px-4 py-3 text-purple-700 text-center" style={{ fontWeight: 600 }}>{product.SKU}</td>
                     <td className="px-4 py-3 text-gray-800 max-w-[200px]">
-                      <div className="truncate" title={product.Product_Name}>{product.Product_Name}</div>
+                      <div className="truncate" title={product.name}>{product.name}</div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="inline-block px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700">
-                        {product.Type_Name}
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${productTypeConfig[product.Product_Type] || 'bg-gray-100 text-gray-700'}`}>
+                        {product.Product_Type}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-700">{product.Brand_Name}</td>
+                    <td className="px-4 py-3 text-gray-700">{product.Brand}</td>
                     <td className="px-4 py-3 text-right text-green-700" style={{ fontWeight: 600 }}>
-                      {formatPrice(product.Price || 0)}
+                      {formatPrice(product.price || 0)}
                     </td>
                     <td className="px-4 py-3 text-gray-500 max-w-[180px]">
                       <div className="truncate text-xs" title={product.Description}>{product.Description}</div>
@@ -150,7 +207,7 @@ export default function ManagerProductView() {
                           <Pencil className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => handleDelete(product.Product_ID)}
+                          onClick={() => handleDelete(product.id)}
                           className="text-red-400 hover:text-red-600 transition-colors p-1 rounded hover:bg-red-50"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -168,15 +225,6 @@ export default function ManagerProductView() {
               )}
             </tbody>
           </table>
-        </div>
-
-        <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
-          <p className="text-xs text-gray-500">Hiển thị {filtered.length} / {products.length} sản phẩm</p>
-          <div className="flex gap-1">
-            <button className="px-3 py-1 text-xs border border-gray-200 rounded hover:bg-gray-50">Trước</button>
-            <button className="px-3 py-1 text-xs bg-purple-600 text-white rounded">1</button>
-            <button className="px-3 py-1 text-xs border border-gray-200 rounded hover:bg-gray-50">Sau</button>
-          </div>
         </div>
       </div>
     </div>
