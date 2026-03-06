@@ -1,71 +1,38 @@
 import type React from "react";
-import { Outlet } from 'react-router';
+import { Outlet, useLocation } from 'react-router';
 import { Sidebar } from './Sidebar';
 import { type Role, type TabItem } from './navigation';
 
-interface ProtectedLayoutOptions {
-  tabs: TabItem[];
-  defaultTab?: string;
-  role: Role;
-}
-
 interface ProtectedLayoutProps {
   children?: React.ReactNode;
-  options: ProtectedLayoutOptions;
+  tabs: TabItem[];
+  role: Role;
+  defaultTab?: string;
 }
 
-const layout = (sidebar: React.ReactNode) => {
+export const ProtectedLayout = ({ children, tabs, role, defaultTab }: ProtectedLayoutProps) => {
+  const location = useLocation();
+  const userData = location.state || {};
+
+  // THÊM API XÁC ĐỊNH USER VÀO ĐÂY (hoặc gọi custom hook fetch data ở đây)
+  const userName = userData.name || 'Không lấy được username';
+
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
       {/* Sidebar */}
-      {sidebar}
+      <Sidebar
+        role={role}
+        tabs={tabs}
+        userName={userName}
+      />
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-auto">
         <div className="h-full">
-          <Outlet />
+          {/* Render children nếu có truyền vào, ngược lại sẽ dùng Outlet của react-router */}
+          {children || <Outlet />}
         </div>
       </main>
     </div>
-  );
-};
-
-// THÊM API XÁC ĐỊNH USER VÀO ĐÂY
-const MainLayout = ({
-  tabs,
-  role,
-  userName = 'John Doe',
-  userAvatar
-}: {
-  tabs: TabItem[];
-  role: Role;
-  userName?: string;
-  userAvatar?: string;
-  children?: React.ReactNode;
-}) => {
-  const handleLogout = () => {
-    console.log('Logging out...');
-    // Handle logout logic here
-  };
-
-  return layout(
-    <Sidebar
-      role={role}
-      tabs={tabs}
-      userName={userName}
-      userAvatar={userAvatar}
-      onLogout={handleLogout}
-    />
-  );
-};
-
-export const ProtectedLayout = ({ children, options }: ProtectedLayoutProps) => {
-  return (
-    <MainLayout
-      tabs={options.tabs}
-      role={options.role}
-    >
-      {children || <Outlet />}
-    </MainLayout>
   );
 };

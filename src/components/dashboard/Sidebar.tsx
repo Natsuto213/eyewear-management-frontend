@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Badge } from '../ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
 import { Separator } from '../ui/separator';
@@ -13,18 +12,12 @@ interface SidebarProps {
   role: Role;
   tabs?: TabItem[]; // Allow passing tabs directly
   userName?: string;
-  userAvatar?: string;
-  onRoleChange?: (role: Role) => void;
-  onLogout?: () => void;
 }
 
 export function Sidebar({
   role,
   tabs: customTabs,
   userName = 'User',
-  userAvatar,
-  onRoleChange,
-  onLogout
 }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
@@ -58,12 +51,6 @@ export function Sidebar({
       {/* Header - User Info */}
       <div className="p-4 border-b border-gray-800">
         <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10 border-2 border-gray-700">
-            <AvatarImage src={userAvatar} alt={userName} />
-            <AvatarFallback className="bg-gray-800">
-              {userName.substring(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
 
           {!collapsed && (
             <div className="flex-1 min-w-0">
@@ -111,44 +98,19 @@ export function Sidebar({
 
       <Separator className="bg-gray-800" />
 
-      {/* Role Switcher (for demo purposes) */}
-      {onRoleChange && !collapsed && (
-        <div className="p-3 border-t border-gray-800">
-          <p className="text-xs text-gray-400 mb-2 px-1">Switch Role</p>
-          <div className="flex gap-2">
-            {(['sales', 'operation', 'manager'] as Role[]).map((r) => (
-              <button
-                key={r}
-                onClick={() => onRoleChange(r)}
-                className={cn(
-                  "flex-1 px-2 py-1.5 text-xs rounded transition-colors",
-                  r === role
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-                )}
-              >
-                {r}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Footer - Logout */}
       <div className="p-3 border-t border-gray-800">
-        {onLogout && (
-          <button
-            onClick={async () => {
-              await apiLogout();
-              window.location.href = "/";
-            }}
-            className="text-sm font-medium text-gray-600 hover:text-black transition"
-            title={collapsed ? "Logout" : undefined}
-          >
-            <LogOut className="h-5 w-5 shrink-0" />
-            {!collapsed && <span>Logout</span>}
-          </button>
-        )}
+        <button
+          onClick={async () => {
+            await apiLogout();
+            window.location.href = "/";
+          }}
+          className="text-sm font-medium text-gray-600 hover:text-black transition"
+          title={collapsed ? "Logout" : undefined}
+        >
+          <LogOut className="h-5 w-5 shrink-0" />
+          {!collapsed && <span>Logout</span>}
+        </button>
       </div>
 
       {/* Collapse Toggle Button */}
