@@ -4,8 +4,11 @@ import { managerTabs } from '@/components/dashboard/navigation';
 
 export const ManagerLayout = () => {
     return (
-        <ProtectedLayout options={{ tabs: managerTabs, role: 'manager', defaultTab: 'dashboard' }}>
-            <Outlet />
-        </ProtectedLayout>
+        <>
+            <ProtectedLayout options={{ tabs: managerTabs, role: 'manager', defaultTab: 'dashboard' }}>
+                <Outlet />
+            </ProtectedLayout>
+        </>
+
     );
 };

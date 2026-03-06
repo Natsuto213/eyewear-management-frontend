@@ -19,8 +19,4 @@ const Welcome = () => {
     )
 }
 
-<<<<<<< HEAD
 export default Welcome
-=======
-export default Welcome
->>>>>>> origin/dev/Quang
