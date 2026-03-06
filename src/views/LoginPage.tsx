@@ -21,8 +21,10 @@ const Loginpage: React.FC = () => {
                 return "/";
             case "MANAGER":
                 return "/manager";
+            case "SALES STAFF":
+                return "/sales";
             default:
-                return "/dashboard";
+                return "/login";
         }
     }
 

@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 
 const OrderRow = ({ order, index }) => {
     return (
@@ -33,13 +34,13 @@ const OrderRow = ({ order, index }) => {
             </td>
 
             <td className="px-4 py-3 text-center">
-                <button
-                    className="rounded-lg bg-blue-500 px-3 py-1 text-xs font-semibold
-                               text-white hover:bg-blue-600"
-                    onClick={() => alert("Xem chi tiết đơn: " + order.orderId)}
+                <Link
+                    to={`/sales/ui/orderdetail`} // Giả sử có route chi tiết đơn hàng
+                    className="rounded-lg bg-blue-500 px-3 py-1 text-xs font-semibold 
+               text-white hover:bg-blue-600 inline-block"
                 >
                     Xem chi tiết
-                </button>
+                </Link>
             </td>
         </tr>
     )

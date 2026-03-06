@@ -28,8 +28,9 @@ import ManagerSalesView from './views/Dashboard/Manager/ManagerSalesView';
 import ManagerPoliciesView from './views/Dashboard/Manager/ManagerPoliciesView';
 
 import { ShoppingContextProvider } from './views/Cart/contexts/ShoppingContext';
-import Dashboard from './views/Dashboard/Dashboard';
-import OrderTable from './views/Dashboard/SalesStaff/OrderTable';
+import OrderTable from './views/Dashboard/SalesStaff/containers/OrderTable';
+import { SalesStaffLayout } from './views/Dashboard/SalesStaff/SalesStaffLayout';
+import OrderDetail from './views/Dashboard/SalesStaff/ui/OrderDetail';
 
 ReactDOM.createRoot(document.getElementById("root")).render(
     <ShoppingContextProvider>
@@ -59,9 +60,6 @@ ReactDOM.createRoot(document.getElementById("root")).render(
                 <Route path="/profile" element={<ProfilePage />}>
                     <Route path="account" element={<Account />} />
                 </Route>
-                <Route path="/dashboard" element={<Dashboard />}>
-                    <Route path="orders" element={<OrderTable />} />
-                </Route>
 
                 <Route path="/manager" element={<ManagerLayout />}>
                     <Route index element={<ManagerProductView />} />
@@ -70,6 +68,12 @@ ReactDOM.createRoot(document.getElementById("root")).render(
                     <Route path="policies" element={<ManagerPoliciesView />} />
                     <Route path="sales" element={<ManagerSalesView />} />
                     <Route path="static" element={<ManagerStaticView />} />
+                </Route>
+
+                <Route path="/sales" element={<SalesStaffLayout />}>
+                    <Route index element={<OrderTable />} />
+                    <Route path="containers/orders" element={<OrderTable />} />
+                    <Route path="ui/orderdetail" element={<OrderDetail />} />
                 </Route>
 
             </Routes>
