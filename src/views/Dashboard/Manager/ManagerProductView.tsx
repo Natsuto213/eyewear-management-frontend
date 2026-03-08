@@ -26,7 +26,7 @@ export default function ManagerProductView() {
         const response = await fetch("https://69a8008637caab4b8c606a09.mockapi.io/api/test");
         if (!response.ok) {
           throw new Error("Không tìm thấy api");
-        }
+        } 
         const data = await response.json();
         setProducts(data);
       } catch (error) {

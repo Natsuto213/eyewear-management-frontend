@@ -16,37 +16,52 @@ const Loginpage: React.FC = () => {
     const [loading, setLoading] = useState(false);
 
     const roleRedirects = (role: string) => {
-        switch (role) {
-            case "CUSTOMER":
-                return "/";
-            case "MANAGER":
-                return "/manager";
-            case "SALES STAFF":
-                return "/sales";
-            case "OPERATION STAFF":
-                return "/operation-staff/orders";
-            default:
-                return "/login";
-        }
+    console.log("Role received:", role);  // Log role để kiểm tra
+    switch (role) {
+        case "CUSTOMER":
+            return "/";
+        case "MANAGER":
+            return "/manager";
+        case "SALES STAFF":
+            return "/sales";
+        case "OPERATION STAFF":
+        case "OPERATIONS STAFF":  // Thêm điều kiện xử lý "OPERATIONS STAFF"
+            return "/operation-staff/orders";
+        default:
+            return "/login";
     }
+};
+
 
     const handleLogin = async () => {
-        setError("");
-        setLoading(true);
-        try {
-            const res = await apiLogin(username, password);
-            if (remember) localStorage.setItem("remember_username", username);
-            else localStorage.removeItem("remember_username");
+    setError("");
+    setLoading(true);
+    try {
+        const res = await apiLogin(username, password);
+        
+        // Lưu tài khoản nếu người dùng chọn "Remember me"
+        if (remember) localStorage.setItem("remember_username", username);
+        else localStorage.removeItem("remember_username");
 
-            const { role, name } = res
-            await fetchCart(); // Tải lại giỏ hàng sau khi login thành công
-            navigate(roleRedirects(role));
-        } catch (err: any) {
-            setError(err?.response?.data?.message || err?.message || "Login failed");
-        } finally {
-            setLoading(false);
-        }
-    };
+        const { role, name } = res; // Lấy role từ response trả về
+
+        // Kiểm tra và log role để chắc chắn
+        console.log("User role:", role); 
+
+        await fetchCart(); // Tải lại giỏ hàng sau khi login thành công
+        
+        // Điều hướng người dùng theo role
+        const redirectPath = roleRedirects(role);
+        console.log("Redirecting to:", redirectPath); // Kiểm tra đường dẫn trước khi điều hướng
+
+        navigate(redirectPath); // Điều hướng tới trang theo role
+    } catch (err: any) {
+        setError(err?.response?.data?.message || err?.message || "Login failed");
+    } finally {
+        setLoading(false);
+    }
+};
+
 
     const inputBase =
         "w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm " +

@@ -1,4 +1,4 @@
-// src/api/orders.ts
+
 
 export type OrderStatus =
   | "Đang chờ"
@@ -17,12 +17,7 @@ export type OrderRow = {
   customer: string;
 };
 
-// API function to fetch orders
-// src/api/orders.ts
 
-// src/api/orders.ts
-
-// src/api/orders.ts
 export async function fetchOrders(token: string, searchParams: any) {
   const res = await fetch("https://api-eyewear.purintech.id.vn/api/operation-staff/orders/search", {
     method: "POST",

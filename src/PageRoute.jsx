@@ -1,4 +1,4 @@
-import { Routes, Route, BrowserRouter } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import "./PageRoute.css";
 import HomePage from "./views/HomePage";
 import LoginPage from "./views/LoginPage";
@@ -16,8 +16,8 @@ import CancelPage from "./views/CancelPage";
 import { ShoppingContextProvider } from "./views/Cart/contexts/ShoppingContext";
 import { UserProvider } from "./lib/UserContext";
 
-import OrderPage from "./views/OperationStaffDB/OrderPage";
-import InventoryPage from "./views/OperationStaffDB/InventoryPage";
+import OrderPage from "./views/Dashboard/OperationStaffDB/OrderPage";
+import InventoryPage from "./views/Dashboard/OperationStaffDB/InventoryPage";
 
 import { ManagerLayout } from './views/Dashboard/Manager/ManagerLayout';
 import ManagerProductView from './views/Dashboard/Manager/ManagerProductView';
@@ -34,50 +34,48 @@ export default function PageRoute() {
   return (
     <ShoppingContextProvider>
       <UserProvider> 
-        <BrowserRouter>
-          <Routes>
-            <Route index element={<HomePage />} />
+        <Routes>
+          <Route index element={<HomePage />} />
 
-            <Route path="/all-product" element={<AllProductLayout />}>
-              <Route index element={<AllProductFilter />} />
-              <Route path="gong" element={<AllProductFilter />} />
-              <Route path="trong" element={<AllProductFilter />} />
-              <Route path="kinhaptrong" element={<AllProductFilter />} />
-            </Route>
+          <Route path="/all-product" element={<AllProductLayout />}>
+            <Route index element={<AllProductFilter />} />
+            <Route path="gong" element={<AllProductFilter />} />
+            <Route path="trong" element={<AllProductFilter />} />
+            <Route path="kinhaptrong" element={<AllProductFilter />} />
+          </Route>
 
-            <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
 
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/confirm" element={<Confirm />} />
-            <Route path="/warranty" element={<WarrantyPage />} />
-            <Route path="/success" element={<SuccessPage />} />
-            <Route path="/cancel" element={<CancelPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/confirm" element={<Confirm />} />
+          <Route path="/warranty" element={<WarrantyPage />} />
+          <Route path="/success" element={<SuccessPage />} />
+          <Route path="/cancel" element={<CancelPage />} />
 
-            <Route path="/profile" element={<ProfilePage />}>
-              <Route path="account" element={<Account />} />
-            </Route>
+          <Route path="/profile" element={<ProfilePage />}>
+            <Route path="account" element={<Account />} />
+          </Route>
 
-            <Route path="/operation-staff/orders" element={<OrderPage />} />
-            <Route path="/operation-staff/inventory" element={<InventoryPage />} />
+          <Route path="/operation-staff/orders" element={<OrderPage />} />
+          <Route path="/operation-staff/inventory" element={<InventoryPage />} />
 
-            <Route path="/manager" element={<ManagerLayout />}>
-              <Route index element={<ManagerProductView />} />
-              <Route path="product" element={<ManagerProductView />} />
-              <Route path="staff" element={<ManagerStaffView />} />
-              <Route path="policies" element={<ManagerPoliciesView />} />
-              <Route path="sales" element={<ManagerSalesView />} />
-              <Route path="static" element={<ManagerStaticView />} />
-            </Route>
+          <Route path="/manager" element={<ManagerLayout />}>
+            <Route index element={<ManagerProductView />} />
+            <Route path="product" element={<ManagerProductView />} />
+            <Route path="staff" element={<ManagerStaffView />} />
+            <Route path="policies" element={<ManagerPoliciesView />} />
+            <Route path="sales" element={<ManagerSalesView />} />
+            <Route path="static" element={<ManagerStaticView />} />
+          </Route>
 
-            <Route path="/sales" element={<SalesStaffLayout />}>
-              <Route index element={<OrderTable />} />
-              <Route path="containers/orders" element={<OrderTable />} />
-              <Route path="ui/orderdetail" element={<OrderDetail />} />
-            </Route>
-          </Routes>
-        </BrowserRouter>
+          <Route path="/sales" element={<SalesStaffLayout />}>
+            <Route index element={<OrderTable />} />
+            <Route path="containers/orders" element={<OrderTable />} />
+            <Route path="ui/orderdetail" element={<OrderDetail />} />
+          </Route>
+        </Routes>
       </UserProvider> 
     </ShoppingContextProvider>
   );

@@ -1,9 +1,9 @@
 // src/pages/OperationStaff/OrderPage.tsx
 import React, { useEffect, useState } from "react";
-import { fetchOrders } from "../../lib/orders";  // Đảm bảo import đúng
-import OrderToolbar from "../../dashboard/OrderToolbar";  // Thanh công cụ tìm kiếm
+import { fetchOrders } from "../../../lib/orders";  // Đảm bảo import đúng
+import OrderToolbar from "../../../dashboardOperation/OrderToolbar";  // Thanh công cụ tìm kiếm
 import OrderTable from "../OperationStaffDB/OrderTable";  // Bảng hiển thị đơn hàng
-import Sidebar from "../../dashboard/Sidebar";  // Sidebar điều hướng
+import Sidebar from "../../../dashboardOperation/Sidebar";  // Sidebar điều hướng
 
 // API để lấy danh sách các trạng thái đơn hàng
 async function fetchOrderStatuses(token: string) {
@@ -16,11 +16,16 @@ async function fetchOrderStatuses(token: string) {
   });
 
   if (!res.ok) {
+    console.error("Failed to fetch order statuses:", await res.text());
     throw new Error("Failed to fetch order statuses");
   }
 
   const data = await res.json();
-  return data.result; // Trả về danh sách trạng thái
+  if (data?.result && Array.isArray(data.result)) {
+    return data.result;  // Trả về danh sách trạng thái
+  }
+  
+  throw new Error("Invalid data format received for order statuses");
 }
 
 export default function OrderPage() {
@@ -59,6 +64,7 @@ export default function OrderPage() {
       sortDir: "desc"                         // Sắp xếp giảm dần
     };
 
+    // Gọi API để lấy đơn hàng
     fetchOrders(token, searchParams)
       .then((data) => {
         setOrders(data);  // Lưu dữ liệu vào state
