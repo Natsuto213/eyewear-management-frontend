@@ -1,9 +1,7 @@
-// src/pages/OperationStaff/OrderPage.tsx
 import React, { useEffect, useState } from "react";
 import { fetchOrders } from "../../../lib/orders";  // Đảm bảo import đúng
-import OrderToolbar from "../../../dashboardOperation/OrderToolbar";  // Thanh công cụ tìm kiếm
-import OrderTable from "../OperationStaffDB/OrderTable";  // Bảng hiển thị đơn hàng
-import Sidebar from "../../../dashboardOperation/Sidebar";  // Sidebar điều hướng
+import OrderToolbar from "./OrderToolbar";  // Thanh công cụ tìm kiếm
+import OrderTable from "./OrderTable";  // Bảng hiển thị đơn hàng
 
 // API để lấy danh sách các trạng thái đơn hàng
 async function fetchOrderStatuses(token: string) {
@@ -81,16 +79,10 @@ export default function OrderPage() {
   if (error) return <div>{error}</div>;
 
   return (
-    <div className="flex min-h-screen">
-      {/* Sidebar */}
-      <Sidebar />
-
-      {/* Main content area */}
-      <div className="flex-1 p-6 md:p-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Danh sách đơn hàng</h1>
-        <OrderToolbar orders={orders} orderStatuses={orderStatuses} /> {/* Truyền thêm orderStatuses vào OrderToolbar */}
-        <OrderTable orders={orders} />
-      </div>
+    <div className="min-h-screen p-6 md:p-8">
+      <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Danh sách đơn hàng</h1>
+      <OrderToolbar orders={orders} orderStatuses={orderStatuses} /> {/* Truyền thêm orderStatuses vào OrderToolbar */}
+      <OrderTable orders={orders} />
     </div>
   );
 }

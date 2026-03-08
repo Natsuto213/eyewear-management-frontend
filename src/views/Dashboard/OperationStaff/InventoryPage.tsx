@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Sidebar from "../../../dashboardOperation/Sidebar"; // Import Sidebar
 import { Search, Filter } from "lucide-react";
 
 // API để lấy tất cả các sản phẩm
@@ -70,7 +69,6 @@ export default function InventoryPage() {
 
   return (
     <div className="min-h-screen flex bg-gray-50">
-      <Sidebar />
       <div className="flex-1 p-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-6">Hàng trong kho</h1>
 

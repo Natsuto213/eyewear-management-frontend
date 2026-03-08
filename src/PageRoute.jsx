@@ -14,10 +14,10 @@ import WarrantyPage from "./views/Policies/WarrantyPage";
 import SuccessPage from "./views/SuccessPage";
 import CancelPage from "./views/CancelPage";
 import { ShoppingContextProvider } from "./views/Cart/contexts/ShoppingContext";
-import { UserProvider } from "./lib/UserContext";
 
-import OrderPage from "./views/Dashboard/OperationStaffDB/OrderPage";
-import InventoryPage from "./views/Dashboard/OperationStaffDB/InventoryPage";
+
+import OrderPage from "./views/Dashboard/OperationStaff/OrderPage";
+import InventoryPage from "./views/Dashboard/OperationStaff/InventoryPage";
 
 import { ManagerLayout } from './views/Dashboard/Manager/ManagerLayout';
 import ManagerProductView from './views/Dashboard/Manager/ManagerProductView';
@@ -29,11 +29,12 @@ import ManagerPoliciesView from './views/Dashboard/Manager/ManagerPoliciesView';
 import OrderTable from './views/Dashboard/SalesStaff/containers/OrderTable';
 import { SalesStaffLayout } from './views/Dashboard/SalesStaff/SalesStaffLayout';
 import OrderDetail from './views/Dashboard/SalesStaff/ui/OrderDetail';
+import{ OperationStaffLayout } from "./views/Dashboard/OperationStaff/OperationStaffLayout";
 
 export default function PageRoute() {
   return (
     <ShoppingContextProvider>
-      <UserProvider> 
+      
         <Routes>
           <Route index element={<HomePage />} />
 
@@ -58,8 +59,11 @@ export default function PageRoute() {
             <Route path="account" element={<Account />} />
           </Route>
 
-          <Route path="/operation-staff/orders" element={<OrderPage />} />
-          <Route path="/operation-staff/inventory" element={<InventoryPage />} />
+          <Route path="/operation-staff" element={<OperationStaffLayout />} >
+            <Route index element={<OrderTable />} />
+            <Route path="orders" element={<OrderPage />} />
+            <Route path="inventory" element={<InventoryPage />} />
+          </Route>
 
           <Route path="/manager" element={<ManagerLayout />}>
             <Route index element={<ManagerProductView />} />
@@ -76,7 +80,7 @@ export default function PageRoute() {
             <Route path="ui/orderdetail" element={<OrderDetail />} />
           </Route>
         </Routes>
-      </UserProvider> 
+      
     </ShoppingContextProvider>
   );
 }

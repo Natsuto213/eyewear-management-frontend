@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { OrderRow, OrderStatus } from "../lib/orders";
-import { Search, Filter, CalendarDays, ChevronDown } from "lucide-react";  // Import các icon cần sử dụng
+import { OrderRow, OrderStatus } from "../../../lib/orders";
+import { Search, Filter, CalendarDays, ChevronDown } from "lucide-react"; // Import các icon cần sử dụng
 
 export default function OrderToolbar({
   orders,
@@ -38,14 +38,15 @@ export default function OrderToolbar({
   const statuses = orderStatuses?.[0]?.statuses || [];
 
   return (
-    <div className="bg-white shadow-md px-6 py-4 rounded-xl mb-4 flex flex-col md:flex-row gap-4 items-center">
+    <div className="bg-white shadow-md px-6 py-4 rounded-xl mb-4 flex gap-4 items-center flex-col md:flex-row">
       {/* Tìm kiếm */}
-      <div className="relative flex-1">
+      <div className="relative flex items-center w-full md:w-auto">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
         <input
           type="text"
           placeholder="Nhập mã đơn hàng,..."
-          className={`rounded-lg border border-gray-300 px-3 py-1 text-sm outline-none transition-all duration-300 ${
-            showSearch ? "mr-2 w-48 opacity-100" : "pointer-events-none w-0 opacity-0"
+          className={`pl-9 pr-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white w-full md:w-72 transition-all duration-300 ${
+            showSearch ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
           value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -59,9 +60,8 @@ export default function OrderToolbar({
       </div>
 
       {/* Dropdown Lọc trạng thái */}
-      <div className="relative md:w-[240px]">
+      <div className="relative md:w-[240px] w-full">
         <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-          {/* Icon Filter */}
           <Filter className="w-5 h-5" />
         </div>
         <select
@@ -80,9 +80,8 @@ export default function OrderToolbar({
       </div>
 
       {/* Chọn ngày */}
-      <div className="relative md:w-[170px]">
+      <div className="relative md:w-[170px] w-full">
         <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-          {/* Icon Calendar */}
           <CalendarDays className="w-5 h-5" />
         </div>
         <input
