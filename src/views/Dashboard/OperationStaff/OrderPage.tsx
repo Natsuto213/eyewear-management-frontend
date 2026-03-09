@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { fetchOrders } from "../../../lib/orders";  // Đảm bảo import đúng
-import OrderToolbar from "./OrderToolbar";  // Thanh công cụ tìm kiếm
-import OrderTable from "./OrderTable";  // Bảng hiển thị đơn hàng
+import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { fetchOrders } from "../../../lib/orders";
+import OrderToolbar from "./OrderToolbar";
+import OrderTable from "./OrderTable";
 
-// API để lấy danh sách các trạng thái đơn hàng
 async function fetchOrderStatuses(token: string) {
   const res = await fetch("https://api-eyewear.purintech.id.vn/api/operation-staff/orders/status-options", {
     method: "GET",
@@ -13,76 +12,117 @@ async function fetchOrderStatuses(token: string) {
     },
   });
 
-  if (!res.ok) {
-    console.error("Failed to fetch order statuses:", await res.text());
-    throw new Error("Failed to fetch order statuses");
-  }
-
+  if (!res.ok) throw new Error("Không thể lấy danh sách trạng thái");
   const data = await res.json();
-  if (data?.result && Array.isArray(data.result)) {
-    return data.result;  // Trả về danh sách trạng thái
-  }
-  
-  throw new Error("Invalid data format received for order statuses");
+  return data?.result || []; 
 }
 
 export default function OrderPage() {
   const [orders, setOrders] = useState([]);
+  const [orderStatuses, setOrderStatuses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [orderStatuses, setOrderStatuses] = useState<any[]>([]); // State để lưu trạng thái đơn hàng
 
-  const token = localStorage.getItem("access_token");  // Lấy token từ localStorage
+  // --- THÊM CÁC STATE LỌC VÀO ĐÂY ---
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("Tất cả");
+  const [dateFilter, setDateFilter] = useState("");
 
-  useEffect(() => {
+  const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+
+  const loadData = useCallback(async () => {
     if (!token) {
       setError("Token không hợp lệ, vui lòng đăng nhập lại.");
       setLoading(false);
       return;
     }
 
-    // Lấy danh sách trạng thái đơn hàng từ API
-    fetchOrderStatuses(token)
-      .then((data) => {
-        setOrderStatuses(data);  // Lưu trạng thái vào state
-      })
-      .catch((error) => {
-        setError("Không thể lấy danh sách trạng thái đơn hàng: " + error.message);
-      });
+    try {
+      setLoading(true);
+      
+      // 1. Lấy trạng thái (giữ nguyên)
+      if (orderStatuses.length === 0) {
+        const statuses = await fetchOrderStatuses(token);
+        setOrderStatuses(statuses);
+      }
 
-    // Dữ liệu tìm kiếm cho API
-    const searchParams = {
-      orderCode: "ORD-2026-03-02-E2833C70",  // Mã đơn hàng
-      orderDate: "2026-03-02",                // Ngày đặt hàng
-      orderType: "PRESCRIPTION_ORDER",        // Loại đơn hàng
-      orderStatus: "PROCESSING",              // Trạng thái đơn hàng
-      page: 0,                                // Số trang
-      size: 10,                               // Kích thước trang
-      sortBy: "orderDate",                    // Sắp xếp theo ngày đặt
-      sortDir: "desc"                         // Sắp xếp giảm dần
-    };
+      // 2. Lấy đơn hàng (Bỏ searchParams cứng để lấy hết)
+      const params = {
+        page: 0,
+        size: 100, // Lấy nhiều đơn hơn để lọc tại client
+        sortBy: "orderDate",
+        sortDir: "desc"
+      };
 
-    // Gọi API để lấy đơn hàng
-    fetchOrders(token, searchParams)
-      .then((data) => {
-        setOrders(data);  // Lưu dữ liệu vào state
-      })
-      .catch((error) => {
-        setError(`Đã có lỗi khi lấy đơn hàng: ${error.message}`);
-      })
-      .finally(() => {
-        setLoading(false);  // Kết thúc tải dữ liệu
-      });
-  }, [token]);
+      const res = await fetchOrders(token, params);
+      
+      // QUAN TRỌNG: API của bạn trả về { result: { content: [...] } }
+      // Phải chọc đúng vào result.content thì orders mới có dữ liệu
+      const dataList = res?.result?.content || res?.content || (Array.isArray(res) ? res : []);
+      setOrders(dataList);
+      
+      setError(null);
+    } catch (err: any) {
+      setError("Lỗi khi tải dữ liệu: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [token, orderStatuses.length]);
 
-  if (loading) return <div>Đang tải đơn hàng...</div>;
-  if (error) return <div>{error}</div>;
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // --- LOGIC LỌC DỮ LIỆU TẠI CLIENT ---
+  const filteredOrders = useMemo(() => {
+    return orders.filter((o: any) => {
+      const needle = searchQuery.toLowerCase().trim();
+      const matchQ = !needle || 
+        o.orderCode?.toLowerCase().includes(needle) || 
+        o.customerName?.toLowerCase().includes(needle);
+
+      const matchStatus = statusFilter === "Tất cả" || o.orderStatus === statusFilter;
+      const matchDate = !dateFilter || (o.orderDate && o.orderDate.startsWith(dateFilter));
+
+      return matchQ && matchStatus && matchDate;
+    });
+  }, [orders, searchQuery, statusFilter, dateFilter]);
+
+  if (loading && orders.length === 0) return <div className="p-10 text-center">Đang tải dữ liệu...</div>;
 
   return (
-    <div className="min-h-screen p-6 md:p-8">
-      <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Danh sách đơn hàng</h1>
-      <OrderToolbar orders={orders} orderStatuses={orderStatuses} /> {/* Truyền thêm orderStatuses vào OrderToolbar */}
-      <OrderTable orders={orders} />
+    <div className="min-h-screen p-6 md:p-8 bg-gray-50">
+      <div className="max-w-7xl mx-auto">
+        <header className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Danh sách đơn hàng</h1>
+          <button 
+            onClick={loadData}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+          >
+            Làm mới
+          </button>
+        </header>
+
+        {error && <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">{error}</div>}
+
+        <div className="bg-white rounded-lg shadow">
+          {/* Truyền các state lọc xuống Toolbar */}
+          <OrderToolbar 
+            orders={orders} 
+            orderStatuses={orderStatuses}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            dateFilter={dateFilter}
+            setDateFilter={setDateFilter}
+            totalFiltered={filteredOrders.length}
+          />
+
+          {/* Truyền mảng ĐÃ LỌC xuống Table */}
+          <OrderTable orders={filteredOrders} />
+        </div>
+      </div>
     </div>
   );
 }

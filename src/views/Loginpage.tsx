@@ -24,7 +24,7 @@ const Loginpage: React.FC = () => {
             return "/manager";
         case "SALES STAFF":
             return "/sales";
-        case "OPERATION STAFF":
+        
         case "OPERATIONS STAFF":  // Thêm điều kiện xử lý "OPERATIONS STAFF"
             return "/operation-staff";
         default:

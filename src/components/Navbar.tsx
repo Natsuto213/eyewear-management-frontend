@@ -24,14 +24,13 @@ interface CartItemType {
 
 export default function Navbar() {
   const [showSearch, setShowSearch] = useState(false);
-  // FIX 1: Khai báo đầy đủ state để dùng được setIsLoggedIn
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("access_token"));
-  
   const location = useLocation();
   const navigate = useNavigate();
   const { cartItems, cartQty, totalPrice } = useShoppingContext();
 
   useEffect(() => {
+    // Kiểm tra trạng thái đăng nhập khi pathname thay đổi
     setIsLoggedIn(!!localStorage.getItem("access_token"));
   }, [location.pathname]);
 
@@ -49,10 +48,11 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
-      await apiLogout();
+      await apiLogout(); // Gọi API logout
       localStorage.removeItem("access_token"); // Đảm bảo xóa token
-      setIsLoggedIn(false);
-      navigate("/", { replace: true });
+      localStorage.removeItem("user"); // Xóa thông tin người dùng
+      setIsLoggedIn(false); // Cập nhật trạng thái đăng xuất
+      navigate("/", { replace: true }); // Chuyển hướng về trang chủ sau khi logout
     } catch (error) {
       console.error("Logout failed:", error);
     }
@@ -172,8 +172,6 @@ export default function Navbar() {
           )}
         </div>
       </div>
-      
-      
     </header>
   );
 }
