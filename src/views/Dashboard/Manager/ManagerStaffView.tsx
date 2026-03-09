@@ -26,12 +26,13 @@ export default function ManagerStaffView() {
     const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
 
     const [formData, setFormData] = useState({
-        username: '', password: '', email: '', phone: '', name: '', dob: '', 
+        username: '', password: '', email: '', phone: '', name: '', dob: '',
         address: '', idNumber: '', roleName: 'CUSTOMER', status: true,
         provinceCode: 0, provinceName: '', districtCode: 0, districtName: '', wardCode: '', wardName: ''
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // XEM USER
     useEffect(() => {
         const fetchStaff = async () => {
             try {
@@ -100,8 +101,8 @@ export default function ManagerStaffView() {
 
     const handleAddClick = () => {
         setEditingStaff(null);
-        setFormData({ 
-            username: '', password: '', email: '', phone: '', name: '', dob: '', 
+        setFormData({
+            username: '', password: '', email: '', phone: '', name: '', dob: '',
             address: '', idNumber: '', roleName: 'CUSTOMER', status: true,
             provinceCode: 0, provinceName: '', districtCode: 0, districtName: '', wardCode: '', wardName: ''
         });
@@ -118,7 +119,7 @@ export default function ManagerStaffView() {
         }
 
         setFormData({
-            username: staffObj.username || '', 
+            username: staffObj.username || '',
             password: '',
             email: staffObj.email || '',
             phone: staffObj.phone || '',
@@ -148,34 +149,57 @@ export default function ManagerStaffView() {
         try {
             if (editingStaff) {
                 // SỬA: Nối chuỗi full địa chỉ
-                const fullAddressForPut = formData.provinceName ? 
-                    `${formData.address}, ${formData.wardName}, ${formData.districtName}, ${formData.provinceName}` 
+                const fullAddressForPut = formData.provinceName ?
+                    `${formData.address}, ${formData.wardName}, ${formData.districtName}, ${formData.provinceName}`
                     : formData.address;
 
                 const putPayload = {
-                    email: formData.email, 
-                    phone: formData.phone, 
+                    email: formData.email,
+                    phone: formData.phone,
                     name: formData.name,
-                    dob: formData.dob, 
-                    address: fullAddressForPut, 
+                    dob: formData.dob || null,
+                    address: fullAddressForPut,
                     idNumber: formData.idNumber
                 };
                 await api.put('users/my-info', putPayload);
                 alert("Cập nhật thông tin thành công!");
             } else {
-                // THÊM: Gửi cục form
-                await api.post('users/admin/create', formData);
+                // THÊM: Gửi cục form chuẩn dữ liệu Backend yêu cầu
+                const postPayload = {
+                    username: formData.username,
+                    password: formData.password,
+                    email: formData.email,
+                    phone: formData.phone,
+                    name: formData.name,
+                    dob: formData.dob || null,
+                    address: formData.address || null,
+                    idNumber: formData.idNumber || null,
+                    status: formData.status,
+                    // Backend bắt buộc có gạch dưới (VD: SALES_STAFF thay vì SALES STAFF)
+                    roleName: formData.roleName.replace(" ", "_"),
+                    // Ép kiểu đúng theo Swagger
+                    provinceCode: Number(formData.provinceCode) || 0, // Số
+                    provinceName: formData.provinceName || "",
+                    districtCode: Number(formData.districtCode) || 0, // Số
+                    districtName: formData.districtName || "",
+                    wardCode: String(formData.wardCode || ""),        // Chuỗi
+                    wardName: formData.wardName || ""
+                };
+
+                await api.post('users/admin/create', postPayload);
                 alert("Thêm nhân viên mới thành công!");
             }
 
             // GỌI LẠI API GET ĐỂ LOAD DATA MỚI NHẤT
             const response = await api.get("users");
             setStaff(response.data?.result || []);
-            
+
             setIsFormModalOpen(false);
-        } catch (error) {
-            console.error(error);
-            alert("Có lỗi xảy ra khi lưu!");
+        } catch (error: any) {
+            console.error("Lỗi Server trả về:", error.response?.data);
+
+            const backendErrorMsg = error.response?.data?.message || error.response?.data?.result || "Dữ liệu nhập vào chưa đúng định dạng!";
+            alert(`LỖI: ${backendErrorMsg}`);
         } finally {
             setIsSubmitting(false);
         }
@@ -202,8 +226,8 @@ export default function ManagerStaffView() {
             />
 
             <StaffModal
-                isOpen={isFormModalOpen} onClose={() => setIsFormModalOpen(false)} onSave={handleSaveStaff} 
-                formData={formData} 
+                isOpen={isFormModalOpen} onClose={() => setIsFormModalOpen(false)} onSave={handleSaveStaff}
+                formData={formData}
                 setFormData={setFormData}
                 handleFormChange={handleFormChange}
                 isEditing={!!editingStaff} isSubmitting={isSubmitting}
