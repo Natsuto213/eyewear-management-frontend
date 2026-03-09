@@ -1,6 +1,6 @@
 // ProductTable.tsx
 import { Pencil, Trash2 } from 'lucide-react';
-import { Product, formatPrice, productTypeConfig } from './productConfig'; // Nhớ điều chỉnh path import nha
+import { Product, formatPrice, productTypeConfig } from './productConfig';
 
 interface Props {
   loading: boolean;
@@ -12,11 +12,12 @@ interface Props {
   totalPages: number;
   setCurrentPage: (page: number | ((prev: number) => number)) => void;
   onDeleteClick: (id: number) => void;
+  onEditClick: (product: Product) => void;
 }
 
 export function ProductTable({
   loading, currentItems, filteredLength, startIndex, endIndex,
-  currentPage, totalPages, setCurrentPage, onDeleteClick
+  currentPage, totalPages, setCurrentPage, onDeleteClick, onEditClick
 }: Props) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -39,8 +40,8 @@ export function ProductTable({
               key={page}
               onClick={() => setCurrentPage(page)}
               className={`px-3 py-1 text-xs rounded transition-colors ${currentPage === page
-                  ? 'bg-purple-600 text-white font-medium'
-                  : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
+                ? 'bg-purple-600 text-white font-medium'
+                : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
                 }`}
             >
               {page}
@@ -103,7 +104,10 @@ export function ProductTable({
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-center gap-2">
-                      <button className="text-blue-500 hover:text-blue-700 transition-colors p-1 rounded hover:bg-blue-50">
+                      <button
+                        onClick={() => onEditClick(product)}
+                        className="text-blue-500 hover:text-blue-700 transition-colors p-1 rounded hover:bg-blue-50"
+                      >
                         <Pencil className="h-4 w-4" />
                       </button>
                       <button

@@ -62,7 +62,7 @@ export async function apiLogout() {
         console.warn("Logout API failed:", err);
     } finally {
         localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token"); // nếu bạn có dùng
+        localStorage.removeItem("refresh_token"); 
     }
 }
 
