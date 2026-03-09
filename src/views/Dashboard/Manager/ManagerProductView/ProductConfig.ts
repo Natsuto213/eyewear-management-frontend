@@ -2,11 +2,15 @@
 export interface Product {
   id: number;
   name: string;
-  Product_Type: string;
-  Brand: string;
-  price: number;
-  description: string;
   sku: string;
+  description: string;
+  price: number;
+  allowPreorder: boolean;
+  isActive: boolean;
+  Image_URL: string;
+  Brand: string;
+  Product_Type: string;
+  frameId?: number;
 }
 
 export const formatPrice = (price: number) =>

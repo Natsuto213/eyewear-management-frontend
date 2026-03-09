@@ -17,7 +17,7 @@ export default function ManagerProductView() {
 
   // STATE PHÂN TRANG
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 7;
 
   // MODAL XÓA
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -81,8 +81,16 @@ export default function ManagerProductView() {
   const handleConfirmDelete = async () => {
     if (productToDelete === null) return;
     try {
+      // 1. Gọi API Xóa (Backend có thể đang cấu hình đây là xóa mềm, chỉ đổi isActive thành false)
       await api.delete(`api/products/${productToDelete}`);
-      setProducts(prev => prev.filter(p => p.id !== productToDelete));
+
+      // 2. SỬA CHỖ NÀY: Cập nhật lại UI thành trạng thái đã ẩn (isActive: false) thay vì vứt nó ra khỏi mảng
+      setProducts(prev =>
+        prev.map(p =>
+          p.id === productToDelete ? { ...p, isActive: false } : p
+        )
+      );
+
       setIsDeleteModalOpen(false);
       setProductToDelete(null);
     } catch (error) {
@@ -134,6 +142,36 @@ export default function ManagerProductView() {
     }
   };
 
+  const handleRestoreProduct = async (product: Product) => {
+    const isConfirm = window.confirm(`Bạn có chắc chắn muốn mở bán lại sản phẩm "${product.name}"?`);
+    if (!isConfirm) return;
+
+    try {
+      // Build payload dựa trên hình Swagger yêu cầu
+      const payload = {
+        id: product.id,
+        sku: product.sku,
+        name: product.name,
+        price: product.price,
+        description: product.description,
+        isActive: true, // ĐỔI THÀNH TRUE Ở ĐÂY
+        brandName: product.Brand,
+        typeName: product.Product_Type
+      };
+
+      // Gọi API PUT
+      await api.put('api/products', payload);
+
+      // Cập nhật lại list sản phẩm trên giao diện mà không cần load lại trang
+      setProducts(prev => prev.map(p => p.id === product.id ? { ...p, isActive: true } : p));
+      alert("Mở bán sản phẩm thành công!");
+
+    } catch (error) {
+      console.error("Lỗi khi khôi phục sản phẩm:", error);
+      alert("Có lỗi xảy ra khi khôi phục sản phẩm!");
+    }
+  };
+
   return (
     <div className="p-6 h-full relative">
       <ProductHeader
@@ -150,7 +188,7 @@ export default function ManagerProductView() {
       <ProductTable
         loading={loading}
         currentItems={currentItems}
-        filteredLength={filtered.length}
+        filteredLength={sortedAndFiltered.length}
         startIndex={startIndex}
         endIndex={endIndex}
         currentPage={currentPage}
@@ -158,6 +196,7 @@ export default function ManagerProductView() {
         setCurrentPage={setCurrentPage}
         onDeleteClick={handleDeleteClick}
         onEditClick={handleEditClick}
+        onRestoreClick={handleRestoreProduct}
       />
 
       <DeleteConfirmModal
