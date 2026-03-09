@@ -28,6 +28,7 @@ import ManagerSalesView from './views/Dashboard/Manager/ManagerSalesView';
 import ManagerPoliciesView from './views/Dashboard/Manager/ManagerPoliciesView';
 
 import { ShoppingContextProvider } from './views/Cart/contexts/ShoppingContext';
+
 import OrderTable from './views/Dashboard/SalesStaff/containers/OrderTable';
 import { SalesStaffLayout } from './views/Dashboard/SalesStaff/SalesStaffLayout';
 import OrderDetail from './views/Dashboard/SalesStaff/ui/OrderDetail';

@@ -10,7 +10,7 @@ import { apiLogout } from "../../lib/userApi";
 
 interface SidebarProps {
   role: Role;
-  tabs?: TabItem[]; // Allow passing tabs directly
+  tabs?: TabItem[];
   userName?: string;
 }
 
@@ -21,7 +21,7 @@ export function Sidebar({
 }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
-  const tabs = customTabs || getTabsByRole(role); // Use custom tabs if provided, otherwise get from role
+  const tabs = customTabs || getTabsByRole(role);
   const roleDisplayName = getRoleDisplayName(role);
 
   const isActive = (path: string) => {
@@ -105,7 +105,12 @@ export function Sidebar({
             await apiLogout();
             window.location.href = "/";
           }}
-          className="text-sm font-medium text-gray-600 hover:text-black transition"
+          // CẬP NHẬT: Thêm flex, items-center, gap-3 và chỉnh lại màu sắc
+          className={cn(
+            "flex items-center gap-3 w-full px-3 py-2.5 rounded-lg transition-colors",
+            "text-gray-400 hover:bg-gray-800 hover:text-white",
+            collapsed && "justify-center"
+          )}
           title={collapsed ? "Logout" : undefined}
         >
           <LogOut className="h-5 w-5 shrink-0" />
