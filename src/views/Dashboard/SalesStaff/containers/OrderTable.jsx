@@ -12,6 +12,10 @@ const isMatch = (value, keyword) => {
     return text.includes(search)
 }
 
+const isExactMatch = (value, keyword) => {
+    if (!keyword) return true; // Nếu keyword rỗng, bỏ qua tiêu chí
+    return String(value || "") === String(keyword);
+}
 // Hàm lấy danh sách không trùng từ 1 cột (dùng cho dropdown)
 const getUniqueList = (orders, field) => {
     const result = []
@@ -43,9 +47,9 @@ const OrderTable = () => {
 
     // Gọi API lấy danh sách đơn hàng
     const fetchOrders = () => {
-        axios.get("https://69a3030cbe843d692bd2bd7d.mockapi.io/data-orders")
+        api.get("api/staff/orders")
             .then((res) => {
-                setOrders(res.data || [])
+                setOrders(res.data.result || [])
                 setLoading(false)
             })
             .catch((err) => {
@@ -54,21 +58,10 @@ const OrderTable = () => {
             })
     }
 
-    const fetchAxios = async () => {
-        try {
-            const res = await api.get("api/staff/orders/status-options")
-            console.log("res la gi: ", res)
-        } catch (err) {
-            console.error("Lỗi khi gọi API:", err)
-        } finally {
-            setLoading(false)
-        }
-    }
 
     // Chạy 1 lần khi mở trang
     useEffect(() => {
         fetchOrders()
-        fetchAxios()
     }, [])
 
     // Khi user thay đổi 1 ô lọc bất kỳ
@@ -84,15 +77,15 @@ const OrderTable = () => {
     }
 
     // Tạo danh sách không trùng cho 2 dropdown
-    const statusList = getUniqueList(orders, "status")
+    const statusList = getUniqueList(orders, "orderStatus")
     const orderTypeList = getUniqueList(orders, "orderType")
 
     // Lọc đơn hàng: kiểm tra từng đơn có khớp 4 tiêu chí không
     const filteredOrders = orders.filter((order) => {
-        const matchId = isMatch(order.orderId, filters.orderId)
-        const matchDate = isMatch(order.orderDate, filters.orderDate)
-        const matchStatus = isMatch(order.status, filters.status)
-        const matchType = isMatch(order.orderType, filters.orderType)
+        const matchId = isMatch(order.orderCode, filters.orderId);
+        const matchDate = isMatch(order.orderDate.slice(0, 10).split('-').join('-'), filters.orderDate);
+        const matchStatus = isExactMatch(order.orderStatus, filters.status);
+        const matchType = isExactMatch(order.orderType, filters.orderType);
         // Phải khớp tất cả (ô nào rỗng thì tự bỏ qua)
         return matchId && matchDate && matchStatus && matchType
     })

@@ -73,7 +73,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
                 <Route path="/sales" element={<SalesStaffLayout />}>
                     <Route index element={<OrderTable />} />
                     <Route path="containers/orders" element={<OrderTable />} />
-                    <Route path="ui/orderdetail" element={<OrderDetail />} />
+                    <Route path="ui/orderdetail/:orderId" element={<OrderDetail />} />
                 </Route>
 
             </Routes>

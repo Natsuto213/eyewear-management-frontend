@@ -1,102 +1,212 @@
-import { Search, Filter, Calendar, Phone, Mail, MapPin, Clock, User, CheckCircle, XCircle, Package, ShoppingBag } from 'lucide-react';
+import { useEffect, useState } from "react";
+import {
+    Phone,
+    Mail,
+    MapPin,
+    Clock,
+    User,
+    CheckCircle,
+    Package,
+} from "lucide-react";
+import { useParams } from "react-router-dom";
+import { api } from "@/lib/api";
 
 export default function OrderDetail() {
-    // Mock data
-    const orderData = {
-        orderNumber: '#000001',
-        status: 'Chưa xác nhận',
-        orderType: 'Pre-order',
-        deliveryDate: '01/10/2025 12:00',
-        totalAmount: '280.000 vnd',
-        customer: {
-            name: 'Nguyên văn A',
-            phone: '090xxxxxxx',
-            email: 'nva@gmail.com',
-            code: '#cst001',
-        },
+    const { orderId } = useParams();
+
+    const [orderData, setOrderData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const [openPrescriptionRows, setOpenPrescriptionRows] = useState({});
+
+    useEffect(() => {
+        const fetchOrderDetail = async () => {
+            try {
+                setLoading(true);
+                setError("");
+
+                const response = await api.get(`api/staff/orders/${orderId}`);
+                console.log("API response:", response.data);
+
+                setOrderData(response.data.result);
+            } catch (err) {
+                console.error(err);
+                setError(
+                    err?.response?.data?.message ||
+                    err?.message ||
+                    "Không tải được chi tiết đơn hàng"
+                );
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (orderId) {
+            fetchOrderDetail();
+        }
+    }, [orderId]);
+
+    const formatCurrency = (amount) => {
+        if (amount == null) return "0 đ";
+        return new Intl.NumberFormat("vi-VN", {
+            style: "currency",
+            currency: "VND",
+        }).format(amount);
     };
 
-    const products = [
-        {
-            id: '1',
-            name: 'GỌNG NHỰA CỨNG G001',
-            details: 'Màu sắc: đen, vàng',
-            quantity: 1,
-            unitPrice: '120.000 vnd',
-            totalPrice: '120.000 vnd',
-            image: 'https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=200&h=200&fit=crop',
-        },
-        {
-            id: '2',
-            name: 'TRÒNG KÍNH CHEMI U2 T001',
-            details: 'Phân loại: đổi màu, chống UV',
-            quantity: 2,
-            unitPrice: '80.000 vnd',
-            totalPrice: '160.000 vnd',
-            image: 'https://images.unsplash.com/photo-1509695507497-903c140c43b0?w=200&h=200&fit=crop',
-        },
-    ];
-
-    const deliveryInfo = {
-        recipient: {
-            name: 'Trần Văn A',
-            phone: '090xxxxxxxx',
-            email: 'nva@gmail.com',
-        },
-        address: '123/23/2c đường abc, phường Tân Định, Quận Gò Vấp, TP. HCM',
-        note: 'Giao trước 16:00 giúp em nha',
+    const formatDateTime = (dateString) => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        return date.toLocaleString("vi-VN");
     };
+
+    const mapOrderStatus = (status) => {
+        switch (status) {
+            case "PENDING":
+                return "Chờ xử lý";
+            case "PARTIALLY_PAID":
+                return "Đã thanh toán một phần";
+            case "PAID":
+                return "Hoàn tất thanh toán";
+            case "CANCELED":
+                return "Đã hủy";
+            case "COMPLETED":
+                return "Hoàn thành";
+            default:
+                return status || "";
+        }
+    };
+
+    const mapOrderType = (type) => {
+        switch (type) {
+            case "MIX_ORDER":
+                return "Đơn hàng kết hợp";
+            case "DIRECT_ORDER":
+                return "Đơn hàng mua trực tiếp";
+            case "PRE_ORDER":
+                return "Đơn hàng đặt trước";
+            case "PRESCRIPTION_ORDER":
+                return "Đơn hàng theo đơn kính";
+            default:
+                return type || "";
+        }
+    };
+
+    const displayPrescriptionValue = (value) => {
+        if (
+            value === null ||
+            value === undefined ||
+            value === "" ||
+            value === "0" ||
+            value === "0.00"
+        ) {
+            return "—";
+        }
+        return value;
+    };
+
+    const hasPrescriptionData = (item) => {
+        return [
+            item?.leftEyeSph,
+            item?.leftEyeCyl,
+            item?.leftEyeAxis,
+            item?.rightEyeSph,
+            item?.rightEyeCyl,
+            item?.rightEyeAxis,
+        ].some(
+            (value) =>
+                value !== null &&
+                value !== undefined &&
+                value !== "" &&
+                value !== "0" &&
+                value !== "0.00"
+        );
+    };
+
+    const togglePrescriptionRow = (key) => {
+        setOpenPrescriptionRows((prev) => ({
+            ...prev,
+            [key]: !prev[key],
+        }));
+    };
+
+    const canConfirmOrder = ["PENDING", "PARTIALLY_PAID", "PAID"].includes(
+        orderData?.orderStatus
+    );
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <p className="text-lg font-semibold">Đang tải chi tiết đơn hàng...</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <p className="text-red-600 font-semibold">{error}</p>
+            </div>
+        );
+    }
+
+    if (!orderData) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <p>Không có dữ liệu đơn hàng</p>
+            </div>
+        );
+    }
+
+    const normalProducts = orderData.orderDetail || [];
+    const prescriptionProducts = orderData.prescriptionOrderDetail || [];
 
     return (
         <div className="min-h-screen bg-gray-200">
-            {/* Header với Gradient */}
             <header className="bg-white shadow sticky top-0 z-50 border-b border-gray-200">
                 <div className="max-w-7xl mx-auto px-8 py-6">
                     <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-4">
-
-                            <div>
-                                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                    Chi tiết đơn hàng
-                                </h1>
-                                <p className="text-sm text-gray-500 mt-1">Quản lý và xử lý đơn hàng</p>
-                            </div>
+                        <div>
+                            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                Chi tiết đơn hàng
+                            </h1>
+                            <p className="text-sm text-gray-500 mt-1">
+                                Quản lý và xử lý đơn hàng
+                            </p>
                         </div>
 
                         <div className="flex items-center gap-4">
                             <div className="text-right">
                                 <p className="text-sm text-gray-500">Tổng giá trị</p>
-                                <p className="text-2xl font-bold text-gray-800">{orderData.totalAmount}</p>
+                                <p className="text-2xl font-bold text-gray-800">
+                                    {formatCurrency(orderData.totalAmount)}
+                                </p>
                             </div>
                         </div>
                     </div>
-
                 </div>
             </header>
 
-            {/* Main Content */}
             <main className="max-w-7xl mx-auto px-8 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Left Column - Order Details */}
                     <div className="lg:col-span-2 space-y-8">
-                        {/* Order Info Card */}
                         <div className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
                             <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-6">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <h2 className="text-3xl font-bold text-white mb-2">{orderData.orderNumber}</h2>
+                                        <h2 className="text-3xl font-bold text-white mb-2">
+                                            {orderData.orderCode}
+                                        </h2>
                                         <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-white/20 backdrop-blur-sm text-white border border-white/30">
                                             <Clock className="w-4 h-4 mr-2" />
-                                            {orderData.status}
+                                            {mapOrderStatus(orderData.orderStatus)}
                                         </span>
                                     </div>
-
                                 </div>
                             </div>
 
                             <div className="p-8">
-                                <div className="grid grid-cols-2 gap-8">
-                                    {/* Order Details */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div className="space-y-5">
                                         <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                                             <div className="w-1.5 h-6 bg-gradient-to-b from-blue-600 to-purple-600 rounded-full"></div>
@@ -105,21 +215,34 @@ export default function OrderDetail() {
 
                                         <div className="space-y-4">
                                             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                                                <span className="text-sm font-semibold text-gray-500 w-32">Loại đơn:</span>
-                                                <span className="text-sm text-gray-800 font-medium">{orderData.orderType}</span>
+                                                <span className="text-sm font-semibold text-gray-500 w-32">
+                                                    Loại đơn:
+                                                </span>
+                                                <span className="text-sm text-gray-800 font-medium">
+                                                    {mapOrderType(orderData.orderType)}
+                                                </span>
                                             </div>
+
                                             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                                                <span className="text-sm font-semibold text-gray-500 w-32">Ngày đặt:</span>
-                                                <span className="text-sm text-gray-800 font-medium">{orderData.deliveryDate}</span>
+                                                <span className="text-sm font-semibold text-gray-500 w-32">
+                                                    Ngày đặt:
+                                                </span>
+                                                <span className="text-sm text-gray-800 font-medium">
+                                                    {formatDateTime(orderData.orderDate)}
+                                                </span>
                                             </div>
+
                                             <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
-                                                <span className="text-sm font-semibold text-gray-500 w-32">Tổng tiền:</span>
-                                                <span className="text-lg font-bold text-gray-800">{orderData.totalAmount}</span>
+                                                <span className="text-sm font-semibold text-gray-500 w-32">
+                                                    Tổng tiền:
+                                                </span>
+                                                <span className="text-lg font-bold text-gray-800">
+                                                    {formatCurrency(orderData.totalAmount)}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* Customer Info */}
                                     <div className="space-y-5">
                                         <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                                             <div className="w-1.5 h-6 bg-gradient-to-b from-blue-600 to-purple-600 rounded-full"></div>
@@ -127,21 +250,28 @@ export default function OrderDetail() {
                                         </h3>
 
                                         <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
-
                                             <div>
-                                                <h4 className="font-bold text-gray-800 text-lg">{orderData.customer.name}</h4>
-                                                <span className="text-sm text-gray-500 font-medium">{orderData.customer.code}</span>
+                                                <h4 className="font-bold text-gray-800 text-lg">
+                                                    {orderData.customerName}
+                                                </h4>
+                                                <span className="text-sm text-gray-500 font-medium">
+                                                    ID đơn: #{orderData.orderId}
+                                                </span>
                                             </div>
                                         </div>
 
                                         <div className="space-y-3">
                                             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
                                                 <Phone className="w-5 h-5 text-gray-400" />
-                                                <span className="text-sm text-gray-800">{orderData.customer.phone}</span>
+                                                <span className="text-sm text-gray-800">
+                                                    {orderData.customerPhone}
+                                                </span>
                                             </div>
                                             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
                                                 <Mail className="w-5 h-5 text-gray-400" />
-                                                <span className="text-sm text-gray-800">{orderData.customer.email}</span>
+                                                <span className="text-sm text-gray-800">
+                                                    {orderData.customerEmail}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -149,60 +279,307 @@ export default function OrderDetail() {
                             </div>
                         </div>
 
-                        {/* Product Table */}
-                        <div className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
-                            <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-8 py-5 border-b border-gray-200">
-                                <h3 className="text-xl font-bold text-gray-800 flex items-center gap-3">
-                                    <Package className="w-6 h-6 text-gray-400" />
-                                    Danh sách sản phẩm
-                                </h3>
-                            </div>
+                        {normalProducts.length > 0 && (
+                            <div className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
+                                <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-8 py-5 border-b border-gray-200">
+                                    <h3 className="text-xl font-bold text-gray-800 flex items-center gap-3">
+                                        <Package className="w-6 h-6 text-gray-400" />
+                                        Danh sách sản phẩm thường
+                                    </h3>
+                                </div>
 
-                            <div className="p-6">
-                                <div className="space-y-4">
-                                    {products.map((product, index) => (
-                                        <div
-                                            key={product.id}
-                                            className="flex items-center gap-6 p-5 bg-gradient-to-r from-gray-50 to-white rounded-xl border border-gray-100 hover:border-blue-300 hover:shadow transition-all group"
-                                        >
-                                            <div className="w-24 h-24 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden shadow group-hover:scale-110 transition-transform flex-shrink-0">
-                                                <img
-                                                    src={product.image}
-                                                    alt={product.name}
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            </div>
+                                <div className="p-6">
+                                    <div className="space-y-4">
+                                        {normalProducts.map((product) => (
+                                            <div
+                                                key={product.productId}
+                                                className="flex items-center gap-6 p-5 bg-gradient-to-r from-gray-50 to-white rounded-xl border border-gray-100"
+                                            >
+                                                <div className="w-24 h-24 rounded-xl overflow-hidden shadow flex-shrink-0">
+                                                    <img
+                                                        src={product.imageUrl}
+                                                        alt={product.productName}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </div>
 
-                                            <div className="flex-1">
-                                                <h4 className="font-bold text-gray-800 text-lg mb-2">{product.name}</h4>
-                                                <p className="text-sm text-gray-500 mb-2">{product.details}</p>
-                                                <div className="flex items-center gap-4">
-                                                    <span className="inline-flex items-center px-3 py-1 rounded-xl bg-gray-100 text-gray-800 text-sm font-semibold border border-gray-200">
-                                                        Số lượng: {product.quantity}
-                                                    </span>
-                                                    <span className="text-sm text-gray-500">Đơn giá: <span className="font-semibold text-gray-800">{product.unitPrice}</span></span>
+                                                <div className="flex-1">
+                                                    <h4 className="font-bold text-gray-800 text-lg mb-2">
+                                                        {product.productName}
+                                                    </h4>
+                                                    <div className="flex items-center gap-4">
+                                                        <span className="inline-flex items-center px-3 py-1 rounded-xl bg-gray-100 text-gray-800 text-sm font-semibold border border-gray-200">
+                                                            Số lượng: {product.quantity}
+                                                        </span>
+                                                        <span className="text-sm text-gray-500">
+                                                            Đơn giá:{" "}
+                                                            <span className="font-semibold text-gray-800">
+                                                                {formatCurrency(product.unitPrice)}
+                                                            </span>
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="text-right flex-shrink-0">
+                                                    <p className="text-sm text-gray-500 mb-1">Tổng</p>
+                                                    <p className="text-2xl font-bold text-gray-800">
+                                                        {formatCurrency(product.totalPrice)}
+                                                    </p>
                                                 </div>
                                             </div>
-
-                                            <div className="text-right flex-shrink-0">
-                                                <p className="text-sm text-gray-500 mb-1">Tổng</p>
-                                                <p className="text-2xl font-bold text-gray-800">{product.totalPrice}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* Total */}
-                                <div className="mt-6 p-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl">
-                                    <div className="flex items-center justify-between text-white">
-                                        <span className="text-xl font-bold">TỔNG CỘNG</span>
-                                        <span className="text-3xl font-bold">280.000 vnd</span>
+                                        ))}
                                     </div>
                                 </div>
                             </div>
+                        )}
+
+                        {prescriptionProducts.length > 0 && (
+                            <div className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
+                                <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-8 py-5 border-b border-gray-200">
+                                    <h3 className="text-xl font-bold text-gray-800 flex items-center gap-3">
+                                        <Package className="w-6 h-6 text-gray-400" />
+                                        Danh sách đơn kính
+                                    </h3>
+                                </div>
+
+                                <div className="p-6 overflow-x-auto">
+                                    <table className="w-full min-w-[900px]">
+                                        <thead>
+                                            <tr className="border-b border-gray-200 text-left text-sm text-gray-500">
+                                                <th className="py-3 pl-2 pr-3 w-28">Hình ảnh</th>
+                                                <th className="py-3 px-3">Sản phẩm</th>
+                                                <th className="py-3 px-3 text-right">Đơn giá</th>
+                                                <th className="py-3 px-3 text-center">Số lượng</th>
+                                                <th className="py-3 px-3 text-right">Thành tiền</th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+                                            {prescriptionProducts.map((item, index) => {
+                                                const rowKey = `${item.frameId || "frame"}-${index}`;
+                                                const isOpen = !!openPrescriptionRows[rowKey];
+
+                                                const hasFrameImage = !!item.frameImg;
+                                                const hasLensImage = !!item.lensImg;
+                                                const hasContactLensImage = !!item.contactLensImg;
+
+                                                const hasLens = item.lensId != null;
+                                                const hasContactLens = item.contactLensId != null;
+                                                const hasPaired = hasLens || hasContactLens;
+
+                                                // Đếm số ảnh hiện có
+                                                const imageCount = [
+                                                    hasFrameImage,
+                                                    hasLensImage,
+                                                    hasContactLensImage,
+                                                ].filter(Boolean).length;
+
+                                                // Ảnh chính:
+                                                // - nếu chỉ có 1 ảnh duy nhất thì dùng ảnh đó
+                                                // - nếu có nhiều ảnh thì ưu tiên frameImg
+                                                const mainImage =
+                                                    imageCount === 1
+                                                        ? item.frameImg || item.lensImg || item.contactLensImg
+                                                        : item.frameImg || item.lensImg || item.contactLensImg;
+
+                                                // Chỉ hiện ảnh phụ khi có từ 2 ảnh trở lên
+                                                const showSubImages = imageCount > 1;
+
+                                                const mainName =
+                                                    item.frameName ||
+                                                    item.lensName ||
+                                                    item.contactLensName ||
+                                                    "Sản phẩm đơn kính";
+
+                                                const mainPrice = item.framePrice ?? 0;
+
+                                                const pairedNames = [
+                                                    item.lensName,
+                                                    item.contactLensName,
+                                                ].filter(Boolean);
+
+                                                const pairedNameText = pairedNames.join(" + ");
+
+                                                const pairedPrice =
+                                                    (item.lensPrice ?? 0) + (item.contactLensPrice ?? 0);
+
+                                                const lineTotal = item.totalPrice ?? 0;
+
+                                                // Chỉ cần field tồn tại là hiện đơn thuốc, kể cả giá trị = 0
+                                                const showPrescription =
+                                                    item.leftEyeSph !== undefined ||
+                                                    item.leftEyeCyl !== undefined ||
+                                                    item.leftEyeAxis !== undefined ||
+                                                    item.rightEyeSph !== undefined ||
+                                                    item.rightEyeCyl !== undefined ||
+                                                    item.rightEyeAxis !== undefined;
+
+                                                const prescriptionRows = [
+                                                    {
+                                                        label: "SPH",
+                                                        l: item.leftEyeSph,
+                                                        r: item.rightEyeSph,
+                                                    },
+                                                    {
+                                                        label: "CYL",
+                                                        l: item.leftEyeCyl,
+                                                        r: item.rightEyeCyl,
+                                                    },
+                                                    {
+                                                        label: "AXIS",
+                                                        l: item.leftEyeAxis,
+                                                        r: item.rightEyeAxis,
+                                                    },
+                                                ];
+
+                                                return (
+                                                    <tr
+                                                        key={rowKey}
+                                                        className="hover:bg-gray-50 transition-colors border-b border-gray-100"
+                                                    >
+                                                        <td className="py-4 pl-2 pr-3 align-top w-28">
+                                                            <div className="flex flex-col items-center gap-1.5">
+                                                                <img
+                                                                    src={mainImage}
+                                                                    alt={mainName}
+                                                                    className="w-20 h-20 object-cover rounded-xl bg-gray-100 shadow-sm"
+                                                                />
+
+                                                                {showSubImages && hasLensImage && item.lensImg !== mainImage && (
+                                                                    <div className="relative">
+                                                                        <img
+                                                                            src={item.lensImg}
+                                                                            alt={item.lensName}
+                                                                            className="w-14 h-14 object-cover rounded-lg bg-gray-100 border-2 border-teal-200"
+                                                                        />
+                                                                        <span className="absolute -top-1 -right-1 bg-teal-500 text-white text-[9px] font-bold px-1 rounded-full">
+                                                                            Kèm
+                                                                        </span>
+                                                                    </div>
+                                                                )}
+
+                                                                {showSubImages &&
+                                                                    hasContactLensImage &&
+                                                                    item.contactLensImg !== mainImage && (
+                                                                        <div className="relative">
+                                                                            <img
+                                                                                src={item.contactLensImg}
+                                                                                alt={item.contactLensName}
+                                                                                className="w-14 h-14 object-cover rounded-lg bg-gray-100 border-2 border-purple-200"
+                                                                            />
+                                                                            <span className="absolute -top-1 -right-1 bg-purple-500 text-white text-[9px] font-bold px-1 rounded-full">
+                                                                                Lens
+                                                                            </span>
+                                                                        </div>
+                                                                    )}
+                                                            </div>
+                                                        </td>
+
+                                                        <td className="py-4 px-3 align-top">
+                                                            <p className="font-semibold text-gray-800 text-sm">
+                                                                {mainName}
+                                                            </p>
+
+                                                            {hasPaired && (
+                                                                <p className="text-xs text-teal-600 mt-0.5">
+                                                                    <span className="text-gray-400">Kèm: </span>
+                                                                    {pairedNameText}
+                                                                </p>
+                                                            )}
+
+                                                            {showPrescription && (
+                                                                <div className="mt-2">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => togglePrescriptionRow(rowKey)}
+                                                                        className="inline-flex items-center gap-1 text-xs font-medium text-amber-600 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-full px-2.5 py-1 transition-colors"
+                                                                    >
+                                                                        📋 Đơn thuốc {isOpen ? "▲" : "▼"}
+                                                                    </button>
+
+                                                                    {isOpen && (
+                                                                        <div className="mt-2 p-3 bg-amber-50 border border-amber-100 rounded-xl text-xs text-gray-700">
+                                                                            <table className="w-full">
+                                                                                <thead>
+                                                                                    <tr className="text-amber-700 font-semibold text-center">
+                                                                                        <th className="text-left pb-1 pr-3">
+                                                                                            Thông số
+                                                                                        </th>
+                                                                                        <th className="pb-1 pr-2">
+                                                                                            Mắt trái (L)
+                                                                                        </th>
+                                                                                        <th className="pb-1">
+                                                                                            Mắt phải (R)
+                                                                                        </th>
+                                                                                    </tr>
+                                                                                </thead>
+                                                                                <tbody>
+                                                                                    {prescriptionRows.map(({ label, l, r }) => (
+                                                                                        <tr
+                                                                                            key={label}
+                                                                                            className="border-t border-amber-100"
+                                                                                        >
+                                                                                            <td className="py-1 pr-3 text-gray-500">
+                                                                                                {label}
+                                                                                            </td>
+                                                                                            <td className="py-1 pr-2 text-center font-medium">
+                                                                                                {l ?? "—"}
+                                                                                            </td>
+                                                                                            <td className="py-1 text-center font-medium">
+                                                                                                {r ?? "—"}
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    ))}
+                                                                                </tbody>
+                                                                            </table>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </td>
+
+                                                        <td className="py-4 px-3 align-middle text-right whitespace-nowrap">
+                                                            <p className="text-sm text-gray-700 font-medium">
+                                                                {formatCurrency(mainPrice)}
+                                                            </p>
+
+                                                            {hasPaired && pairedPrice > 0 && (
+                                                                <p className="text-xs text-teal-600 mt-0.5">
+                                                                    + {formatCurrency(pairedPrice)}
+                                                                </p>
+                                                            )}
+                                                        </td>
+
+                                                        <td className="py-4 px-3 align-middle text-center whitespace-nowrap">
+                                                            <span className="inline-flex items-center px-3 py-1 rounded-xl bg-gray-100 text-gray-800 text-sm font-semibold border border-gray-200">
+                                                                {item.quantity}
+                                                            </span>
+                                                        </td>
+
+                                                        <td className="py-4 px-3 align-middle text-right whitespace-nowrap">
+                                                            <span className="font-bold text-red-500 text-sm">
+                                                                {formatCurrency(lineTotal)}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+                        <div className="mt-6 p-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl">
+                            <div className="flex items-center justify-between text-white">
+                                <span className="text-xl font-bold">
+                                    TỔNG CỘNG
+                                </span>
+                                <span className="text-3xl font-bold">
+                                    {formatCurrency(orderData.totalAmount)}
+                                </span>
+                            </div>
                         </div>
 
-                        {/* Delivery Info */}
                         <div className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
                             <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-8 py-5 border-b border-gray-200">
                                 <h3 className="text-xl font-bold text-gray-800 flex items-center gap-3">
@@ -212,8 +589,7 @@ export default function OrderDetail() {
                             </div>
 
                             <div className="p-8">
-                                <div className="grid grid-cols-2 gap-8">
-                                    {/* Recipient Info */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div className="space-y-5">
                                         <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
                                             <div className="w-1.5 h-6 bg-gradient-to-b from-blue-600 to-purple-600 rounded-full"></div>
@@ -224,30 +600,41 @@ export default function OrderDetail() {
                                             <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100">
                                                 <User className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
                                                 <div>
-                                                    <p className="text-xs text-gray-500 mb-1">Tên người nhận</p>
-                                                    <p className="text-sm font-semibold text-gray-800">{deliveryInfo.recipient.name}</p>
+                                                    <p className="text-xs text-gray-500 mb-1">
+                                                        Tên người nhận
+                                                    </p>
+                                                    <p className="text-sm font-semibold text-gray-800">
+                                                        {orderData.recipientName}
+                                                    </p>
                                                 </div>
                                             </div>
 
                                             <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100">
                                                 <Phone className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
                                                 <div>
-                                                    <p className="text-xs text-gray-500 mb-1">Số điện thoại</p>
-                                                    <p className="text-sm font-semibold text-gray-800">{deliveryInfo.recipient.phone}</p>
+                                                    <p className="text-xs text-gray-500 mb-1">
+                                                        Số điện thoại
+                                                    </p>
+                                                    <p className="text-sm font-semibold text-gray-800">
+                                                        {orderData.recipientPhone}
+                                                    </p>
                                                 </div>
                                             </div>
 
                                             <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100">
                                                 <Mail className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
                                                 <div>
-                                                    <p className="text-xs text-gray-500 mb-1">Email</p>
-                                                    <p className="text-sm font-semibold text-gray-800">{deliveryInfo.recipient.email}</p>
+                                                    <p className="text-xs text-gray-500 mb-1">
+                                                        Email
+                                                    </p>
+                                                    <p className="text-sm font-semibold text-gray-800">
+                                                        {orderData.recipientEmail}
+                                                    </p>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* Address Info */}
                                     <div className="space-y-5">
                                         <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
                                             <div className="w-1.5 h-6 bg-gradient-to-b from-blue-600 to-purple-600 rounded-full"></div>
@@ -259,8 +646,12 @@ export default function OrderDetail() {
                                                 <div className="flex items-start gap-3">
                                                     <MapPin className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
                                                     <div>
-                                                        <p className="text-xs text-gray-500 mb-2 font-semibold">Địa chỉ giao hàng</p>
-                                                        <p className="text-sm text-gray-800 leading-relaxed">{deliveryInfo.address}</p>
+                                                        <p className="text-xs text-gray-500 mb-2 font-semibold">
+                                                            Địa chỉ giao hàng
+                                                        </p>
+                                                        <p className="text-sm text-gray-800 leading-relaxed">
+                                                            {orderData.recipientAddress}
+                                                        </p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -269,8 +660,12 @@ export default function OrderDetail() {
                                                 <div className="flex items-start gap-3">
                                                     <Clock className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
                                                     <div>
-                                                        <p className="text-xs text-gray-500 mb-2 font-semibold">Ghi chú</p>
-                                                        <p className="text-sm text-gray-800 leading-relaxed italic">{deliveryInfo.note}</p>
+                                                        <p className="text-xs text-gray-500 mb-2 font-semibold">
+                                                            Ghi chú
+                                                        </p>
+                                                        <p className="text-sm text-gray-800 leading-relaxed italic">
+                                                            {orderData.note || "Không có ghi chú"}
+                                                        </p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -281,51 +676,28 @@ export default function OrderDetail() {
                         </div>
                     </div>
 
-                    {/* Right Column - Actions */}
                     <div className="lg:col-span-1">
                         <div className="sticky top-24">
                             <div className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
                                 <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-5">
-                                    <h3 className="text-xl font-bold text-white">Thao tác xử lý</h3>
+                                    <h3 className="text-xl font-bold text-white">
+                                        Thao tác xử lý
+                                    </h3>
                                 </div>
 
                                 <div className="p-6 space-y-5">
                                     <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
                                         <p className="text-sm text-gray-800 font-medium">
-                                            ⚡ Vui lòng kiểm tra thông tin đơn hàng trước khi xác nhận
+                                            Vui lòng kiểm tra thông tin đơn hàng trước khi xác nhận
                                         </p>
                                     </div>
 
-                                    <button className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-4 px-6 rounded-xl transition-all font-bold text-lg shadow hover:shadow-lg transform hover:scale-105">
-                                        <CheckCircle className="w-6 h-6" />
-                                        Xác nhận đơn hàng
-                                    </button>
-
-                                    <div className="relative">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <div className="h-px flex-1 bg-gray-200"></div>
-                                            <span className="text-xs text-gray-400 font-semibold">HOẶC</span>
-                                            <div className="h-px flex-1 bg-gray-200"></div>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-semibold text-gray-800 mb-2">
-                                            Lý do từ chối
-                                        </label>
-                                        <textarea
-                                            placeholder="Nhập lý do từ chối đơn hàng..."
-                                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none transition-all bg-white"
-                                            rows={4}
-                                        />
-                                    </div>
-
-                                    <button className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white py-4 px-6 rounded-xl transition-all font-bold text-lg shadow hover:shadow-lg transform hover:scale-105">
-                                        <XCircle className="w-6 h-6" />
-                                        Từ chối đơn hàng
-                                    </button>
-
-
+                                    {canConfirmOrder && (
+                                        <button className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-4 px-6 rounded-xl transition-all font-bold text-lg shadow">
+                                            <CheckCircle className="w-6 h-6" />
+                                            Xác nhận đơn hàng
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>
