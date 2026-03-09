@@ -8,12 +8,12 @@ import {
     CheckCircle,
     Package,
 } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 
 export default function OrderDetail() {
     const { orderId } = useParams();
-
+    const navigate = useNavigate();
     const [orderData, setOrderData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -92,36 +92,11 @@ export default function OrderDetail() {
         }
     };
 
-    const displayPrescriptionValue = (value) => {
-        if (
-            value === null ||
-            value === undefined ||
-            value === "" ||
-            value === "0" ||
-            value === "0.00"
-        ) {
-            return "—";
-        }
-        return value;
-    };
-
-    const hasPrescriptionData = (item) => {
-        return [
-            item?.leftEyeSph,
-            item?.leftEyeCyl,
-            item?.leftEyeAxis,
-            item?.rightEyeSph,
-            item?.rightEyeCyl,
-            item?.rightEyeAxis,
-        ].some(
-            (value) =>
-                value !== null &&
-                value !== undefined &&
-                value !== "" &&
-                value !== "0" &&
-                value !== "0.00"
-        );
-    };
+    const handleConfirmOrder = () => {
+        alert("Chức năng xác nhận đơn hàng chưa được triển khai.");
+        console.log("Xác nhận đơn hàng:", orderId);
+        navigate("/sales/containers/orders");
+    }
 
     const togglePrescriptionRow = (key) => {
         setOpenPrescriptionRows((prev) => ({
@@ -359,31 +334,58 @@ export default function OrderDetail() {
                                                 const rowKey = `${item.frameId || "frame"}-${index}`;
                                                 const isOpen = !!openPrescriptionRows[rowKey];
 
-                                                const hasFrameImage = !!item.frameImg;
-                                                const hasLensImage = !!item.lensImg;
-                                                const hasContactLensImage = !!item.contactLensImg;
-
+                                                const hasFrame = item.frameId != null;
                                                 const hasLens = item.lensId != null;
                                                 const hasContactLens = item.contactLensId != null;
                                                 const hasPaired = hasLens || hasContactLens;
 
-                                                // Đếm số ảnh hiện có
-                                                const imageCount = [
-                                                    hasFrameImage,
-                                                    hasLensImage,
-                                                    hasContactLensImage,
-                                                ].filter(Boolean).length;
+                                                const hasFrameImage = !!item.frameImg;
+                                                const hasLensImage = !!item.lensImg;
+                                                const hasContactLensImage = !!item.contactLensImg;
 
-                                                // Ảnh chính:
-                                                // - nếu chỉ có 1 ảnh duy nhất thì dùng ảnh đó
-                                                // - nếu có nhiều ảnh thì ưu tiên frameImg
-                                                const mainImage =
+                                                const availableImages = [
+                                                    hasFrameImage
+                                                        ? {
+                                                            src: item.frameImg,
+                                                            alt: item.frameName || "Frame",
+                                                            type: "frame",
+                                                        }
+                                                        : null,
+                                                    hasLensImage
+                                                        ? {
+                                                            src: item.lensImg,
+                                                            alt: item.lensName || "Lens",
+                                                            type: "lens",
+                                                        }
+                                                        : null,
+                                                    hasContactLensImage
+                                                        ? {
+                                                            src: item.contactLensImg,
+                                                            alt: item.contactLensName || "Contact Lens",
+                                                            type: "contactLens",
+                                                        }
+                                                        : null,
+                                                ].filter(Boolean);
+
+                                                const imageCount = availableImages.length;
+
+                                                // Nếu chỉ có 1 ảnh duy nhất thì dùng ảnh đó làm ảnh chính và không hiện ảnh phụ
+                                                const mainImageObj =
                                                     imageCount === 1
-                                                        ? item.frameImg || item.lensImg || item.contactLensImg
-                                                        : item.frameImg || item.lensImg || item.contactLensImg;
+                                                        ? availableImages[0]
+                                                        : availableImages.find((img) => img.type === "frame") ||
+                                                        availableImages[0] || {
+                                                            src: "",
+                                                            alt: "Sản phẩm",
+                                                            type: "default",
+                                                        };
 
-                                                // Chỉ hiện ảnh phụ khi có từ 2 ảnh trở lên
-                                                const showSubImages = imageCount > 1;
+                                                const subImages =
+                                                    imageCount > 1
+                                                        ? availableImages.filter(
+                                                            (img) => img.src !== mainImageObj.src
+                                                        )
+                                                        : [];
 
                                                 const mainName =
                                                     item.frameName ||
@@ -405,14 +407,16 @@ export default function OrderDetail() {
 
                                                 const lineTotal = item.totalPrice ?? 0;
 
-                                                // Chỉ cần field tồn tại là hiện đơn thuốc, kể cả giá trị = 0
+                                                // Chỉ cần field tồn tại là hiện đơn thuốc, kể cả giá trị = "0"
                                                 const showPrescription =
                                                     item.leftEyeSph !== undefined ||
                                                     item.leftEyeCyl !== undefined ||
                                                     item.leftEyeAxis !== undefined ||
+                                                    item.leftPD !== undefined ||
                                                     item.rightEyeSph !== undefined ||
                                                     item.rightEyeCyl !== undefined ||
-                                                    item.rightEyeAxis !== undefined;
+                                                    item.rightEyeAxis !== undefined ||
+                                                    item.rightPD !== undefined;
 
                                                 const prescriptionRows = [
                                                     {
@@ -430,6 +434,11 @@ export default function OrderDetail() {
                                                         l: item.leftEyeAxis,
                                                         r: item.rightEyeAxis,
                                                     },
+                                                    {
+                                                        label: "PD",
+                                                        l: item.leftPD,
+                                                        r: item.rightPD,
+                                                    },
                                                 ];
 
                                                 return (
@@ -439,39 +448,54 @@ export default function OrderDetail() {
                                                     >
                                                         <td className="py-4 pl-2 pr-3 align-top w-28">
                                                             <div className="flex flex-col items-center gap-1.5">
-                                                                <img
-                                                                    src={mainImage}
-                                                                    alt={mainName}
-                                                                    className="w-20 h-20 object-cover rounded-xl bg-gray-100 shadow-sm"
-                                                                />
-
-                                                                {showSubImages && hasLensImage && item.lensImg !== mainImage && (
-                                                                    <div className="relative">
-                                                                        <img
-                                                                            src={item.lensImg}
-                                                                            alt={item.lensName}
-                                                                            className="w-14 h-14 object-cover rounded-lg bg-gray-100 border-2 border-teal-200"
-                                                                        />
-                                                                        <span className="absolute -top-1 -right-1 bg-teal-500 text-white text-[9px] font-bold px-1 rounded-full">
-                                                                            Kèm
-                                                                        </span>
+                                                                {mainImageObj.src ? (
+                                                                    <img
+                                                                        src={mainImageObj.src}
+                                                                        alt={mainImageObj.alt}
+                                                                        className="w-20 h-20 object-cover rounded-xl bg-gray-100 shadow-sm"
+                                                                    />
+                                                                ) : (
+                                                                    <div className="w-20 h-20 rounded-xl bg-gray-100 shadow-sm flex items-center justify-center text-xs text-gray-400">
+                                                                        No image
                                                                     </div>
                                                                 )}
 
-                                                                {showSubImages &&
-                                                                    hasContactLensImage &&
-                                                                    item.contactLensImg !== mainImage && (
-                                                                        <div className="relative">
+                                                                {subImages.map((img, subIndex) => {
+                                                                    const badgeText =
+                                                                        img.type === "lens"
+                                                                            ? "Kèm"
+                                                                            : img.type === "contactLens"
+                                                                                ? "Lens"
+                                                                                : "Kèm";
+
+                                                                    const borderColor =
+                                                                        img.type === "contactLens"
+                                                                            ? "border-purple-200"
+                                                                            : "border-teal-200";
+
+                                                                    const badgeColor =
+                                                                        img.type === "contactLens"
+                                                                            ? "bg-purple-500"
+                                                                            : "bg-teal-500";
+
+                                                                    return (
+                                                                        <div
+                                                                            key={`${rowKey}-sub-${subIndex}`}
+                                                                            className="relative"
+                                                                        >
                                                                             <img
-                                                                                src={item.contactLensImg}
-                                                                                alt={item.contactLensName}
-                                                                                className="w-14 h-14 object-cover rounded-lg bg-gray-100 border-2 border-purple-200"
+                                                                                src={img.src}
+                                                                                alt={img.alt}
+                                                                                className={`w-14 h-14 object-cover rounded-lg bg-gray-100 border-2 ${borderColor}`}
                                                                             />
-                                                                            <span className="absolute -top-1 -right-1 bg-purple-500 text-white text-[9px] font-bold px-1 rounded-full">
-                                                                                Lens
+                                                                            <span
+                                                                                className={`absolute -top-1 -right-1 ${badgeColor} text-white text-[9px] font-bold px-1 rounded-full`}
+                                                                            >
+                                                                                {badgeText}
                                                                             </span>
                                                                         </div>
-                                                                    )}
+                                                                    );
+                                                                })}
                                                             </div>
                                                         </td>
 
@@ -480,7 +504,7 @@ export default function OrderDetail() {
                                                                 {mainName}
                                                             </p>
 
-                                                            {hasPaired && (
+                                                            {hasPaired && pairedNameText && (
                                                                 <p className="text-xs text-teal-600 mt-0.5">
                                                                     <span className="text-gray-400">Kèm: </span>
                                                                     {pairedNameText}
@@ -693,8 +717,10 @@ export default function OrderDetail() {
                                     </div>
 
                                     {canConfirmOrder && (
-                                        <button className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-4 px-6 rounded-xl transition-all font-bold text-lg shadow">
-                                            <CheckCircle className="w-6 h-6" />
+                                        <button className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-4 px-6 rounded-xl transition-all font-bold text-lg shadow"
+                                            onClick={handleConfirmOrder}>
+                                            <CheckCircle className="w-6 h-6"
+                                            />
                                             Xác nhận đơn hàng
                                         </button>
                                     )}

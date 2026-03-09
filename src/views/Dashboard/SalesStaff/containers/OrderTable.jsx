@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
 import OrderFilter from '../ui/OrderFilter'
 import OrderRow from '../ui/OrderRow'
 import { api } from '../../../../lib/api'
@@ -38,12 +37,18 @@ const OrderTable = () => {
     const [loading, setLoading] = useState(true)
 
     // Giá trị 4 ô lọc (rỗng = chưa lọc)
-    const [filters, setFilters] = useState({
-        orderId: "",
-        orderDate: "",
-        status: "",
-        orderType: "",
-    })
+    const [filters, setFilters] = useState(() => {
+        const saved = sessionStorage.getItem('orderFilters');
+        if (saved) {
+            return JSON.parse(saved);
+        }
+        return {
+            orderId: "",
+            orderDate: "",
+            status: "",
+            orderType: "",
+        };
+    });
 
     // Gọi API lấy danh sách đơn hàng
     const fetchOrders = () => {
@@ -63,6 +68,10 @@ const OrderTable = () => {
     useEffect(() => {
         fetchOrders()
     }, [])
+
+    useEffect(() => {
+        sessionStorage.setItem('orderFilters', JSON.stringify(filters));
+    }, [filters]);
 
     // Khi user thay đổi 1 ô lọc bất kỳ
     const handleFilterChange = (e) => {
