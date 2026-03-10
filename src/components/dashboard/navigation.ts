@@ -61,6 +61,12 @@ export const roleTabsConfig: RoleTabs[] = [
                 id: 'order-management',
                 label: 'Order Management',
                 icon: ClipboardList,
+                path: '/operation-staff'
+            },
+            {
+                id: 'order-list',
+                label: 'Order List',
+                icon: ClipboardList,
                 path: '/operation-staff/orders'
             },{
                 id: 'inventory',

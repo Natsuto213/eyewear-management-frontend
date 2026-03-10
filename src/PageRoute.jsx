@@ -15,9 +15,10 @@ import SuccessPage from "./views/SuccessPage";
 import CancelPage from "./views/CancelPage";
 import { ShoppingContextProvider } from "./views/Cart/contexts/ShoppingContext";
 
-
+import{ OperationStaffLayout } from "./views/Dashboard/OperationStaff/OperationStaffLayout";
 import OrderPage from "./views/Dashboard/OperationStaff/OrderPage";
 import InventoryPage from "./views/Dashboard/OperationStaff/InventoryPage";
+import OrderDetailOps from "./views/Dashboard/OperationStaff/OrderDetailOps";
 
 import { ManagerLayout } from './views/Dashboard/Manager/ManagerLayout';
 import ManagerProductView from './views/Dashboard/Manager/ManagerProductView';
@@ -29,7 +30,7 @@ import ManagerPoliciesView from './views/Dashboard/Manager/ManagerPoliciesView';
 import OrderTable from './views/Dashboard/SalesStaff/containers/OrderTable';
 import { SalesStaffLayout } from './views/Dashboard/SalesStaff/SalesStaffLayout';
 import OrderDetail from './views/Dashboard/SalesStaff/ui/OrderDetail';
-import{ OperationStaffLayout } from "./views/Dashboard/OperationStaff/OperationStaffLayout";
+
 
 export default function PageRoute() {
   return (
@@ -62,6 +63,7 @@ export default function PageRoute() {
           <Route path="/operation-staff" element={<OperationStaffLayout />} >
             <Route index element={<OrderTable />} />
             <Route path="orders" element={<OrderPage />} />
+            <Route path="/operation-staff/orders/:orderId" element={<OrderDetailOps />} />
             <Route path="inventory" element={<InventoryPage />} />
           </Route>
 
