@@ -22,6 +22,8 @@ export function ProductTable({
 }: Props) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+
+      {/* THANH CHUYỂN TRANG */}
       <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
         <p className="text-xs text-gray-500">Hiển thị {filteredLength === 0 ? 0 : startIndex + 1}-{Math.min(endIndex, filteredLength)} / {filteredLength} sản phẩm</p>
         <div className="flex gap-1">
@@ -33,6 +35,7 @@ export function ProductTable({
         </div>
       </div>
 
+      {/* TABLE */}
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -117,6 +120,19 @@ export function ProductTable({
           </tbody>
         </table>
       </div>
+
+      {/* THANH CHUYỂN TRANG */}
+      <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
+        <p className="text-xs text-gray-500">Hiển thị {filteredLength === 0 ? 0 : startIndex + 1}-{Math.min(endIndex, filteredLength)} / {filteredLength} sản phẩm</p>
+        <div className="flex gap-1">
+          <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1 || totalPages === 0} className="px-3 py-1 text-xs border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Trước</button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+            <button key={page} onClick={() => setCurrentPage(page)} className={`px-3 py-1 text-xs rounded transition-colors ${currentPage === page ? 'bg-purple-600 text-white font-medium' : 'border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>{page}</button>
+          ))}
+          <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages || totalPages === 0} className="px-3 py-1 text-xs border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Sau</button>
+        </div>
+      </div>
+
     </div>
   );
 }

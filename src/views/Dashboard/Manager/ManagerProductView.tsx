@@ -102,7 +102,7 @@ export default function ManagerProductView() {
       // 🚀 NHÁNH THÊM MỚI (POST)
       try {
         const uploadData = new FormData();
-        
+
         // 1. APPEND THÔNG TIN CHUNG
         uploadData.append('sku', formData.sku);
         uploadData.append('name', formData.name);
@@ -114,54 +114,54 @@ export default function ManagerProductView() {
         uploadData.append('typeName', formData.typeName);
         uploadData.append('allowPreorder', String(formData.allowPreorder));
         uploadData.append('isActive', String(formData.isActive));
-        
+
         // 2. APPEND ẢNH (NẾU CÓ)
         if (formData.imageFiles && formData.imageFiles.length > 0) {
-            formData.imageFiles.forEach((file: File) => {
-                uploadData.append('imageFiles', file);
-            });
+          formData.imageFiles.forEach((file: File) => {
+            uploadData.append('imageFiles', file);
+          });
         }
 
         // 3. APPEND THÔNG SỐ KỸ THUẬT (Tùy theo loại sản phẩm)
         if (formData.typeName === 'Gọng kính') {
-            uploadData.append('frameColor', formData.frameColor);
-            uploadData.append('frameTempleLength', String(formData.frameTempleLength));
-            uploadData.append('frameLensWidth', String(formData.frameLensWidth));
-            uploadData.append('frameBridgeWidth', String(formData.frameBridgeWidth));
-            uploadData.append('frameShapeName', formData.frameShapeName);
-            uploadData.append('frameMaterialName', formData.frameMaterialName);
-            uploadData.append('frameDescription', formData.frameDescription || '');
+          uploadData.append('frameColor', formData.frameColor);
+          uploadData.append('frameTempleLength', String(formData.frameTempleLength));
+          uploadData.append('frameLensWidth', String(formData.frameLensWidth));
+          uploadData.append('frameBridgeWidth', String(formData.frameBridgeWidth));
+          uploadData.append('frameShapeName', formData.frameShapeName);
+          uploadData.append('frameMaterialName', formData.frameMaterialName);
+          uploadData.append('frameDescription', formData.frameDescription || '');
 
         } else if (formData.typeName === 'Tròng kính') {
-            uploadData.append('lensTypeName', formData.lensTypeName);
-            uploadData.append('lensIndexValue', String(formData.lensIndexValue));
-            uploadData.append('lensDiameter', String(formData.lensDiameter));
-            uploadData.append('lensAvailablePowerRange', formData.lensAvailablePowerRange);
-            uploadData.append('lensIsBlueLightBlock', String(formData.lensIsBlueLightBlock));
-            uploadData.append('lensIsPhotochromic', String(formData.lensIsPhotochromic));
-            uploadData.append('lensDescription', formData.lensDescription || '');
+          uploadData.append('lensTypeName', formData.lensTypeName);
+          uploadData.append('lensIndexValue', String(formData.lensIndexValue));
+          uploadData.append('lensDiameter', String(formData.lensDiameter));
+          uploadData.append('lensAvailablePowerRange', formData.lensAvailablePowerRange);
+          uploadData.append('lensIsBlueLightBlock', String(formData.lensIsBlueLightBlock));
+          uploadData.append('lensIsPhotochromic', String(formData.lensIsPhotochromic));
+          uploadData.append('lensDescription', formData.lensDescription || '');
 
         } else if (formData.typeName === 'Kính áp tròng') {
-            uploadData.append('contactLensUsageType', formData.contactLensUsageType);
-            uploadData.append('contactLensBaseCurve', String(formData.contactLensBaseCurve));
-            uploadData.append('contactLensDiameter', String(formData.contactLensDiameter));
-            uploadData.append('contactLensWaterContent', String(formData.contactLensWaterContent));
-            uploadData.append('contactLensAvailablePowerRange', formData.contactLensAvailablePowerRange);
-            uploadData.append('contactLensQuantityPerBox', String(formData.contactLensQuantityPerBox));
-            uploadData.append('contactLensMaterial', formData.contactLensMaterial);
-            uploadData.append('contactLensReplacementSchedule', formData.contactLensReplacementSchedule);
-            uploadData.append('contactLensColor', formData.contactLensColor);
+          uploadData.append('contactLensUsageType', formData.contactLensUsageType);
+          uploadData.append('contactLensBaseCurve', String(formData.contactLensBaseCurve));
+          uploadData.append('contactLensDiameter', String(formData.contactLensDiameter));
+          uploadData.append('contactLensWaterContent', String(formData.contactLensWaterContent));
+          uploadData.append('contactLensAvailablePowerRange', formData.contactLensAvailablePowerRange);
+          uploadData.append('contactLensQuantityPerBox', String(formData.contactLensQuantityPerBox));
+          uploadData.append('contactLensMaterial', formData.contactLensMaterial);
+          uploadData.append('contactLensReplacementSchedule', formData.contactLensReplacementSchedule);
+          uploadData.append('contactLensColor', formData.contactLensColor);
         }
 
         // BẮN API ĐI
         await api.post('api/products', uploadData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
         });
 
         alert("Thêm sản phẩm mới thành công!");
-        
+
         // Tải lại list
         const response = await api.get("api/products/admin/search");
         setProducts(response.data);
@@ -235,7 +235,7 @@ export default function ManagerProductView() {
   };
 
   return (
-    <div className="p-6 h-full relative">
+    <div className="p-4 sm:p-6 lg:p-8 h-full overflow-y-auto relative w-full max-w-[100vw]">
       <ProductHeader
         search={search}
         setSearch={setSearch}

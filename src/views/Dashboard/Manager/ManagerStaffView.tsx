@@ -91,25 +91,55 @@ export default function ManagerStaffView() {
         setIsDeleteModalOpen(true);
     };
 
-   const handleConfirmDelete = async () => {
+    const handleConfirmDelete = async () => {
         if (!staffToDelete) return;
         try {
-            // Gọi API Delete (Backend xử lý khóa)
             await api.delete(`users/${staffToDelete}`);
-            
-            // Thay vì filter, dùng map để cập nhật status thành false
-            setStaff(prev => prev.map(s => 
-                (s.id || s.userId || s.username) === staffToDelete 
-                    ? { ...s, status: false } 
+            setStaff(prev => prev.map(s =>
+                (s.id || s.userId || s.username) === staffToDelete
+                    ? { ...s, status: false }
                     : s
             ));
-            
             alert("Đã khóa nhân viên thành công!");
             setIsDeleteModalOpen(false);
             setStaffToDelete(null);
         } catch (error) {
             alert("Lỗi khi khóa nhân viên!");
             setIsDeleteModalOpen(false);
+        }
+    };
+
+    const handleRestoreStaff = async (staffObj: Staff) => {
+        const currentId = staffObj.id || staffObj.userId || staffObj.username;
+        const isConfirm = window.confirm(`Bạn có chắc chắn muốn mở khóa tài khoản cho "${staffObj.name}"?`);
+        if (!isConfirm) return;
+
+        try {
+            // SỬA: BỎ TRƯỜNG id THEO ĐÚNG HÌNH SWAGGER MỚI NHẤT
+            const putPayload = {
+                name: staffObj.name || "",
+                phone: staffObj.phone || "",
+                address: staffObj.address || null,
+                status: true,
+                roleName: (staffObj.role?.name || 'CUSTOMER').replace(" ", "_")
+            };
+
+            console.log("Dữ liệu gửi lên:", putPayload);
+
+            // Nếu tương lai BE báo cần id trên link, bạn tự đổi thành: await api.put(`users/admin/update/${currentId}`, putPayload);
+            await api.put('users/admin/update', putPayload);
+
+            setStaff(prev => prev.map(s =>
+                (s.id || s.userId || s.username) === currentId
+                    ? { ...s, status: true }
+                    : s
+            ));
+            alert("Mở khóa tài khoản thành công!");
+
+        } catch (error: any) {
+            console.error("Chi tiết lỗi:", error.response?.data);
+            const backendErrorMsg = error.response?.data?.message || error.response?.data?.result || "Lỗi không xác định từ Server!";
+            alert(`LỖI TỪ BACKEND: ${backendErrorMsg}`);
         }
     };
 
@@ -151,16 +181,25 @@ export default function ManagerStaffView() {
         setIsSubmitting(true);
         try {
             if (editingStaff) {
+                const currentId = editingStaff.id || editingStaff.username;
+
+                // SỬA: BỎ TRƯỜNG id THEO ĐÚNG HÌNH SWAGGER MỚI NHẤT
                 const putPayload = {
-                    email: formData.email,
-                    phone: formData.phone,
                     name: formData.name,
-                    dob: formData.dob || null,
+                    phone: formData.phone,
                     address: formData.address || null,
-                    idNumber: formData.idNumber || null
+                    status: formData.status,
+                    roleName: formData.roleName.replace(" ", "_")
                 };
+
                 await api.put('users/admin/update', putPayload);
                 alert("Cập nhật thông tin thành công!");
+
+                setStaff(prev => prev.map(s =>
+                    (s.id || s.userId) === currentId
+                        ? { ...s, name: formData.name, phone: formData.phone, address: formData.address, status: formData.status, role: { name: formData.roleName.replace("_", " ") } }
+                        : s
+                ));
             } else {
                 const postPayload = {
                     username: formData.username,
@@ -213,7 +252,10 @@ export default function ManagerStaffView() {
             <StaffTable
                 loading={loading} currentItems={currentItems} filteredLength={filtered.length}
                 startIndex={startIndex} endIndex={endIndex} currentPage={currentPage} totalPages={totalPages}
-                setCurrentPage={setCurrentPage} onDeleteClick={handleDeleteClick} onEditClick={handleEditClick}
+                setCurrentPage={setCurrentPage}
+                onDeleteClick={handleDeleteClick}
+                onEditClick={handleEditClick}
+                onRestoreClick={handleRestoreStaff}
             />
 
             <DeleteConfirmModal

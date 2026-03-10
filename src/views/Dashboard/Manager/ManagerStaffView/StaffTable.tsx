@@ -1,5 +1,5 @@
 // ManagerStaffView/StaffTable.tsx
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, RotateCcw } from 'lucide-react';
 import { Staff, roleConfig, statusConfig } from './StaffConfig';
 
 interface Props {
@@ -13,11 +13,12 @@ interface Props {
     setCurrentPage: (page: number | ((prev: number) => number)) => void;
     onDeleteClick: (id: number | string) => void;
     onEditClick: (staff: Staff) => void;
+    onRestoreClick: (staff: Staff) => void;
 }
 
 export function StaffTable({
     loading, currentItems, filteredLength, startIndex, endIndex,
-    currentPage, totalPages, setCurrentPage, onDeleteClick, onEditClick
+    currentPage, totalPages, setCurrentPage, onDeleteClick, onEditClick, onRestoreClick
 }: Props) {
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
@@ -52,16 +53,22 @@ export function StaffTable({
                             <tr><td colSpan={8} className="text-center py-12 text-purple-600 font-medium">Đang tải danh sách nhân viên...</td></tr>
                         ) : currentItems.length > 0 ? (
                             currentItems.map((s, idx) => {
-                                // CẬP NHẬT LẤY DỮ LIỆU Ở ĐÂY
                                 const status = statusConfig[String(s.status)] || statusConfig['false'];
                                 const roleStr = s.role?.name || 'CUSTOMER';
                                 const role = roleConfig[roleStr] || { label: roleStr, className: 'bg-gray-100 text-gray-600' };
                                 const displayId = s.id || s.userId || s.username;
 
+                                // Kiểm tra tài khoản có bị khóa không
+                                const isLocked = s.status === false;
+
                                 return (
-                                    <tr key={displayId || idx} className={`border-b border-gray-100 hover:bg-purple-50 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/40'}`}>
+                                    <tr
+                                        key={displayId || idx}
+                                        // Nếu bị khóa thì nền mờ đi, giống bên Product
+                                        className={`border-b border-gray-100 transition-colors ${isLocked ? 'bg-gray-100/60 opacity-75' : 'hover:bg-purple-50 bg-white'}`}
+                                    >
                                         <td className="px-4 py-3 text-gray-500 text-center font-medium">{displayId}</td>
-                                        <td className="px-4 py-3 text-gray-800" style={{ fontWeight: 600 }}>{s.name}</td>
+                                        <td className="px-4 py-3 text-gray-800 max-w-[180px] truncate" title={s.name} style={{ fontWeight: 600 }}>{s.name}</td>
                                         <td className="px-4 py-3">
                                             <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${role.className}`}>{role.label}</span>
                                         </td>
@@ -75,12 +82,20 @@ export function StaffTable({
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="flex items-center justify-center gap-1">
-                                                <button onClick={() => onEditClick(s)} className="text-blue-500 hover:text-blue-700 transition-colors p-1 rounded hover:bg-blue-50">
+                                                <button onClick={() => onEditClick(s)} className="text-blue-500 hover:text-blue-700 transition-colors p-1 rounded hover:bg-blue-50" title="Sửa">
                                                     <Pencil className="h-4 w-4" />
                                                 </button>
-                                                <button onClick={() => onDeleteClick(displayId)} className="text-red-400 hover:text-red-600 transition-colors p-1 rounded hover:bg-red-50">
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
+
+                                                {/* Đổi nút Khôi Phục / Khóa dựa vào status */}
+                                                {isLocked ? (
+                                                    <button onClick={() => onRestoreClick(s)} className="text-green-500 hover:text-green-700 transition-colors p-1 rounded hover:bg-green-50" title="Mở khóa tài khoản">
+                                                        <RotateCcw className="h-4 w-4" />
+                                                    </button>
+                                                ) : (
+                                                    <button onClick={() => onDeleteClick(displayId)} className="text-red-400 hover:text-red-600 transition-colors p-1 rounded hover:bg-red-50" title="Khóa tài khoản">
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
