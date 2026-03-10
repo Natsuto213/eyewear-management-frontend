@@ -91,17 +91,24 @@ export default function ManagerStaffView() {
         setIsDeleteModalOpen(true);
     };
 
-    const handleConfirmDelete = async () => {
+   const handleConfirmDelete = async () => {
         if (!staffToDelete) return;
         try {
+            // Gọi API Delete (Backend xử lý khóa)
             await api.delete(`users/${staffToDelete}`);
-            // Xóa xong thì update lại state UI
-            setStaff(prev => prev.filter(s => (s.id || s.userId || s.username) !== staffToDelete));
-            alert("Xóa nhân viên thành công!");
+            
+            // Thay vì filter, dùng map để cập nhật status thành false
+            setStaff(prev => prev.map(s => 
+                (s.id || s.userId || s.username) === staffToDelete 
+                    ? { ...s, status: false } 
+                    : s
+            ));
+            
+            alert("Đã khóa nhân viên thành công!");
             setIsDeleteModalOpen(false);
             setStaffToDelete(null);
         } catch (error) {
-            alert("Lỗi khi xóa!");
+            alert("Lỗi khi khóa nhân viên!");
             setIsDeleteModalOpen(false);
         }
     };
@@ -152,7 +159,7 @@ export default function ManagerStaffView() {
                     address: formData.address || null,
                     idNumber: formData.idNumber || null
                 };
-                await api.put('users/my-info', putPayload);
+                await api.put('users/admin/update', putPayload);
                 alert("Cập nhật thông tin thành công!");
             } else {
                 const postPayload = {
