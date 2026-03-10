@@ -1,20 +1,20 @@
 import { useState, useRef, useEffect } from 'react';
-import { Search, Plus, Filter, ChevronDown, Check, ArrowUpDown } from 'lucide-react';
+import { Search, Plus, Filter, ChevronDown, Check, ArrowUpDown, Activity } from 'lucide-react';
 import { productTypeConfig } from './productConfig';
 
 interface Props {
   search: string;
   setSearch: (val: string) => void;
-  // CẬP NHẬT: Đổi từ string sang mảng string để lưu nhiều lựa chọn
   selectedTypes: string[];
   setSelectedTypes: (val: string[]) => void;
-  // CẬP NHẬT: Thêm prop cho Sắp xếp
+  selectedStatus: string;
+  setSelectedStatus: (val: string) => void;
   sortBy: string;
   setSortBy: (val: string) => void;
   onAddClick: () => void;
 }
 
-export function ProductHeader({ search, setSearch, selectedTypes, setSelectedTypes, sortBy, setSortBy, onAddClick }: Props) {
+export function ProductHeader({ search, setSearch, selectedTypes, setSelectedTypes, selectedStatus, setSelectedStatus, sortBy, setSortBy, onAddClick }: Props) {
   // Quản lý trạng thái mở/đóng của popup lọc loại
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
@@ -59,7 +59,7 @@ export function ProductHeader({ search, setSearch, selectedTypes, setSelectedTyp
           />
         </div>
 
-        {/* MỚI THÊM: MULTI-SELECT LỌC LOẠI */}
+        {/* MULTI-SELECT LỌC LOẠI */}
         <div className="relative" ref={filterRef}>
           <button
             onClick={() => setIsFilterOpen(!isFilterOpen)}
@@ -96,6 +96,20 @@ export function ProductHeader({ search, setSearch, selectedTypes, setSelectedTyp
               )}
             </div>
           )}
+        </div>
+
+        {/* LỌC TRẠNG THÁI */}
+        <div className="relative flex items-center">
+          <Activity className="absolute left-3 h-4 w-4 text-gray-500" />
+          <select
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+            className="pl-9 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white cursor-pointer appearance-none"
+          >
+            <option value="all">Tất cả trạng thái</option>
+            <option value="active">Đang bán</option>
+            <option value="inactive">Đã ẩn</option>
+          </select>
         </div>
 
         {/* MỚI THÊM: SELECT SẮP XẾP */}

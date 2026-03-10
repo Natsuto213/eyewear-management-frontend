@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { api } from '@/lib/api';
-import { Staff, performanceData } from './ManagerStaffView/StaffConfig';
+import { Staff } from './ManagerStaffView/StaffConfig';
 import { StaffHeader } from './ManagerStaffView/StaffHeader';
 import { StaffTable } from './ManagerStaffView/StaffTable';
 import { DeleteConfirmModal } from './ManagerStaffView/DeleteConfirmModal';
@@ -26,9 +26,16 @@ export default function ManagerStaffView() {
     const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
 
     const [formData, setFormData] = useState({
-        username: '', password: '', email: '', phone: '', name: '', dob: '',
-        address: '', idNumber: '', roleName: 'CUSTOMER', status: true,
-        provinceCode: 0, provinceName: '', districtCode: 0, districtName: '', wardCode: '', wardName: ''
+        username: '',
+        password: '',
+        email: '',
+        phone: '',
+        name: '',
+        dob: '',
+        address: '',
+        idNumber: '',
+        roleName: 'CUSTOMER',
+        status: true
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -101,10 +108,10 @@ export default function ManagerStaffView() {
 
     const handleAddClick = () => {
         setEditingStaff(null);
+        // Khởi tạo các trường bắt buộc là chuỗi rỗng, không bắt buộc để rỗng
         setFormData({
             username: '', password: '', email: '', phone: '', name: '', dob: '',
-            address: '', idNumber: '', roleName: 'CUSTOMER', status: true,
-            provinceCode: 0, provinceName: '', districtCode: 0, districtName: '', wardCode: '', wardName: ''
+            address: '', idNumber: '', roleName: 'CUSTOMER', status: true
         });
         setIsFormModalOpen(true);
     };
@@ -112,29 +119,18 @@ export default function ManagerStaffView() {
     const handleEditClick = (staffObj: Staff) => {
         setEditingStaff(staffObj);
 
-        // Tách lấy địa chỉ đường (Bỏ qua Tỉnh/Huyện/Xã nếu chuỗi có chứa dấu phẩy)
-        let streetAddress = staffObj.address || '';
-        if (staffObj.wardName && streetAddress.includes(staffObj.wardName)) {
-            streetAddress = streetAddress.split(',')[0].trim();
-        }
-
+        // Chỉ lấy chuỗi address từ staffObj, bỏ qua mấy cái province/district lằng nhằng
         setFormData({
             username: staffObj.username || '',
-            password: '',
+            password: '', // Password không đổ về khi edit
             email: staffObj.email || '',
             phone: staffObj.phone || '',
             name: staffObj.name || '',
             dob: staffObj.dob || '',
-            address: streetAddress, // Gán địa chỉ đã cắt gọt vào ô input Số nhà
+            address: staffObj.address || '',
             idNumber: staffObj.idNumber || '',
             roleName: staffObj.role?.name || 'CUSTOMER',
-            status: staffObj.status,
-            provinceCode: staffObj.provinceCode || 0,
-            provinceName: staffObj.provinceName || '',
-            districtCode: staffObj.districtCode || 0,
-            districtName: staffObj.districtName || '',
-            wardCode: staffObj.wardCode || '',
-            wardName: staffObj.wardName || ''
+            status: staffObj.status
         });
         setIsFormModalOpen(true);
     };
@@ -148,23 +144,17 @@ export default function ManagerStaffView() {
         setIsSubmitting(true);
         try {
             if (editingStaff) {
-                // SỬA: Nối chuỗi full địa chỉ
-                const fullAddressForPut = formData.provinceName ?
-                    `${formData.address}, ${formData.wardName}, ${formData.districtName}, ${formData.provinceName}`
-                    : formData.address;
-
                 const putPayload = {
                     email: formData.email,
                     phone: formData.phone,
                     name: formData.name,
                     dob: formData.dob || null,
-                    address: fullAddressForPut,
-                    idNumber: formData.idNumber
+                    address: formData.address || null,
+                    idNumber: formData.idNumber || null
                 };
                 await api.put('users/my-info', putPayload);
                 alert("Cập nhật thông tin thành công!");
             } else {
-                // THÊM: Gửi cục form chuẩn dữ liệu Backend yêu cầu
                 const postPayload = {
                     username: formData.username,
                     password: formData.password,
@@ -175,29 +165,28 @@ export default function ManagerStaffView() {
                     address: formData.address || null,
                     idNumber: formData.idNumber || null,
                     status: formData.status,
-                    // Backend bắt buộc có gạch dưới (VD: SALES_STAFF thay vì SALES STAFF)
-                    roleName: formData.roleName.replace(" ", "_"),
-                    // Ép kiểu đúng theo Swagger
-                    provinceCode: Number(formData.provinceCode) || 0, // Số
-                    provinceName: formData.provinceName || "",
-                    districtCode: Number(formData.districtCode) || 0, // Số
-                    districtName: formData.districtName || "",
-                    wardCode: String(formData.wardCode || ""),        // Chuỗi
-                    wardName: formData.wardName || ""
+                    roleName: formData.roleName.replace(" ", "_"), // Đảm bảo role chuẩn format (VD: SALES_STAFF)
+
+                    // Gắn cứng các trường quận huyện thành null vì không dùng tới
+                    provinceCode: null,
+                    provinceName: null,
+                    districtCode: null,
+                    districtName: null,
+                    wardCode: null,
+                    wardName: null
                 };
 
                 await api.post('users/admin/create', postPayload);
                 alert("Thêm nhân viên mới thành công!");
             }
 
-            // GỌI LẠI API GET ĐỂ LOAD DATA MỚI NHẤT
+            // Gọi lại API để load lại danh sách mới
             const response = await api.get("users");
             setStaff(response.data?.result || []);
 
             setIsFormModalOpen(false);
         } catch (error: any) {
             console.error("Lỗi Server trả về:", error.response?.data);
-
             const backendErrorMsg = error.response?.data?.message || error.response?.data?.result || "Dữ liệu nhập vào chưa đúng định dạng!";
             alert(`LỖI: ${backendErrorMsg}`);
         } finally {
