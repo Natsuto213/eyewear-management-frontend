@@ -11,7 +11,14 @@ interface OrderRow {
   totalAmount: number;
 }
 
-export default function OrderTable({ orders }: { orders: OrderRow[] }) {
+// SỬA TẠI ĐÂY: Thêm loading vào kiểu dữ liệu của Props
+interface OrderTableProps {
+  orders: OrderRow[];
+  loading?: boolean; // Dấu ? để không bắt buộc nếu bạn quên truyền
+}
+
+export default function OrderTable({ orders, loading }: OrderTableProps) {
+  
   // Format ngày dd/mm/yyyy
   const formatDate = (dateString: string) => {
     if (!dateString) return "---";
@@ -36,6 +43,16 @@ export default function OrderTable({ orders }: { orders: OrderRow[] }) {
     "CANCELED": "bg-red-100 text-red-800",
     "READY": "bg-indigo-100 text-indigo-800",
   };
+
+  // THÊM LOGIC LOADING: Để không bị lỗi khi Page truyền loading xuống
+  if (loading) {
+    return (
+      <div className="w-full p-10 text-center bg-white border rounded-xl shadow-sm">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent mb-2"></div>
+        <p className="text-gray-400 italic">Đang tải dữ liệu đơn hàng...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full overflow-x-auto shadow-sm border border-gray-200 rounded-xl">

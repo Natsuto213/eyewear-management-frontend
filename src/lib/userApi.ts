@@ -1,14 +1,11 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-// URL của API
 const BASE_URL = "https://api-eyewear.purintech.id.vn";
 
-// Hàm đăng nhập
+// 1. Hàm đăng nhập
 async function apiLogin(username: string, password: string) {
   const res = await axios.post(`${BASE_URL}/auth/token`, { username, password });
-
-  console.log("LOGIN RESPONSE =", res.status, res.data, res.headers);
 
   const token =
     res.data?.result?.accessToken ||
@@ -22,109 +19,78 @@ async function apiLogin(username: string, password: string) {
     throw new Error("Không nhận được accessToken từ backend");
   }
 
+  // Dùng localStorage để tự động logout khi đóng trình duyệt/tab
   localStorage.setItem("access_token", token);
-  localStorage.setItem("user", JSON.stringify(res.data.result)); // lưu thông tin người dùng
+  localStorage.setItem("user", JSON.stringify(res.data.result));
+
+  sessionStorage.setItem("session_active", "true");
+  
   return res.data.result;
 }
 
-// Hàm lấy thông tin người dùng
+// 2. Hàm lấy thông tin
 async function apiGetMyInfo() {
   const token = localStorage.getItem("access_token");
-
-  if (!token) {
-    console.error("Không có token, không thể lấy thông tin người dùng");
-    return;
-  }
+  if (!token) return;
 
   const res = await axios.get(`${BASE_URL}/users/my-info`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
   });
-
   return res.data?.result ?? res.data;
 }
 
-// Hàm cập nhật thông tin người dùng
-async function apiUpdateMyInfo(payload: { email: string; phone: string; name: string; dob: string; address: string; idNumber: string }) {
+// 3. Hàm cập nhật thông tin
+async function apiUpdateMyInfo(payload: any) {
   const token = localStorage.getItem("access_token");
-
-  if (!token) {
-    console.error("Không có token, không thể cập nhật thông tin người dùng");
-    return;
-  }
+  if (!token) return;
 
   const res = await axios.put(`${BASE_URL}/users/my-info`, payload, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
   });
-
   return res.data;
 }
 
-// Hàm đăng xuất
-// ... các hàm khác giữ nguyên ...
-
+// 4. Hàm đăng xuất (Đã tối ưu để xóa sạch dấu vết)
 async function apiLogout() {
   const token = localStorage.getItem("access_token");
 
-  if (!token) {
-    // Nếu không có token, vẫn cứ xóa sạch để đảm bảo trạng thái "sạch"
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("user");
-    return;
-  }
-
   try {
-    await axios.post(
-      `${BASE_URL}/auth/logout`,
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    if (token) {
+      await axios.post(`${BASE_URL}/auth/logout`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    }
   } catch (err) {
-    console.warn("Lỗi API Logout hoặc Token hết hạn, tiến hành xóa dữ liệu local.");
+    console.warn("Lỗi API Logout hoặc Token hết hạn.");
   } finally {
-    // ĐẢM BẢO XÓA SẠCH DÙ CÓ LỖI HAY KHÔNG
-    localStorage.removeItem("access_token");
+    // Xóa sạch cả Session và Local (để dọn dẹp triệt để dữ liệu cũ)
+    sessionStorage.clear();
+    localStorage.removeItem("access_token"); // Xóa nốt cái cũ kẹt ở đây
     localStorage.removeItem("user");
-    localStorage.removeItem("refresh_token");
-    // Nếu bạn muốn xóa cả trạng thái giỏ hàng cũ khi logout:
-    // localStorage.removeItem("cart"); 
     
-    // Ép trình duyệt reload để xóa sạch state cũ của React (nếu cần)
+    // Quay về trang login và tải lại toàn bộ trang để reset React State
     window.location.href = "/login";
   }
 }
 
-// Hàm đăng ký
-async function apiSignup(payload: { username: string; password: string; email: string; phone: string; name: string; dob: string }) {
+// 5. Hàm đăng ký
+async function apiSignup(payload: any) {
   const res = await axios.post(`${BASE_URL}/users`, payload);
   return res.data;
 }
 
-// Component kiểm tra trạng thái đăng nhập và gọi API logout
-function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  useEffect(() => {
-    // Kiểm tra token khi ứng dụng khởi động
-    const token = localStorage.getItem("access_token");
-    setIsLoggedIn(!!token); // Đặt trạng thái đăng nhập dựa trên sự tồn tại của token
-  }, []);
-
-  const handleLogout = () => {
-    // Gọi API logout và xóa token
-    apiLogout().then(() => {
-      setIsLoggedIn(false); // Đặt lại trạng thái đăng nhập
-    });
-  };
-
-  return null; // Component này không cần hiển thị gì
+function getToken() {
+  // Nếu không có session flag → tắt máy/npm run dev lại → xóa token
+  const sessionActive = sessionStorage.getItem("session_active");
+  
+  if (!sessionActive) {
+    // Session mới, chưa đăng nhập lại → xóa token cũ
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user");
+    return null;
+  }
+  
+  return localStorage.getItem("access_token");
 }
 
-export { apiLogin, apiGetMyInfo, apiUpdateMyInfo, apiLogout, apiSignup, App };
+export { apiLogin, apiGetMyInfo, apiUpdateMyInfo, apiLogout, apiSignup, getToken };

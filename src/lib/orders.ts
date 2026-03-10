@@ -1,5 +1,3 @@
-
-
 export type OrderStatus =
   | "Đang chờ"
   | "Đang gia công"
@@ -17,24 +15,37 @@ export type OrderRow = {
   customer: string;
 };
 
-
 export async function fetchOrders(token: string, searchParams: any) {
-  const res = await fetch("https://api-eyewear.purintech.id.vn/api/operation-staff/orders/search", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`,  // Truyền token vào header Authorization
-    },
-    body: JSON.stringify(searchParams),  // Dữ liệu tìm kiếm
-  });
 
-  if (!res.ok) {
-    // In ra mã lỗi và chi tiết phản hồi lỗi
-    const errorDetails = await res.text();
-    console.error("Error details:", errorDetails);
-    throw new Error(`Failed to fetch orders: ${res.status} - ${errorDetails}`);
-  }
+  const res = await fetch(
+    "https://api-eyewear.purintech.id.vn/api/operation-staff/orders/search",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(searchParams),
+    }
+  );
 
   const data = await res.json();
-  return data.result.content;  // Trả về danh sách đơn hàng
+
+  if (!res.ok) {
+    console.error("API Error:", data);
+    throw new Error(data.message || "Không thể lấy danh sách đơn hàng");
+  }
+
+  // API purintech thường trả dạng này
+  // result.content hoặc result
+
+  if (data?.result?.content) {
+    return data.result.content;
+  }
+
+  if (Array.isArray(data?.result)) {
+    return data.result;
+  }
+
+  return [];
 }

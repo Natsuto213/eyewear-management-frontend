@@ -27,7 +27,7 @@ export default function InventoryPage() {
   const [loading, setLoading] = useState<boolean>(false); // State để hiển thị loading
   const [error, setError] = useState<string | null>(null); // State để hiển thị lỗi
 
-  const token = localStorage.getItem("access_token"); // Lấy token từ localStorage
+  const token = localStorage.getItem("access_token"); // Lấy token từ sessionStorage
 
   useEffect(() => {
     if (!token) {
