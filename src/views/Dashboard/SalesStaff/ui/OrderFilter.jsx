@@ -1,5 +1,23 @@
 import React from 'react'
 
+const orderTypeVN = {
+    MIX_ORDER: 'Đơn hàng kết hợp',
+    DIRECT_ORDER: 'Đơn hàng mua trực tiếp',
+    PRE_ORDER: 'Đơn hàng đặt trước',
+    PRESCRIPTION_ORDER: 'Đơn hàng theo đơn kính',
+};
+
+const orderStatusVN = {
+    PENDING: 'Chờ xử lý',
+    PARTIALLY_PAID: 'Đã thanh toán một phần',
+    PAID: 'Hoàn tất thanh toán',
+    CANCELED: 'Đã hủy',
+    COMPLETED: 'Hoàn thành',
+    CONFIRMED: 'Đã xác nhận',
+    READY: "Sẵn sàng giao",
+    PROCESSING: "Đang xử lý",
+};
+
 const OrderFilter = ({ filters, onFilterChange, onResetFilter, statusList, orderTypeList }) => {
     return (
         <div className="mb-5 rounded-xl bg-white p-5 shadow">
@@ -43,7 +61,7 @@ const OrderFilter = ({ filters, onFilterChange, onResetFilter, statusList, order
                     >
                         <option value="">-- Tất cả --</option>
                         {orderTypeList.map((type) => (
-                            <option key={type} value={type}>{type}</option>
+                            <option key={type} value={type}>{orderTypeVN[type] || type}</option>
                         ))}
                     </select>
                 </div>
@@ -59,7 +77,7 @@ const OrderFilter = ({ filters, onFilterChange, onResetFilter, statusList, order
                     >
                         <option value="">-- Tất cả --</option>
                         {statusList.map((s) => (
-                            <option key={s} value={s}>{s}</option>
+                            <option key={s} value={s}>{orderStatusVN[s] || s}</option>
                         ))}
                     </select>
                 </div>

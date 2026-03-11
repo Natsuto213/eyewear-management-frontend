@@ -19,51 +19,51 @@ import { useState, useEffect } from "react";
 import { api } from "@/lib/api"; // axios instance đã cấu hình sẵn baseURL
 
 export function useProductDetail(id) {
-  const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
+    const [product, setProduct] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-  useEffect(() => {
-    // Nếu không có id → không fetch
-    if (!id) return;
+    useEffect(() => {
+        // Nếu không có id → không fetch
+        if (!id) return;
 
-    // Biến cờ: khi component unmount hoặc id đổi, React sẽ chạy cleanup
-    // → ignore = true → không setState nữa, tránh memory leak
-    let ignore = false;
+        // Biến cờ: khi component unmount hoặc id đổi, React sẽ chạy cleanup
+        // → ignore = true → không setState nữa, tránh memory leak
+        let ignore = false;
 
-    async function fetchProduct() {
-      try {
-        setLoading(true);
-        setError(null);
-        setProduct(null);
+        async function fetchProduct() {
+            try {
+                setLoading(true);
+                setError(null);
+                setProduct(null);
 
-        // Gọi API: GET /api/products/:id
-        const response = await api.get(`/api/products/${id}`);
+                // Gọi API: GET /api/products/:id
+                const response = await api.get(`/api/products/${id}`);
 
-        // Chỉ cập nhật state nếu vẫn đang xem sản phẩm này
-        if (!ignore) {
-          setProduct(response.data);
+                // Chỉ cập nhật state nếu vẫn đang xem sản phẩm này
+                if (!ignore) {
+                    setProduct(response.data);
+                }
+            } catch (err) {
+                if (!ignore) {
+                    // Lấy message lỗi từ response API nếu có, không thì dùng message mặc định
+                    const message = err?.response?.data?.message || "Không thể tải sản phẩm";
+                    setError(message);
+                }
+            } finally {
+                if (!ignore) {
+                    setLoading(false);
+                }
+            }
         }
-      } catch (err) {
-        if (!ignore) {
-          // Lấy message lỗi từ response API nếu có, không thì dùng message mặc định
-          const message = err?.response?.data?.message || "Không thể tải sản phẩm";
-          setError(message);
-        }
-      } finally {
-        if (!ignore) {
-          setLoading(false);
-        }
-      }
-    }
 
-    fetchProduct();
+        fetchProduct();
 
-    // Cleanup function: chạy khi id đổi hoặc component unmount
-    return () => {
-      ignore = true;
-    };
-  }, [id]); // Chỉ chạy lại khi id thay đổi
+        // Cleanup function: chạy khi id đổi hoặc component unmount
+        return () => {
+            ignore = true;
+        };
+    }, [id]); // Chỉ chạy lại khi id thay đổi
 
-  return { product, loading, error };
+    return { product, loading, error };
 }

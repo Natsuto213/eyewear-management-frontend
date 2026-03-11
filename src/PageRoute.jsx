@@ -15,7 +15,7 @@ import SuccessPage from "./views/SuccessPage";
 import CancelPage from "./views/CancelPage";
 import { ShoppingContextProvider } from "./views/Cart/contexts/ShoppingContext";
 
-import{ OperationStaffLayout } from "./views/Dashboard/OperationStaff/OperationStaffLayout";
+import { OperationStaffLayout } from "./views/Dashboard/OperationStaff/OperationStaffLayout";
 import OrderPage from "./views/Dashboard/OperationStaff/OrderPage";
 import InventoryPage from "./views/Dashboard/OperationStaff/InventoryPage";
 import OrderDetailOps from "./views/Dashboard/OperationStaff/OrderDetailOps";
@@ -30,59 +30,64 @@ import ManagerPoliciesView from './views/Dashboard/Manager/ManagerPoliciesView';
 import OrderTable from './views/Dashboard/SalesStaff/containers/OrderTable';
 import { SalesStaffLayout } from './views/Dashboard/SalesStaff/SalesStaffLayout';
 import OrderDetail from './views/Dashboard/SalesStaff/ui/OrderDetail';
+import ReturnOrderTable from './views/Dashboard/SalesStaff/containers/ReturnOrderTable';
+import ReturnOrderDetail from './views/Dashboard/SalesStaff/ui/ReturnOrderDetail';
 
 
 export default function PageRoute() {
   return (
     <ShoppingContextProvider>
-      
-        <Routes>
-          <Route index element={<HomePage />} />
 
-          <Route path="/all-product" element={<AllProductLayout />}>
-            <Route index element={<AllProductFilter />} />
-            <Route path="gong" element={<AllProductFilter />} />
-            <Route path="trong" element={<AllProductFilter />} />
-            <Route path="kinhaptrong" element={<AllProductFilter />} />
-          </Route>
+      <Routes>
+        <Route index element={<HomePage />} />
 
-          <Route path="/product/:id" element={<ProductDetail />} />
+        <Route path="/all-product" element={<AllProductLayout />}>
+          <Route index element={<AllProductFilter />} />
+          <Route path="gong" element={<AllProductFilter />} />
+          <Route path="trong" element={<AllProductFilter />} />
+          <Route path="kinhaptrong" element={<AllProductFilter />} />
+        </Route>
 
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/confirm" element={<Confirm />} />
-          <Route path="/warranty" element={<WarrantyPage />} />
-          <Route path="/success" element={<SuccessPage />} />
-          <Route path="/cancel" element={<CancelPage />} />
+        <Route path="/product/:id" element={<ProductDetail />} />
 
-          <Route path="/profile" element={<ProfilePage />}>
-            <Route path="account" element={<Account />} />
-          </Route>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/confirm" element={<Confirm />} />
+        <Route path="/warranty" element={<WarrantyPage />} />
+        <Route path="/success" element={<SuccessPage />} />
+        <Route path="/cancel" element={<CancelPage />} />
 
-          <Route path="/operation-staff" element={<OperationStaffLayout />} >
-            <Route index element={<OrderPage />} />
-            <Route path="orders" element={<OrderPage />} />
-            <Route path="/operation-staff/orders/:orderId" element={<OrderDetailOps />} />
-            <Route path="inventory" element={<InventoryPage />} />
-          </Route>
+        <Route path="/profile" element={<ProfilePage />}>
+          <Route path="account" element={<Account />} />
+        </Route>
 
-          <Route path="/manager" element={<ManagerLayout />}>
-            <Route index element={<ManagerProductView />} />
-            <Route path="product" element={<ManagerProductView />} />
-            <Route path="staff" element={<ManagerStaffView />} />
-            <Route path="policies" element={<ManagerPoliciesView />} />
-            <Route path="sales" element={<ManagerSalesView />} />
-            <Route path="static" element={<ManagerStatisticView />} />
-          </Route>
+        <Route path="/operation-staff" element={<OperationStaffLayout />} >
+          <Route index element={<OrderPage />} />
+          <Route path="orders" element={<OrderPage />} />
+          <Route path="/operation-staff/orders/:orderId" element={<OrderDetailOps />} />
+          <Route path="inventory" element={<InventoryPage />} />
+        </Route>
 
-          <Route path="/sales" element={<SalesStaffLayout />}>
-            <Route index element={<OrderTable />} />
-            <Route path="containers/orders" element={<OrderTable />} />
-            <Route path="ui/orderdetail" element={<OrderDetail />} />
-          </Route>
-        </Routes>
-      
+        <Route path="/manager" element={<ManagerLayout />}>
+          <Route index element={<ManagerProductView />} />
+          <Route path="product" element={<ManagerProductView />} />
+          <Route path="staff" element={<ManagerStaffView />} />
+          <Route path="policies" element={<ManagerPoliciesView />} />
+          <Route path="sales" element={<ManagerSalesView />} />
+          <Route path="static" element={<ManagerStatisticView />} />
+        </Route>
+
+        <Route path="/sales" element={<SalesStaffLayout />}>
+          <Route index element={<OrderTable />} />
+          <Route path="containers/orders" element={<OrderTable />} />
+          <Route path="containers/return-orders" element={<ReturnOrderTable />} />
+          <Route path="ui/orderdetail/:orderId" element={<OrderDetail />} />
+          <Route path="ui/returnorderdetail/:returnExchangeId" element={<ReturnOrderDetail />} />
+        </Route>
+
+      </Routes>
+
     </ShoppingContextProvider>
   );
 }

@@ -7,6 +7,7 @@ import {
     deleteAllCartApi,
     mapApiItemToLocal,
 } from "../api/cartApi";
+import CartSuccessPopup from "../components/CartSuccessPopup";
 
 const ShoppingContext = createContext();
 
@@ -30,6 +31,7 @@ export function ShoppingContextProvider({ children }) {
     const [cartItems, setCartItems] = useState([]);         // Mảng sản phẩm trong giỏ
     const [loading, setLoading] = useState(false);           // Đang gọi API?
     const [showLoginPopup, setShowLoginPopup] = useState(false); // Hiện popup đăng nhập?
+    const [showSuccessPopup, setShowSuccessPopup] = useState(false); // Hiện popup thành công?
 
     // ══════════════════════════════════════════════════════════════
     // fetchCart — Lấy toàn bộ giỏ hàng từ server
@@ -89,6 +91,8 @@ export function ShoppingContextProvider({ children }) {
         try {
             await addCartItemApi(newItem, newItem.quantity);
             await fetchCart();  // Bước 3: Tải lại giỏ hàng để UI cập nhật
+            setShowSuccessPopup(true); // Hiện popup thành công
+            setTimeout(() => setShowSuccessPopup(false), 2000); // Tự tắt sau 2s
             console.log("✅ Thêm vào giỏ thành công:", newItem);
         } catch (err) {
             console.error("❌ Lỗi thêm vào giỏ:", err);
@@ -194,6 +198,7 @@ export function ShoppingContextProvider({ children }) {
             }}
         >
             {children}
+            <CartSuccessPopup show={showSuccessPopup} onClose={() => setShowSuccessPopup(false)} />
         </ShoppingContext.Provider>
     );
 }

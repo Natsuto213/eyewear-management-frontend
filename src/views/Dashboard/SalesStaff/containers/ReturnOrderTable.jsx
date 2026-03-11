@@ -28,7 +28,7 @@ const getUniqueList = (orders, field) => {
     return result
 }
 
-const OrderTable = () => {
+const ReturnOrderTable = () => {
 
     // Mảng chứa toàn bộ đơn hàng từ API
     const [orders, setOrders] = useState([])
@@ -38,7 +38,7 @@ const OrderTable = () => {
 
     // Giá trị 4 ô lọc (rỗng = chưa lọc)
     const [filters, setFilters] = useState(() => {
-        const saved = sessionStorage.getItem('orderFilters');
+        const saved = sessionStorage.getItem('returnOrderFilters');
         if (saved) {
             return JSON.parse(saved);
         }
@@ -52,11 +52,11 @@ const OrderTable = () => {
 
     // Gọi API lấy danh sách đơn hàng
     const fetchOrders = () => {
-        api.get("api/staff/orders")
+        api.get("api/staff/return-exchange")
             .then((res) => {
                 setOrders(res.data.result || [])
-                console.log("Data orders 1: ", res.data)
                 setLoading(false)
+                console.log("Data orders: ", res.data.result)
             })
             .catch((err) => {
                 console.error("Lỗi khi gọi API:", err)
@@ -71,7 +71,7 @@ const OrderTable = () => {
     }, [])
 
     useEffect(() => {
-        sessionStorage.setItem('orderFilters', JSON.stringify(filters));
+        sessionStorage.setItem('returnOrderFilters', JSON.stringify(filters));
     }, [filters]);
 
     // Khi user thay đổi 1 ô lọc bất kỳ
@@ -154,4 +154,4 @@ const OrderTable = () => {
     )
 }
 
-export default OrderTable
+export default ReturnOrderTable
