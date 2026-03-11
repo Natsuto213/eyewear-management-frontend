@@ -13,6 +13,7 @@ const orderStatusVN = {
     PAID: 'Hoàn tất thanh toán',
     CANCELED: 'Đã hủy',
     COMPLETED: 'Hoàn thành',
+    CONFIRMED: 'Đã xác nhận',
 };
 
 const OrderFilter = ({ filters, onFilterChange, onResetFilter, statusList, orderTypeList }) => {

@@ -14,6 +14,7 @@ const orderStatusVN = {
     PAID: 'Hoàn tất thanh toán',
     CANCELED: 'Đã hủy',
     COMPLETED: 'Hoàn thành',
+    CONFIRMED: 'Đã xác nhận',
 };
 
 const OrderRow = ({ order, index }) => {
@@ -52,14 +53,24 @@ const OrderRow = ({ order, index }) => {
             </td>
 
             <td className="px-4 py-3 text-center">
-                <Link
-                    key={order.orderId}
-                    to={`/sales/ui/orderdetail/${order.orderId}`} // Giả sử có route chi tiết đơn hàng
-                    className="rounded-lg bg-blue-500 px-3 py-1 text-xs font-semibold 
-               text-white hover:bg-blue-600 inline-block"
-                >
-                    Xem chi tiết
-                </Link>
+                {order?.returnExchangeId ? (
+                    <Link
+                        key={`return-${order.returnExchangeId}`}
+                        to={`/sales/ui/returnorderdetail/${order.returnExchangeId}`}
+                        className="ml-2 rounded-lg bg-red-500 px-3 py-1 text-xs font-semibold text-white hover:bg-red-600 inline-block"
+                    >
+                        Xem chi tiết trả hàng
+                    </Link>
+                ) : (
+                    <Link
+                        key={`order-${order.orderId}`}
+                        to={`/sales/ui/orderdetail/${order.orderId}`}
+                        className="rounded-lg bg-blue-500 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-600 inline-block"
+                    >
+                        Xem chi tiết
+                    </Link>
+                )}
+
             </td>
         </tr>
     )

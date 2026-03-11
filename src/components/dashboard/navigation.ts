@@ -36,10 +36,10 @@ export const roleTabsConfig: RoleTabs[] = [
                 icon: ShoppingCart,
                 path: '/sales/containers/orders'
             }, {
-                id: 'order-detail',
-                label: 'Order Detail',
+                id: 'return-orders',
+                label: 'Danh sach đơn đổi trả',
                 icon: FileText,
-                path: '/sales/order-detail'
+                path: '/sales/containers/return-orders'
             }, {
                 id: 'form-list',
                 label: 'Form List',

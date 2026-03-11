@@ -1,30 +1,5 @@
 /**
- * AddToCartBar.jsx
- * =================
- * Khu vực chứa toàn bộ logic "Thêm vào giỏ hàng" với các business rule:
- *
- * ┌─────────────────────────────────────────────────────────────────────┐
- * │ GỌNG KÍNH:                                                          │
- * │  - Luôn hiển thị PrescriptionForm                                   │
- * │  - Người dùng phải CHỌN 1 trong 2:                                  │
- * │    A) Tick "Không mua tròng kính" → thêm đơn lẻ vào giỏ            │
- * │    B) Click "Chọn tròng kính phù hợp" → mở Modal chọn Tròng kính   │
- * │       → sau khi chọn, hiển thị tên tròng kính đã chọn              │
- * │       → lúc này mới được Thêm vào giỏ (bundle Gọng + Tròng)        │
- * ├─────────────────────────────────────────────────────────────────────┤
- * │ TRÒNG KÍNH:                                                         │
- * │  - Luôn hiển thị PrescriptionForm                                   │
- * │  - Người dùng phải CHỌN 1 trong 2:                                  │
- * │    A) Tick "Đã có gọng kính" → thêm đơn lẻ vào giỏ                 │
- * │    B) Click "Chọn gọng kính phù hợp" → mở Modal chọn Gọng kính     │
- * │       → sau khi chọn, hiển thị tên gọng đã chọn                    │
- * │       → lúc này mới được Thêm vào giỏ (bundle Tròng + Gọng)        │
- * ├─────────────────────────────────────────────────────────────────────┤
- * │ KÍNH ÁP TRÒNG:                                                      │
- * │  - Hiển thị PrescriptionForm để nhập độ (tùy chọn)                  │
- * │  - Luôn là đơn lẻ, không cần chọn sản phẩm kèm                      │
- * │  - Chọn số lượng rồi Thêm vào giỏ ngay                              │
- * └─────────────────────────────────────────────────────────────────────┘
+
  *
  * Props nhận từ index.jsx:
  * @param {object}   product         - Dữ liệu sản phẩm
@@ -44,6 +19,7 @@ import QuantitySelector from "./QuantitySelector";
 import LensModal from "./LensModal";
 import { PRODUCT_TYPES } from "../utils/constants";
 import { useShoppingContext } from "../../Cart/contexts/ShoppingContext";
+import PrescriptionInputTabs from "./PrescriptionInputTabs";
 
 export default function AddToCartBar({
     product,
@@ -171,10 +147,8 @@ export default function AddToCartBar({
 
     return (
         <div className="space-y-5">
-            {/* ── PrescriptionForm: hiện cho tất cả loại sản phẩm ── */}
-            {/* Gọng + Tròng: nhập để cắt kính theo đơn                */}
-            {/* Kính áp tròng: nhập tùy chọn, luôn tính là đơn lẻ     */}
-            <PrescriptionForm
+            {/* ── PrescriptionInputTabs: cho phép nhập hoặc upload ảnh đơn thuốc ── */}
+            <PrescriptionInputTabs
                 data={rxData}
                 errors={rxErrors}
                 onUpdate={onUpdateRx}

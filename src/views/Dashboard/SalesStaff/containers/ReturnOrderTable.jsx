@@ -28,7 +28,7 @@ const getUniqueList = (orders, field) => {
     return result
 }
 
-const OrderTable = () => {
+const ReturnOrderTable = () => {
 
     // Mảng chứa toàn bộ đơn hàng từ API
     const [orders, setOrders] = useState([])
@@ -38,7 +38,7 @@ const OrderTable = () => {
 
     // Giá trị 4 ô lọc (rỗng = chưa lọc)
     const [filters, setFilters] = useState(() => {
-        const saved = sessionStorage.getItem('orderFilters');
+        const saved = sessionStorage.getItem('returnOrderFilters');
         if (saved) {
             return JSON.parse(saved);
         }
@@ -52,10 +52,11 @@ const OrderTable = () => {
 
     // Gọi API lấy danh sách đơn hàng
     const fetchOrders = () => {
-        api.get("api/staff/orders")
+        api.get("https://69a3030cbe843d692bd2bd7d.mockapi.io/data-orders/")
             .then((res) => {
-                setOrders(res.data.result || [])
+                setOrders(res.data || [])
                 setLoading(false)
+                console.log("Data orders: ", res.data)
             })
             .catch((err) => {
                 console.error("Lỗi khi gọi API:", err)
@@ -70,7 +71,7 @@ const OrderTable = () => {
     }, [])
 
     useEffect(() => {
-        sessionStorage.setItem('orderFilters', JSON.stringify(filters));
+        sessionStorage.setItem('returnOrderFilters', JSON.stringify(filters));
     }, [filters]);
 
     // Khi user thay đổi 1 ô lọc bất kỳ
@@ -136,7 +137,7 @@ const OrderTable = () => {
                         <tbody className="text-sm text-gray-600">
                             {filteredOrders.length > 0 ? (
                                 filteredOrders.map((order, index) => (
-                                    <OrderRow key={order.orderId} order={order} index={index} />
+                                    <OrderRow key={order.id} order={order} index={index} />
                                 ))
                             ) : (
                                 <tr>
@@ -153,4 +154,4 @@ const OrderTable = () => {
     )
 }
 
-export default OrderTable
+export default ReturnOrderTable

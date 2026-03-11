@@ -32,6 +32,8 @@ import { ShoppingContextProvider } from './views/Cart/contexts/ShoppingContext';
 import OrderTable from './views/Dashboard/SalesStaff/containers/OrderTable';
 import { SalesStaffLayout } from './views/Dashboard/SalesStaff/SalesStaffLayout';
 import OrderDetail from './views/Dashboard/SalesStaff/ui/OrderDetail';
+import ReturnOrderTable from './views/Dashboard/SalesStaff/containers/ReturnOrderTable';
+import ReturnOrderDetail from './views/Dashboard/SalesStaff/ui/ReturnOrderDetail';
 
 ReactDOM.createRoot(document.getElementById("root")).render(
     <ShoppingContextProvider>
@@ -74,7 +76,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
                 <Route path="/sales" element={<SalesStaffLayout />}>
                     <Route index element={<OrderTable />} />
                     <Route path="containers/orders" element={<OrderTable />} />
+                    <Route path="containers/return-orders" element={<ReturnOrderTable />} />
                     <Route path="ui/orderdetail/:orderId" element={<OrderDetail />} />
+                    <Route path="ui/returnorderdetail/:orderId" element={<ReturnOrderDetail />} />
                 </Route>
 
             </Routes>

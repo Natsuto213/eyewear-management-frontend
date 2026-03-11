@@ -5,46 +5,62 @@ import {
     MapPin,
     Clock,
     User,
-    CheckCircle,
     Package,
+    CheckCircle,
+    Truck,
+    RotateCcw,
+    Image as ImageIcon,
+    ClipboardList,
+    CreditCard,
+    BadgeInfo,
 } from "lucide-react";
-import { useParams, useNavigate } from "react-router-dom";
-import { api } from "@/lib/api";
 
-export default function OrderDetail() {
-    const { orderId } = useParams();
-    const navigate = useNavigate();
+export default function ReturnOrderDetail() {
     const [orderData, setOrderData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [openPrescriptionRows, setOpenPrescriptionRows] = useState({});
 
     useEffect(() => {
-        const fetchOrderDetail = async () => {
+        const controller = new AbortController();
+
+        const fetchReturnOrderDetail = async () => {
             try {
                 setLoading(true);
                 setError("");
 
-                const response = await api.get(`api/staff/orders/${orderId}`);
-                console.log("API response:", response.data);
-
-                setOrderData(response.data.result);
-            } catch (err) {
-                console.error(err);
-                setError(
-                    err?.response?.data?.message ||
-                    err?.message ||
-                    "Không tải được chi tiết đơn hàng"
+                const response = await fetch(
+                    "https://69a3030cbe843d692bd2bd7d.mockapi.io/data-orders/1",
+                    {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        signal: controller.signal,
+                    }
                 );
+
+                if (!response.ok) {
+                    throw new Error("Không tải được chi tiết đơn trả hàng");
+                }
+
+                const data = await response.json();
+                console.log("Return Order Detail:", data);
+                setOrderData(data);
+            } catch (err) {
+                if (err.name !== "AbortError") {
+                    console.error(err);
+                    setError(err?.message || "Không tải được chi tiết đơn trả hàng");
+                }
             } finally {
                 setLoading(false);
             }
         };
 
-        if (orderId) {
-            fetchOrderDetail();
-        }
-    }, [orderId]);
+        fetchReturnOrderDetail();
+
+        return () => controller.abort();
+    }, []);
 
     const formatCurrency = (amount) => {
         if (amount == null) return "0 đ";
@@ -94,20 +110,64 @@ export default function OrderDetail() {
         }
     };
 
-    const handleConfirmOrder = async () => {
-        try {
-            const res = await api.put(`api/staff/orders/${orderId}/confirm`);
+    const mapShippingStatus = (status) => {
+        switch (status) {
+            case "PENDING":
+                return "Chờ giao";
+            case "PROCESSING":
+                return "Đang xử lý giao hàng";
+            case "SHIPPING":
+                return "Đang giao";
+            case "DELIVERED":
+                return "Đã giao hàng";
+            case "FAILED":
+                return "Giao thất bại";
+            case "RETURNED":
+                return "Đã hoàn hàng";
+            case "CANCELED":
+                return "Đã hủy giao hàng";
+            default:
+                return status || "";
+        }
+    };
 
-            console.log("API response:", res.data);
-            alert("Xác nhận đơn hàng thành công!");
-            navigate("/sales/containers/orders");
-        } catch (err) {
-            console.error("Lỗi khi gọi API:", err);
-            alert(
-                err?.response?.data?.message ||
-                err?.message ||
-                "Xác nhận đơn hàng thất bại"
-            );
+    const mapReturnExchangeStatus = (status) => {
+        switch (status) {
+            case "RETURN":
+                return "Yêu cầu trả hàng";
+            case "EXCHANGE":
+                return "Yêu cầu đổi hàng";
+            case "PENDING":
+                return "Chờ xử lý";
+            case "APPROVED":
+                return "Đã duyệt";
+            case "REJECTED":
+                return "Từ chối";
+            case "COMPLETED":
+                return "Hoàn tất";
+            default:
+                return status || "";
+        }
+    };
+
+    const mapActionLabel = (action) => {
+        switch (action) {
+            case "APPROVE_RETURN":
+                return "Duyệt trả hàng";
+            case "REJECT_RETURN":
+                return "Từ chối trả hàng";
+            case "APPROVE_EXCHANGE":
+                return "Duyệt đổi hàng";
+            case "REJECT_EXCHANGE":
+                return "Từ chối đổi hàng";
+            case "CONFIRM_RECEIVED_RETURN":
+                return "Xác nhận đã nhận hàng hoàn";
+            case "CONFIRM_REFUND":
+                return "Xác nhận hoàn tiền";
+            case "CONFIRM_EXCHANGE_SHIPMENT":
+                return "Xác nhận gửi hàng đổi";
+            default:
+                return action?.replaceAll("_", " ") || "";
         }
     };
 
@@ -118,21 +178,17 @@ export default function OrderDetail() {
         }));
     };
 
-    const canConfirmOrder = ["PENDING", "PARTIALLY_PAID", "PAID"].includes(
-        orderData?.orderStatus
-    );
-
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <p className="text-lg font-semibold">Đang tải chi tiết đơn hàng...</p>
+            <div className="min-h-screen flex items-center justify-center bg-gray-200">
+                <p className="text-lg font-semibold">Đang tải chi tiết yêu cầu trả hàng...</p>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center bg-gray-200">
                 <p className="text-red-600 font-semibold">{error}</p>
             </div>
         );
@@ -140,14 +196,15 @@ export default function OrderDetail() {
 
     if (!orderData) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <p>Không có dữ liệu đơn hàng</p>
+            <div className="min-h-screen flex items-center justify-center bg-gray-200">
+                <p>Không có dữ liệu đơn trả hàng</p>
             </div>
         );
     }
 
     const normalProducts = orderData.orderDetail || [];
     const prescriptionProducts = orderData.prescriptionOrderDetail || [];
+    const availableActions = orderData.availableActions || [];
 
     return (
         <div className="min-h-screen bg-gray-200">
@@ -156,20 +213,18 @@ export default function OrderDetail() {
                     <div className="flex items-center justify-between mb-6">
                         <div>
                             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                Chi tiết đơn hàng
+                                Chi tiết trả hàng / đổi hàng
                             </h1>
                             <p className="text-sm text-gray-500 mt-1">
-                                Quản lý và xử lý đơn hàng
+                                Quản lý và xử lý yêu cầu hậu mãi
                             </p>
                         </div>
 
-                        <div className="flex items-center gap-4">
-                            <div className="text-right">
-                                <p className="text-sm text-gray-500">Tổng giá trị</p>
-                                <p className="text-2xl font-bold text-gray-800">
-                                    {formatCurrency(orderData.totalAmount)}
-                                </p>
-                            </div>
+                        <div className="text-right">
+                            <p className="text-sm text-gray-500">Tổng giá trị đơn hàng</p>
+                            <p className="text-2xl font-bold text-gray-800">
+                                {formatCurrency(orderData.totalAmount)}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -180,15 +235,27 @@ export default function OrderDetail() {
                     <div className="lg:col-span-2 space-y-8">
                         <div className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
                             <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-6">
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between flex-wrap gap-4">
                                     <div>
                                         <h2 className="text-3xl font-bold text-white mb-2">
                                             {orderData.orderCode}
                                         </h2>
-                                        <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-white/20 backdrop-blur-sm text-white border border-white/30">
-                                            <Clock className="w-4 h-4 mr-2" />
-                                            {mapOrderStatus(orderData.orderStatus)}
-                                        </span>
+                                        <div className="flex flex-wrap gap-3">
+                                            <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-white/20 backdrop-blur-sm text-white border border-white/30">
+                                                <Clock className="w-4 h-4 mr-2" />
+                                                {mapOrderStatus(orderData.orderStatus)}
+                                            </span>
+
+                                            <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-white/20 backdrop-blur-sm text-white border border-white/30">
+                                                <Truck className="w-4 h-4 mr-2" />
+                                                {mapShippingStatus(orderData.shippingStatus)}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="text-right text-white">
+                                        <p className="text-sm opacity-90">Mã trả hàng</p>
+                                        <p className="text-xl font-bold">{orderData.returnCode}</p>
                                     </div>
                                 </div>
                             </div>
@@ -217,6 +284,15 @@ export default function OrderDetail() {
                                                 </span>
                                                 <span className="text-sm text-gray-800 font-medium">
                                                     {formatDateTime(orderData.orderDate)}
+                                                </span>
+                                            </div>
+
+                                            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                                <span className="text-sm font-semibold text-gray-500 w-32">
+                                                    Trạng thái GH:
+                                                </span>
+                                                <span className="text-sm text-gray-800 font-medium">
+                                                    {mapShippingStatus(orderData.shippingStatus)}
                                                 </span>
                                             </div>
 
@@ -260,6 +336,124 @@ export default function OrderDetail() {
                                                 <span className="text-sm text-gray-800">
                                                     {orderData.customerEmail}
                                                 </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
+                            <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-8 py-5 border-b border-gray-200">
+                                <h3 className="text-xl font-bold text-gray-800 flex items-center gap-3">
+                                    <RotateCcw className="w-6 h-6 text-gray-400" />
+                                    Thông tin yêu cầu trả hàng / đổi hàng
+                                </h3>
+                            </div>
+
+                            <div className="p-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                            <span className="text-sm font-semibold text-gray-500 w-40">
+                                                Mã yêu cầu:
+                                            </span>
+                                            <span className="text-sm text-gray-800 font-medium">
+                                                {orderData.returnCode}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                            <span className="text-sm font-semibold text-gray-500 w-40">
+                                                ReturnExchange ID:
+                                            </span>
+                                            <span className="text-sm text-gray-800 font-medium">
+                                                {orderData.returnExchangeId}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                            <span className="text-sm font-semibold text-gray-500 w-40">
+                                                Ngày yêu cầu:
+                                            </span>
+                                            <span className="text-sm text-gray-800 font-medium">
+                                                {formatDateTime(orderData.requestDate)}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-red-50 to-orange-50 rounded-xl border border-red-200">
+                                            <span className="text-sm font-semibold text-gray-500 w-40">
+                                                Trạng thái yêu cầu:
+                                            </span>
+                                            <span className="text-sm font-bold text-red-600">
+                                                {mapReturnExchangeStatus(orderData.returnExchangeStatus)}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                            <span className="text-sm font-semibold text-gray-500 w-40">
+                                                Có đơn kính:
+                                            </span>
+                                            <span
+                                                className={`text-sm font-semibold ${orderData.hasPrescriptionItem
+                                                    ? "text-teal-600"
+                                                    : "text-gray-600"
+                                                    }`}
+                                            >
+                                                {orderData.hasPrescriptionItem ? "Có" : "Không"}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                            <span className="text-sm font-semibold text-gray-500 w-40">
+                                                Cần thanh toán thêm:
+                                            </span>
+                                            <span
+                                                className={`text-sm font-semibold ${orderData.requiresFinalPayment
+                                                    ? "text-amber-600"
+                                                    : "text-green-600"
+                                                    }`}
+                                            >
+                                                {orderData.requiresFinalPayment ? "Có" : "Không"}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                                            <div className="flex items-start gap-3">
+                                                <ClipboardList className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
+                                                <div>
+                                                    <p className="text-xs text-gray-500 mb-2 font-semibold">
+                                                        Lý do trả hàng / đổi hàng
+                                                    </p>
+                                                    <p className="text-sm text-gray-800 leading-relaxed">
+                                                        {orderData.returnReason || "Không có lý do"}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
+                                            <div className="flex items-start gap-3">
+                                                <ImageIcon className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
+                                                <div className="w-full">
+                                                    <p className="text-xs text-gray-500 mb-3 font-semibold">
+                                                        Ảnh minh chứng
+                                                    </p>
+
+                                                    {orderData.returnImgUrl ? (
+                                                        <img
+                                                            src={orderData.returnImgUrl}
+                                                            alt="Ảnh minh chứng trả hàng"
+                                                            className="w-full h-64 object-cover rounded-xl border border-gray-200 shadow-sm"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-40 rounded-xl border border-dashed border-gray-300 bg-white flex items-center justify-center text-sm text-gray-400">
+                                                            Không có ảnh minh chứng
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -536,15 +730,9 @@ export default function OrderDetail() {
                                                                             <table className="w-full">
                                                                                 <thead>
                                                                                     <tr className="text-amber-700 font-semibold text-center">
-                                                                                        <th className="text-left pb-1 pr-2">
-                                                                                            TS
-                                                                                        </th>
-                                                                                        <th className="pb-1 pr-1">
-                                                                                            Trái
-                                                                                        </th>
-                                                                                        <th className="pb-1">
-                                                                                            Phải
-                                                                                        </th>
+                                                                                        <th className="text-left pb-1 pr-2">TS</th>
+                                                                                        <th className="pb-1 pr-1">Trái</th>
+                                                                                        <th className="pb-1">Phải</th>
                                                                                     </tr>
                                                                                 </thead>
                                                                                 <tbody>
@@ -603,11 +791,10 @@ export default function OrderDetail() {
                                 </div>
                             </div>
                         )}
+
                         <div className="mt-6 p-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl">
                             <div className="flex items-center justify-between text-white">
-                                <span className="text-xl font-bold">
-                                    TỔNG CỘNG
-                                </span>
+                                <span className="text-xl font-bold">TỔNG CỘNG</span>
                                 <span className="text-3xl font-bold">
                                     {formatCurrency(orderData.totalAmount)}
                                 </span>
@@ -634,9 +821,7 @@ export default function OrderDetail() {
                                             <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100">
                                                 <User className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
                                                 <div>
-                                                    <p className="text-xs text-gray-500 mb-1">
-                                                        Tên người nhận
-                                                    </p>
+                                                    <p className="text-xs text-gray-500 mb-1">Tên người nhận</p>
                                                     <p className="text-sm font-semibold text-gray-800">
                                                         {orderData.recipientName}
                                                     </p>
@@ -646,9 +831,7 @@ export default function OrderDetail() {
                                             <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100">
                                                 <Phone className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
                                                 <div>
-                                                    <p className="text-xs text-gray-500 mb-1">
-                                                        Số điện thoại
-                                                    </p>
+                                                    <p className="text-xs text-gray-500 mb-1">Số điện thoại</p>
                                                     <p className="text-sm font-semibold text-gray-800">
                                                         {orderData.recipientPhone}
                                                     </p>
@@ -658,9 +841,7 @@ export default function OrderDetail() {
                                             <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100">
                                                 <Mail className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
                                                 <div>
-                                                    <p className="text-xs text-gray-500 mb-1">
-                                                        Email
-                                                    </p>
+                                                    <p className="text-xs text-gray-500 mb-1">Email</p>
                                                     <p className="text-sm font-semibold text-gray-800">
                                                         {orderData.recipientEmail}
                                                     </p>
@@ -692,13 +873,27 @@ export default function OrderDetail() {
 
                                             <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
                                                 <div className="flex items-start gap-3">
-                                                    <Clock className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
+                                                    <Truck className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
+                                                    <div>
+                                                        <p className="text-xs text-gray-500 mb-2 font-semibold">
+                                                            Trạng thái giao hàng
+                                                        </p>
+                                                        <p className="text-sm font-semibold text-gray-800">
+                                                            {mapShippingStatus(orderData.shippingStatus)}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                                                <div className="flex items-start gap-3">
+                                                    <BadgeInfo className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
                                                     <div>
                                                         <p className="text-xs text-gray-500 mb-2 font-semibold">
                                                             Ghi chú
                                                         </p>
                                                         <p className="text-sm text-gray-800 leading-relaxed italic">
-                                                            {orderData.note || "Không có ghi chú"}
+                                                            Không có ghi chú
                                                         </p>
                                                     </div>
                                                 </div>
@@ -711,28 +906,78 @@ export default function OrderDetail() {
                     </div>
 
                     <div className="lg:col-span-1">
-                        <div className="sticky top-24">
+                        <div className="sticky top-24 space-y-8">
                             <div className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
                                 <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-5">
-                                    <h3 className="text-xl font-bold text-white">
-                                        Thao tác xử lý
-                                    </h3>
+                                    <h3 className="text-xl font-bold text-white">Tóm tắt xử lý</h3>
                                 </div>
 
                                 <div className="p-6 space-y-5">
                                     <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
-                                        <p className="text-sm text-gray-800 font-medium">
-                                            Vui lòng kiểm tra thông tin đơn hàng trước khi xác nhận
+                                        <p className="text-xs text-gray-500 mb-1">Trạng thái đơn hàng</p>
+                                        <p className="text-sm font-bold text-gray-800">
+                                            {mapOrderStatus(orderData.orderStatus)}
                                         </p>
                                     </div>
 
-                                    {canConfirmOrder && (
-                                        <button className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-4 px-6 rounded-xl transition-all font-bold text-lg shadow"
-                                            onClick={handleConfirmOrder}>
-                                            <CheckCircle className="w-6 h-6"
-                                            />
-                                            Xác nhận đơn hàng
-                                        </button>
+                                    <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                                        <p className="text-xs text-gray-500 mb-1">Trạng thái trả hàng</p>
+                                        <p className="text-sm font-bold text-red-600">
+                                            {mapReturnExchangeStatus(orderData.returnExchangeStatus)}
+                                        </p>
+                                    </div>
+
+                                    <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                                        <p className="text-xs text-gray-500 mb-1">Có đơn kính</p>
+                                        <p className="text-sm font-bold text-gray-800">
+                                            {orderData.hasPrescriptionItem ? "Có" : "Không"}
+                                        </p>
+                                    </div>
+
+                                    <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                                        <div className="flex items-start gap-3">
+                                            <CreditCard className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0" />
+                                            <div>
+                                                <p className="text-xs text-gray-500 mb-1">
+                                                    Thanh toán cuối cùng
+                                                </p>
+                                                <p
+                                                    className={`text-sm font-bold ${orderData.requiresFinalPayment
+                                                        ? "text-amber-600"
+                                                        : "text-green-600"
+                                                        }`}
+                                                >
+                                                    {orderData.requiresFinalPayment
+                                                        ? "Cần thanh toán thêm"
+                                                        : "Không cần thanh toán thêm"}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {availableActions.length > 0 ? (
+                                        <div className="space-y-3">
+                                            <p className="text-sm font-bold text-gray-800">
+                                                Các thao tác khả dụng
+                                            </p>
+
+                                            {availableActions.map((action, index) => (
+                                                <button
+                                                    key={`${action}-${index}`}
+                                                    className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-3 px-4 rounded-xl transition-all font-bold shadow"
+                                                    type="button"
+                                                >
+                                                    <CheckCircle className="w-5 h-5" />
+                                                    {mapActionLabel(action)}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                                            <p className="text-sm text-gray-800 font-medium">
+                                                Hiện tại chưa có thao tác xử lý khả dụng
+                                            </p>
+                                        </div>
                                     )}
                                 </div>
                             </div>
