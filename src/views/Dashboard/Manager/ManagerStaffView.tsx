@@ -1,12 +1,12 @@
 // ManagerStaffView.tsx
 import { useState, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { api } from '@/lib/api';
 import { Staff } from './ManagerStaffView/StaffConfig';
 import { StaffHeader } from './ManagerStaffView/StaffHeader';
 import { StaffTable } from './ManagerStaffView/StaffTable';
 import { DeleteConfirmModal } from './ManagerStaffView/DeleteConfirmModal';
 import { StaffModal } from './ManagerStaffView/StaffModal';
+import { Popup } from '@/components/Popup'; // Nhớ trỏ đúng đường dẫn tới file Popup vừa tạo
 
 export default function ManagerStaffView() {
     const [search, setSearch] = useState('');
@@ -25,6 +25,9 @@ export default function ManagerStaffView() {
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
     const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
 
+    // STATE CHO POPUP THÔNG BÁO
+    const [popup, setPopup] = useState({ isOpen: false, message: '', type: 'success' as 'success' | 'error' });
+
     const [formData, setFormData] = useState({
         username: '',
         password: '',
@@ -39,12 +42,16 @@ export default function ManagerStaffView() {
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // Hàm gọi nhanh Popup
+    const showPopup = (message: string, type: 'success' | 'error') => {
+        setPopup({ isOpen: true, message, type });
+    };
+
     // XEM USER
     useEffect(() => {
         const fetchStaff = async () => {
             try {
                 const response = await api.get("users");
-                // CẬP NHẬT: Lấy mảng từ response.data.result theo đúng API trả về
                 setStaff(response.data?.result || []);
             } catch (error) {
                 console.error("Lỗi:", error);
@@ -59,7 +66,7 @@ export default function ManagerStaffView() {
         setCurrentPage(1);
     }, [search, selectedRoles, sortBy]);
 
-    // CẬP NHẬT LOGIC LỌC
+    // LỌC DỮ LIỆU
     const filtered = staff.filter(s => {
         const staffName = s.name || '';
         const staffEmail = s.email || '';
@@ -100,11 +107,11 @@ export default function ManagerStaffView() {
                     ? { ...s, status: false }
                     : s
             ));
-            alert("Đã khóa nhân viên thành công!");
+            showPopup("Đã khóa nhân viên thành công!", "success");
             setIsDeleteModalOpen(false);
             setStaffToDelete(null);
         } catch (error) {
-            alert("Lỗi khi khóa nhân viên!");
+            showPopup("Lỗi khi khóa nhân viên!", "error");
             setIsDeleteModalOpen(false);
         }
     };
@@ -123,8 +130,6 @@ export default function ManagerStaffView() {
                 roleName: staffObj.role?.name || 'CUSTOMER' 
             };
 
-            console.log("Dữ liệu gửi lên để Restore:", putPayload);
-
             await api.put('users/admin/update', putPayload);
 
             setStaff(prev => prev.map(s =>
@@ -132,18 +137,17 @@ export default function ManagerStaffView() {
                     ? { ...s, status: true }
                     : s
             ));
-            alert("Mở khóa tài khoản thành công!");
+            showPopup("Mở khóa tài khoản thành công!", "success");
 
         } catch (error: any) {
             console.error("Chi tiết lỗi:", error.response?.data);
             const backendErrorMsg = error.response?.data?.message || error.response?.data?.result || "Lỗi không xác định từ Server!";
-            alert(`LỖI TỪ BACKEND: ${backendErrorMsg}`);
+            showPopup(backendErrorMsg, "error");
         }
     };
 
     const handleAddClick = () => {
         setEditingStaff(null);
-        // Khởi tạo các trường bắt buộc là chuỗi rỗng, không bắt buộc để rỗng
         setFormData({
             username: '', password: '', email: '', phone: '', name: '', dob: '',
             address: '', idNumber: '', roleName: 'CUSTOMER', status: true
@@ -153,11 +157,9 @@ export default function ManagerStaffView() {
 
     const handleEditClick = (staffObj: Staff) => {
         setEditingStaff(staffObj);
-
-        // Chỉ lấy chuỗi address từ staffObj, bỏ qua mấy cái province/district lằng nhằng
         setFormData({
             username: staffObj.username || '',
-            password: '', // Password không đổ về khi edit
+            password: '', 
             email: staffObj.email || '',
             phone: staffObj.phone || '',
             name: staffObj.name || '',
@@ -174,12 +176,11 @@ export default function ManagerStaffView() {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-const handleSaveStaff = async (e: React.FormEvent) => {
+    const handleSaveStaff = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
         try {
             if (editingStaff) {
-                // Nhánh Cập nhật
                 const putPayload = {
                     username: formData.username, 
                     name: formData.name,
@@ -190,7 +191,7 @@ const handleSaveStaff = async (e: React.FormEvent) => {
                 };
 
                 await api.put('users/admin/update', putPayload);
-                alert("Cập nhật thông tin thành công!");
+                showPopup("Cập nhật thông tin thành công!", "success");
 
                 setStaff(prev => prev.map(s =>
                     (s.username === formData.username)
@@ -209,18 +210,15 @@ const handleSaveStaff = async (e: React.FormEvent) => {
                     idNumber: formData.idNumber || null,
                     status: formData.status,
                     roleName: formData.roleName,
-
-                    // Gắn cứng các trường không dùng tới
                     provinceCode: null, provinceName: null,
                     districtCode: null, districtName: null,
                     wardCode: null, wardName: null
                 };
 
                 await api.post('users/admin/create', postPayload);
-                alert("Thêm nhân viên mới thành công!");
+                showPopup("Thêm nhân viên mới thành công!", "success");
             }
 
-            // Load lại danh sách mới nhất
             const response = await api.get("users");
             setStaff(response.data?.result || []);
 
@@ -228,7 +226,7 @@ const handleSaveStaff = async (e: React.FormEvent) => {
         } catch (error: any) {
             console.error("Lỗi Server trả về:", error.response?.data);
             const backendErrorMsg = error.response?.data?.message || error.response?.data?.result || "Dữ liệu nhập vào chưa đúng định dạng!";
-            alert(`LỖI: ${backendErrorMsg}`);
+            showPopup(backendErrorMsg, "error");
         } finally {
             setIsSubmitting(false);
         }
@@ -263,6 +261,14 @@ const handleSaveStaff = async (e: React.FormEvent) => {
                 setFormData={setFormData}
                 handleFormChange={handleFormChange}
                 isEditing={!!editingStaff} isSubmitting={isSubmitting}
+            />
+
+            {/* GỌI COMPONENT POPUP Ở ĐÂY */}
+            <Popup 
+                isOpen={popup.isOpen} 
+                message={popup.message} 
+                type={popup.type} 
+                onClose={() => setPopup({ ...popup, isOpen: false })} 
             />
         </div>
     );
