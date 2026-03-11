@@ -14,6 +14,8 @@ const orderStatusVN = {
     CANCELED: 'Đã hủy',
     COMPLETED: 'Hoàn thành',
     CONFIRMED: 'Đã xác nhận',
+    READY: "Sẵn sàng giao",
+    PROCESSING: "Đang xử lý",
 };
 
 const OrderFilter = ({ filters, onFilterChange, onResetFilter, statusList, orderTypeList }) => {

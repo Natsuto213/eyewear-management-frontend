@@ -78,7 +78,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
                     <Route path="containers/orders" element={<OrderTable />} />
                     <Route path="containers/return-orders" element={<ReturnOrderTable />} />
                     <Route path="ui/orderdetail/:orderId" element={<OrderDetail />} />
-                    <Route path="ui/returnorderdetail/:orderId" element={<ReturnOrderDetail />} />
+                    <Route path="ui/returnorderdetail/:returnExchangeId" element={<ReturnOrderDetail />} />
                 </Route>
 
             </Routes>

@@ -52,11 +52,11 @@ const ReturnOrderTable = () => {
 
     // Gọi API lấy danh sách đơn hàng
     const fetchOrders = () => {
-        api.get("https://69a3030cbe843d692bd2bd7d.mockapi.io/data-orders/")
+        api.get("api/staff/return-exchange")
             .then((res) => {
-                setOrders(res.data || [])
+                setOrders(res.data.result || [])
                 setLoading(false)
-                console.log("Data orders: ", res.data)
+                console.log("Data orders: ", res.data.result)
             })
             .catch((err) => {
                 console.error("Lỗi khi gọi API:", err)
@@ -137,7 +137,7 @@ const ReturnOrderTable = () => {
                         <tbody className="text-sm text-gray-600">
                             {filteredOrders.length > 0 ? (
                                 filteredOrders.map((order, index) => (
-                                    <OrderRow key={order.id} order={order} index={index} />
+                                    <OrderRow key={order.orderId} order={order} index={index} />
                                 ))
                             ) : (
                                 <tr>

@@ -241,7 +241,6 @@ export function mapApiItemToLocal(apiItem) {
 export async function addCartItemApi(item, quantity) {
     const body = buildCartApiBody(item, quantity);
     const response = await api.post("/api/cart/add", body);
-    alert("Thêm đơn hàng thành công");
     return response.data;
 }
 

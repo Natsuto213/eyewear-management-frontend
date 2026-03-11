@@ -55,6 +55,7 @@ const OrderTable = () => {
         api.get("api/staff/orders")
             .then((res) => {
                 setOrders(res.data.result || [])
+                console.log("Data orders 1: ", res.data)
                 setLoading(false)
             })
             .catch((err) => {
