@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+
 import { apiGetMyInfo } from "@/lib/userApi";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
@@ -9,11 +10,13 @@ import PaymentMethods from "./PaymentMethods";
 import OrderSummary from "./OrderSummary";
 import AddressModal from "./AddressModal";
 
+
 type PaymentMethodType = "VNPAY" | "PAYOS" | "COD";
 
 const ConfirmPage: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+
 
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [previewData, setPreviewData] = useState<any>(null);
@@ -40,6 +43,7 @@ const ConfirmPage: React.FC = () => {
         const res = await apiGetMyInfo();
         const u = res?.result ?? res;
         if (u) {
+
           setForm(prev => ({
             ...prev,
             fullName: u.name || "",
@@ -65,6 +69,7 @@ const ConfirmPage: React.FC = () => {
           const items = JSON.parse(saved);
           setCartItems(items);
         }
+
       } catch (err) {
         console.error("Lỗi khởi tạo:", err);
       } finally {
@@ -79,6 +84,7 @@ const ConfirmPage: React.FC = () => {
     if (itemIds.length === 0) return;
     try {
       // FIX: Dùng đúng key 'access_token' từ ảnh Application của Kiên
+
       const token = localStorage.getItem("access_token");
 
       const payload: any = {
@@ -88,6 +94,7 @@ const ConfirmPage: React.FC = () => {
       };
 
       if (codes?.districtCode && codes?.wardCode) {
+
         payload.address = {
           districtCode: codes.districtCode,
           wardCode: codes.wardCode
@@ -97,6 +104,7 @@ const ConfirmPage: React.FC = () => {
       const res = await axios.post("https://api-eyewear.purintech.id.vn/checkout/preview", payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
+
 
       if (res.data.result) {
         setPreviewData(res.data.result);
@@ -117,6 +125,7 @@ const ConfirmPage: React.FC = () => {
 
   // --- 4. HÀM XỬ LÝ KHI XÁC NHẬN ĐỊA CHỈ TỪ MODAL ---
   const handleAddressConfirm = async (addr: string, isSave: boolean, codes: any) => {
+
     setForm(prev => ({ ...prev, address: addr }));
     setSelectedCodes(codes);
 
@@ -179,6 +188,7 @@ const ConfirmPage: React.FC = () => {
         note: "Giao hàng từ web",
         paymentMethod: payment,
 
+
         address: {
           provinceCode: Number(selectedCodes.provinceCode),
           provinceName: selectedCodes.provinceName,
@@ -192,6 +202,7 @@ const ConfirmPage: React.FC = () => {
 
       // Xử lý cọc nếu cần
       if (previewData?.depositRequired && payment === "COD") {
+
         payload.depositPaymentMethod = "VNPAY";
       }
 
@@ -219,11 +230,13 @@ const ConfirmPage: React.FC = () => {
 
   return (
     <>
+
       {console.log(payment)}
       <Navbar />
       <div className="min-h-screen bg-zinc-50 pb-12">
         <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="space-y-6">
+
             <ShippingForm
               form={form}
               setForm={setForm}
@@ -242,6 +255,7 @@ const ConfirmPage: React.FC = () => {
           />
         </div>
       </div>
+
 
       <AddressModal
         isOpen={isModalOpen}

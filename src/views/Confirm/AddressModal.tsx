@@ -5,6 +5,7 @@ interface AddressModalProps {
   isOpen: boolean;
   onClose: () => void;
   // FIX: Thêm provinceCode vào type của codes
+
   onConfirm: (fullAddress: string, isSave: boolean, codes: {provinceCode?: string; provinceName?: string; districtCode: string; districtName: string; wardCode: string, wardName: string, street: string}) => void;
 }
 

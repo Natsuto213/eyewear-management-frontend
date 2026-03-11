@@ -29,6 +29,7 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({ payment, setPayment, to
         <button
           type="button"
           onClick={() => setPayment("VNPAY")}
+
           className={`group relative flex flex-col items-center justify-center rounded-2xl border-2 p-4 transition-all ${payment === "VNPAY" ? "border-red-500 bg-red-50 shadow-md" : "border-zinc-100 bg-white hover:border-zinc-200"
             }`}
         >
@@ -36,6 +37,7 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({ payment, setPayment, to
           <span className={`text-xs font-bold ${payment === "VNPAY" ? "text-red-700" : "text-zinc-500"}`}>VNPAY</span>
           {payment === "VNPAY" && <div className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white shadow-sm italic text-[10px]">✓</div>}
         </button>
+
 
         {/* PAYOS */}
         <button
@@ -53,6 +55,7 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({ payment, setPayment, to
         <button
           type="button"
           onClick={() => setPayment("COD")}
+
           className={`group relative flex flex-col items-center justify-center rounded-2xl border-2 p-4 transition-all ${payment === "COD" ? "border-orange-500 bg-orange-50 shadow-md" : "border-zinc-100 bg-white hover:border-zinc-200"
             }`}
         >
@@ -74,11 +77,13 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({ payment, setPayment, to
             Vui lòng chọn phương thức thanh toán tiền cọc (số tiền còn lại sẽ thanh toán khi nhận hàng):
           </p>
 
+
           <div className="flex gap-3">
             <button
               onClick={() => setPayment("VNPAY")}
               className="flex-1 flex items-center justify-center gap-2 py-2 px-4 bg-white border border-zinc-200 rounded-xl hover:border-red-500 hover:text-red-600 transition-all shadow-sm"
             >
+
 
               <span className="text-xs font-bold">Cọc qua VNPAY</span>
             </button>

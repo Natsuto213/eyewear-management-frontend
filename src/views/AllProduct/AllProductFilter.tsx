@@ -1,3 +1,4 @@
+
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 import { useOutletContext, Link } from "react-router-dom";
 
@@ -58,3 +59,4 @@ export default function AllProductFrame() {
         </div>
     );
 }
+
