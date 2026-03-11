@@ -7,7 +7,8 @@ import {
     Users,
     ShieldCheck,
     TrendingUp,
-    Tag
+    Tag,
+    House
 } from 'lucide-react';
 
 export type Role = 'sales' | 'operation' | 'manager';
@@ -80,6 +81,11 @@ export const roleTabsConfig: RoleTabs[] = [
         displayName: 'Manager',
         tabs: [
             {
+                id: 'home',
+                label: 'Về lại trang chủ',
+                icon: House,
+                path: '/'
+            }, {
                 id: 'product',
                 label: 'Danh sách sản phẩm',
                 icon: Package,
