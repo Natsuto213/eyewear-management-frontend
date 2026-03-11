@@ -12,8 +12,9 @@ interface OrderRow {
   orderDate: string;
   totalAmount: number;
   shippingStatus?: string;
-  returnExchangeStatus?: string;
-  returnType?: string;
+  returnExchangeId?: number | null;
+  returnType?: string | null;
+  returnExchangeStatus?: string | null;
 }
 
 interface OrderTableProps {
@@ -35,59 +36,48 @@ export default function OrderTable({ orders, loading }: OrderTableProps) {
     return value.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
   };
 
-  const statusConfig: Record<string, { bg: string; text: string; icon: any; label: string }> = {
+  // Order status — fallback khi shipping không override
+  const orderStatusConfig: Record<string, { bg: string; text: string; icon: any; label: string }> = {
     CONFIRMED: {
       bg: "bg-gradient-to-r from-blue-100 to-cyan-100",
-      text: "text-blue-800",
-      icon: CheckCircle2,
-      label: "Đã xác nhận",
+      text: "text-blue-800", icon: CheckCircle2, label: "Đã xác nhận",
     },
     PROCESSING: {
       bg: "bg-gradient-to-r from-amber-100 to-yellow-100",
-      text: "text-amber-800",
-      icon: Clock,
-      label: "Đang gia công",
+      text: "text-amber-800", icon: Clock, label: "Đang gia công",
     },
     READY: {
       bg: "bg-gradient-to-r from-violet-100 to-purple-100",
-      text: "text-violet-800",
-      icon: CheckCircle2,
-      label: "Chờ vận chuyển",
+      text: "text-violet-800", icon: CheckCircle2, label: "Chờ vận chuyển",
     },
     COMPLETED: {
       bg: "bg-gradient-to-r from-emerald-100 to-green-100",
-      text: "text-emerald-800",
-      icon: CheckCircle2,
-      label: "Hoàn thành",
+      text: "text-emerald-800", icon: CheckCircle2, label: "Hoàn thành",
     },
     CANCELED: {
       bg: "bg-gradient-to-r from-red-100 to-rose-100",
-      text: "text-red-800",
-      icon: XCircle,
-      label: "Đã hủy",
+      text: "text-red-800", icon: XCircle, label: "Đã hủy",
     },
+  };
+
+  // Shipping status — ưu tiên hiển thị hơn order status khi có nghĩa
+  const shippingOverride: Record<string, { bg: string; text: string; icon: any; label: string }> = {
+    PACKING:   { bg: "bg-gradient-to-r from-blue-100 to-cyan-100",    text: "text-blue-800",    icon: Package,      label: "Đang đóng gói" },
+    SHIPPING:  { bg: "bg-gradient-to-r from-indigo-100 to-blue-100",  text: "text-indigo-800",  icon: Truck,        label: "Đang giao hàng" },
+    DELIVERED: { bg: "bg-gradient-to-r from-emerald-100 to-green-100",text: "text-emerald-800", icon: CheckCircle2, label: "Đã giao" },
+    FAILED:    { bg: "bg-gradient-to-r from-red-100 to-rose-100",     text: "text-red-800",     icon: XCircle,      label: "Giao thất bại" },
+    RETURNED:  { bg: "bg-gradient-to-r from-orange-100 to-amber-100", text: "text-orange-800",  icon: XCircle,      label: "Hoàn hàng" },
   };
 
   const orderTypeConfig: Record<string, { bg: string; text: string; label: string }> = {
     PRESCRIPTION_ORDER: {
       bg: "bg-gradient-to-r from-indigo-100 to-blue-100",
-      text: "text-indigo-800",
-      label: "Kính thuốc",
+      text: "text-indigo-800", label: "Kính thuốc",
     },
     MIX_ORDER: {
       bg: "bg-gradient-to-r from-purple-100 to-pink-100",
-      text: "text-purple-800",
-      label: "Đơn hỗn hợp",
+      text: "text-purple-800", label: "Đơn hỗn hợp",
     },
-  };
-
-  // Badge shipping — chỉ hiện khi có trạng thái đặc biệt cần chú ý
-  const shippingBadge: Record<string, { bg: string; text: string; label: string }> = {
-    PACKING:  { bg: "bg-blue-50 border border-blue-200",    text: "text-blue-700",   label: "📦 Đóng gói" },
-    SHIPPING: { bg: "bg-indigo-50 border border-indigo-200", text: "text-indigo-700", label: "🚚 Đang giao" },
-    DELIVERED:{ bg: "bg-green-50 border border-green-200",  text: "text-green-700",  label: "✅ Đã giao" },
-    FAILED:   { bg: "bg-red-50 border border-red-200",      text: "text-red-700",    label: "❌ Giao thất bại" },
-    RETURNED: { bg: "bg-orange-50 border border-orange-200",text: "text-orange-700", label: "↩️ Hoàn hàng" },
   };
 
   if (loading) {
@@ -127,23 +117,21 @@ export default function OrderTable({ orders, loading }: OrderTableProps) {
           <tbody className="divide-y divide-gray-100">
             {orders && orders.length > 0 ? (
               orders.map((order, index) => {
-                const statusInfo = statusConfig[order.orderStatus] || {
-                  bg: "bg-gray-100",
-                  text: "text-gray-800",
-                  icon: Package,
-                  label: order.orderStatus,
-                };
-                const StatusIcon = statusInfo.icon;
+                // Ưu tiên shipping override, fallback về order status
+                const display =
+                  (order.shippingStatus && shippingOverride[order.shippingStatus])
+                    ? shippingOverride[order.shippingStatus]
+                    : (orderStatusConfig[order.orderStatus] || {
+                        bg: "bg-gray-100", text: "text-gray-800",
+                        icon: Package, label: order.orderStatus,
+                      });
+
+                const DisplayIcon = display.icon;
 
                 const typeInfo = orderTypeConfig[order.orderType] || {
-                  bg: "bg-gray-100",
-                  text: "text-gray-800",
-                  label: order.orderType?.replace(/_/g, " ") || "---",
+                  bg: "bg-gray-100", text: "text-gray-800",
+                  label: order.orderType.replace(/_/g, " "),
                 };
-
-                const shipBadge = order.shippingStatus
-                  ? shippingBadge[order.shippingStatus]
-                  : null;
 
                 return (
                   <motion.tr
@@ -181,24 +169,13 @@ export default function OrderTable({ orders, loading }: OrderTableProps) {
                       </div>
                     </td>
 
-                    {/* Trạng thái — order + shipping badge */}
+                    {/* Trạng thái — 1 badge thông minh */}
                     <td className="p-4">
-                      <div className="flex flex-col gap-1.5">
-                        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl ${statusInfo.bg} shadow-sm w-fit`}>
-                          <StatusIcon className={`w-4 h-4 ${statusInfo.text}`} />
-                          <span className={`text-xs font-bold ${statusInfo.text}`}>
-                            {statusInfo.label}
-                          </span>
-                        </div>
-                        {/* Badge shipping nếu có */}
-                        {shipBadge && (
-                          <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl ${shipBadge.bg} w-fit`}>
-                            <Truck className={`w-3 h-3 ${shipBadge.text}`} />
-                            <span className={`text-xs font-bold ${shipBadge.text}`}>
-                              {shipBadge.label}
-                            </span>
-                          </div>
-                        )}
+                      <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl ${display.bg} shadow-sm`}>
+                        <DisplayIcon className={`w-4 h-4 ${display.text}`} />
+                        <span className={`text-xs font-bold ${display.text}`}>
+                          {display.label}
+                        </span>
                       </div>
                     </td>
 
