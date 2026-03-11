@@ -73,6 +73,12 @@ export const roleTabsConfig: RoleTabs[] = [
                 label: 'Stock Report',
                 icon: BarChart3,
                 path: '/operation-staff/stock-report'
+            },
+            {
+                id: 'home-page',
+                label: 'Trang chủ',
+                icon: BarChart3,
+                path: '/'
             }
         ]
     },
