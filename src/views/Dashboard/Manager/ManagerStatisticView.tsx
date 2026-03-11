@@ -7,54 +7,12 @@ import { Package, ShoppingCart, DollarSign, Clock, CheckCircle, Filter } from 'l
 import { ImageWithFallback } from '@/components/ImageWithFallback';
 import { api } from '@/lib/api'; 
 
-// ==========================================
-// CẤU TRÚC JSON CHUẨN (Có sẵn 30 ngày để test cắt cúp)
-// ==========================================
-const mockDashboardData = {
-    summary: { 
-        revenueDay: 3500000, 
-        revenueWeek: 28500000, 
-        revenueMonth: 145000000, 
-        pendingOrders: 18, 
-        completedOrders: 412 
-    },
-    revenueChart: [
-        { label: '01/03/2026', revenue: 12000000 }, { label: '02/03/2026', revenue: 15500000 },
-        { label: '03/03/2026', revenue: 8000000 },  { label: '04/03/2026', revenue: 22000000 },
-        { label: '05/03/2026', revenue: 19000000 }, { label: '06/03/2026', revenue: 28000000 },
-        { label: '07/03/2026', revenue: 24000000 }, { label: '08/03/2026', revenue: 32000000 },
-        { label: '09/03/2026', revenue: 18000000 }, { label: '10/03/2026', revenue: 11000000 },
-        { label: '11/03/2026', revenue: 29500000 }, { label: '12/03/2026', revenue: 14200000 },
-        { label: '13/03/2026', revenue: 21000000 }, { label: '14/03/2026', revenue: 34000000 },
-        { label: '15/03/2026', revenue: 16000000 }, { label: '16/03/2026', revenue: 19800000 },
-        { label: '17/03/2026', revenue: 42000000 }, { label: '18/03/2026', revenue: 23500000 },
-        { label: '19/03/2026', revenue: 12400000 }, { label: '20/03/2026', revenue: 26000000 },
-        { label: '21/03/2026', revenue: 31000000 }, { label: '22/03/2026', revenue: 17500000 },
-        { label: '23/03/2026', revenue: 9000000 },  { label: '24/03/2026', revenue: 28500000 },
-        { label: '25/03/2026', revenue: 20000000 }, { label: '26/03/2026', revenue: 36000000 },
-        { label: '27/03/2026', revenue: 15000000 }, { label: '28/03/2026', revenue: 27000000 },
-        { label: '29/03/2026', revenue: 19000000 }, { label: '30/03/2026', revenue: 38000000 }
-    ],
-    orderStatusChart: [
-        { name: 'Đang xử lý', value: 18 }, 
-        { name: 'Hoàn thành', value: 412 }, 
-        { name: 'Đã hủy', value: 15 },
-    ],
-    topProducts: [
-        { id: 1, name: 'Gọng Kính Mát Ray-Ban', price: 1000000, sold: 156, image: 'https://res.cloudinary.com/dbgkfgkrl/image/upload/v1772382822/Frame_01_ox1yjd.jpg' },
-        { id: 2, name: 'Tròng Đổi Màu Gen 8', price: 2500000, sold: 120, image: 'https://res.cloudinary.com/dbgkfgkrl/image/upload/v1772383014/Lens_01_i3cmlm.jpg' },
-        { id: 3, name: 'Kính Áp Tròng Màu Xám Khói', price: 350000, sold: 98, image: 'https://res.cloudinary.com/dbgkfgkrl/image/upload/v1772383015/Contact_Lens_01_yecoec.jpg' },
-        { id: 4, name: 'Gọng Titan Không Viền Doanh Nhân', price: 2500000, sold: 85, image: 'https://res.cloudinary.com/dbgkfgkrl/image/upload/v1772382822/Frame_01_ox1yjd.jpg' },
-        { id: 5, name: 'Tròng Kính Chống Ánh Sáng Xanh', price: 800000, sold: 72, image: 'https://res.cloudinary.com/dbgkfgkrl/image/upload/v1773167669/return_items/hgscrajhqdsd6z6cbxhi.png' },
-    ]
-};
-
 const formatVND = (value: number) => {
     if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
     return value.toLocaleString('vi-VN');
 };
 
-const PIE_COLORS = ['#f59e0b', '#10b981', '#ef4444'];
+const PIE_COLORS = ['#f59e0b', '#10b981', '#ef4444', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6'];
 
 const getFormattedDate = (date: Date) => {
     const year = date.getFullYear();
@@ -63,36 +21,35 @@ const getFormattedDate = (date: Date) => {
     return `${year}-${month}-${day}`;
 };
 
-// Hàm chuyển dd/mm/yyyy thành yyyy-mm-dd để so sánh chuỗi
-const parseMockDate = (dateStr: string) => {
-    const [day, month, year] = dateStr.split('/');
-    return `${year}-${month}-${day}`;
-};
-
 export default function ManagerStaticView() {
     const [revenueFilter, setRevenueFilter] = useState<'day' | 'week' | 'month'>('month');
 
-    const todayDate = new Date(); // Set cứng ngày hôm nay theo Mock Data để test
+    // Hàm hỗ trợ lùi ngày tính từ ngày hiện tại
+    const todayDate = new Date();
     const getDaysAgo = (days: number) => {
         const d = new Date(todayDate);
         d.setDate(d.getDate() - days);
         return getFormattedDate(d);
     };
 
-    const [startDate, setStartDate] = useState(getDaysAgo(29)); // Mặc định 30 ngày
+    // Mặc định lúc mới load trang sẽ chọn sẵn 30 ngày qua
+    const [startDate, setStartDate] = useState(getDaysAgo(29));
     const [endDate, setEndDate] = useState(getFormattedDate(todayDate));
     
-    const [data, setData] = useState<any>(null); // Để null ban đầu để test Loading
+    // STATE LƯU TRỮ DỮ LIỆU TỪ API THẬT
+    const [data, setData] = useState<any>(null); 
     const [loading, setLoading] = useState(true);
     const [activePreset, setActivePreset] = useState('30days');
 
     const chartData = data?.revenueChart || [];
     
+    // Tìm mức doanh thu cao nhất để tô màu nổi bật
     const maxRevenue = useMemo(() => {
         if (!chartData.length) return 0;
         return Math.max(...chartData.map((d: any) => d.revenue));
     }, [chartData]);
 
+    // Tính doanh thu trung bình
     const avgRevenue = useMemo(() => {
         if (!chartData.length) return 0;
         const total = chartData.reduce((sum: number, item: any) => sum + item.revenue, 0);
@@ -113,6 +70,7 @@ export default function ManagerStaticView() {
         fetchDashboardData(newStart, newEnd);
     };
 
+    // HÀM GỌI API LẤY TOÀN BỘ DATA DASHBOARD
     const fetchDashboardData = async (start = startDate, end = endDate) => {
         if (start > end) return alert("Ngày bắt đầu không được lớn hơn ngày kết thúc!");
         
@@ -122,46 +80,41 @@ export default function ManagerStaticView() {
         }
 
         try {
-            // MỞ COMMENT DÒNG DƯỚI NÀY KHI CÓ API
-            // const response = await api.get(`/api/statistics/dashboard?startDate=${start}&endDate=${end}`);
-            // setData(response.data);
+            // GỌI API THẬT ĐÚNG VỚI HÌNH BẠN GỬI
+            const response = await api.get(`/api/v1/dashboard?startDate=${start}&endDate=${end}`);
             
-            console.log(`Đang gọi API Thống Kê từ ${start} đến ${end}`);
+            // Log ra xem đúng không nha
+            console.log("Data từ API:", response.data);
             
-            // -------------------------------------------------------------
-            // ĐOẠN LOGIC NÀY CHỈ DÙNG ĐỂ TEST CẮT CÚP MOCK DATA TRÊN FRONTEND
-            // KHI CÓ API THẬT THÌ XÓA BỎ ĐOẠN NÀY ĐI NHA!
-            // -------------------------------------------------------------
-            setTimeout(() => {
-                const filteredChart = mockDashboardData.revenueChart.filter(item => {
-                    const itemDate = parseMockDate(item.label);
-                    return itemDate >= start && itemDate <= end;
-                });
-                
-                // Ráp lại thành cục data mới với mảng biểu đồ đã bị cắt
-                setData({
-                    ...mockDashboardData,
-                    revenueChart: filteredChart.map(item => ({
-                        label: item.label.substring(0, 5), // Bỏ bớt năm đi cho gọn cái trục X
-                        revenue: item.revenue
-                    }))
-                });
-                setLoading(false);
-            }, 400); 
-            // -------------------------------------------------------------
+            // Nạp data vào state để vẽ giao diện
+            setData(response.data);
 
         } catch (error) {
             console.error("Lỗi lấy dữ liệu Thống Kê:", error);
+            alert("Không thể tải dữ liệu thống kê lúc này!");
+        } finally {
             setLoading(false);
         }
     };
 
+    // Tự động load API lần đầu khi vào trang
     useEffect(() => {
         fetchDashboardData(); 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    if (!data || !data.summary) return <div className="p-8 text-center text-gray-500">Đang tải dữ liệu...</div>;
+    // Nếu chưa có data thì hiện màn hình Loading
+    if (loading && !data) return (
+        <div className="flex items-center justify-center h-full w-full">
+            <div className="text-center">
+                <div className="w-10 h-10 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-gray-500 font-medium animate-pulse">Đang tải dữ liệu thống kê...</p>
+            </div>
+        </div>
+    );
+
+    // Xử lý lỗi nếu data API trả về rỗng hoặc sai cấu trúc
+    if (!data || !data.summary) return <div className="p-8 text-center text-red-500">Lỗi: API không trả về đúng định dạng dữ liệu.</div>;
 
     return (
         <div className="p-4 sm:p-6 lg:p-8 h-full overflow-y-auto relative w-full max-w-[100vw] bg-gray-50/50">
@@ -370,7 +323,7 @@ export default function ManagerStaticView() {
                             </tr>
                         </thead>
                         <tbody>
-                            {data.topProducts.map((product: any, index: number) => (
+                            {data.topProducts && data.topProducts.map((product: any, index: number) => (
                                 <tr key={product.id} className="border-b border-gray-50 hover:bg-purple-50/30 transition-colors">
                                     <td className="px-6 py-4">
                                         <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full font-bold text-xs ${
