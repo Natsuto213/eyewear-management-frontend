@@ -23,7 +23,7 @@ import CancelPage from './views/CancelPage';
 import { ManagerLayout } from './views/Dashboard/Manager/ManagerLayout';
 import ManagerProductView from './views/Dashboard/Manager/ManagerProductView';
 import ManagerStaffView from './views/Dashboard/Manager/ManagerStaffView';
-import ManagerStaticView from './views/Dashboard/Manager/ManagerStaticView';
+import ManagerStatisticView from './views/Dashboard/Manager/ManagerStatisticView';
 import ManagerSalesView from './views/Dashboard/Manager/ManagerSalesView';
 import ManagerPoliciesView from './views/Dashboard/Manager/ManagerPoliciesView';
 
@@ -68,7 +68,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
                     <Route path="staff" element={<ManagerStaffView />} />
                     <Route path="policies" element={<ManagerPoliciesView />} />
                     <Route path="sales" element={<ManagerSalesView />} />
-                    <Route path="static" element={<ManagerStaticView />} />
+                    <Route path="static" element={<ManagerStatisticView />} />
                 </Route>
 
                 <Route path="/sales" element={<SalesStaffLayout />}>

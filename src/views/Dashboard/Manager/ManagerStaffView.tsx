@@ -110,27 +110,25 @@ export default function ManagerStaffView() {
     };
 
     const handleRestoreStaff = async (staffObj: Staff) => {
-        const currentId = staffObj.id || staffObj.userId || staffObj.username;
         const isConfirm = window.confirm(`Bạn có chắc chắn muốn mở khóa tài khoản cho "${staffObj.name}"?`);
         if (!isConfirm) return;
 
         try {
-            // SỬA: BỎ TRƯỜNG id THEO ĐÚNG HÌNH SWAGGER MỚI NHẤT
             const putPayload = {
+                username: staffObj.username,
                 name: staffObj.name || "",
                 phone: staffObj.phone || "",
                 address: staffObj.address || null,
                 status: true,
-                roleName: (staffObj.role?.name || 'CUSTOMER').replace(" ", "_")
+                roleName: staffObj.role?.name || 'CUSTOMER' 
             };
 
-            console.log("Dữ liệu gửi lên:", putPayload);
+            console.log("Dữ liệu gửi lên để Restore:", putPayload);
 
-            // Nếu tương lai BE báo cần id trên link, bạn tự đổi thành: await api.put(`users/admin/update/${currentId}`, putPayload);
             await api.put('users/admin/update', putPayload);
 
             setStaff(prev => prev.map(s =>
-                (s.id || s.userId || s.username) === currentId
+                (s.username === staffObj.username)
                     ? { ...s, status: true }
                     : s
             ));
@@ -176,28 +174,27 @@ export default function ManagerStaffView() {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSaveStaff = async (e: React.FormEvent) => {
+const handleSaveStaff = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
         try {
             if (editingStaff) {
-                const currentId = editingStaff.id || editingStaff.username;
-
-                // SỬA: BỎ TRƯỜNG id THEO ĐÚNG HÌNH SWAGGER MỚI NHẤT
+                // Nhánh Cập nhật
                 const putPayload = {
+                    username: formData.username, 
                     name: formData.name,
                     phone: formData.phone,
                     address: formData.address || null,
                     status: formData.status,
-                    roleName: formData.roleName.replace(" ", "_")
+                    roleName: formData.roleName
                 };
 
                 await api.put('users/admin/update', putPayload);
                 alert("Cập nhật thông tin thành công!");
 
                 setStaff(prev => prev.map(s =>
-                    (s.id || s.userId) === currentId
-                        ? { ...s, name: formData.name, phone: formData.phone, address: formData.address, status: formData.status, role: { name: formData.roleName.replace("_", " ") } }
+                    (s.username === formData.username)
+                        ? { ...s, name: formData.name, phone: formData.phone, address: formData.address, status: formData.status, role: { name: formData.roleName } }
                         : s
                 ));
             } else {
@@ -211,22 +208,19 @@ export default function ManagerStaffView() {
                     address: formData.address || null,
                     idNumber: formData.idNumber || null,
                     status: formData.status,
-                    roleName: formData.roleName.replace(" ", "_"), // Đảm bảo role chuẩn format (VD: SALES_STAFF)
+                    roleName: formData.roleName,
 
-                    // Gắn cứng các trường quận huyện thành null vì không dùng tới
-                    provinceCode: null,
-                    provinceName: null,
-                    districtCode: null,
-                    districtName: null,
-                    wardCode: null,
-                    wardName: null
+                    // Gắn cứng các trường không dùng tới
+                    provinceCode: null, provinceName: null,
+                    districtCode: null, districtName: null,
+                    wardCode: null, wardName: null
                 };
 
                 await api.post('users/admin/create', postPayload);
                 alert("Thêm nhân viên mới thành công!");
             }
 
-            // Gọi lại API để load lại danh sách mới
+            // Load lại danh sách mới nhất
             const response = await api.get("users");
             setStaff(response.data?.result || []);
 
