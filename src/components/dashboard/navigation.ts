@@ -32,6 +32,11 @@ export const roleTabsConfig: RoleTabs[] = [
         displayName: 'Sales Staff',
         tabs: [
             {
+                id: 'home',
+                label: 'Về lại trang chủ',
+                icon: House,
+                path: '/'
+            }, {
                 id: 'orders',
                 label: 'Danh sách đơn hàng',
                 icon: ShoppingCart,
@@ -58,29 +63,27 @@ export const roleTabsConfig: RoleTabs[] = [
         role: 'operation',
         displayName: 'Operation Staff',
         tabs: [
-            
             {
+                id: 'home',
+                label: 'Về lại trang chủ',
+                icon: House,
+                path: '/'
+            }, {
                 id: 'order-list',
                 label: 'Order List',
                 icon: ClipboardList,
-                path: '/operation-staff/orders'
-            },{
+                path: '/operation/orders'
+            }, {
                 id: 'inventory',
                 label: 'Inventory Management',
                 icon: Package,
-                path: '/operation-staff/inventory'
+                path: '/operation/inventory'
             }, {
                 id: 'stock-report',
                 label: 'Stock Report',
                 icon: BarChart3,
-                path: '/operation-staff/stock-report'
-            },
-            {
-                id: 'home-page',
-                label: 'Trang chủ',
-                icon: BarChart3,
-                path: '/'
-            }
+                path: '/operation/stock-report'
+            },  
         ]
     },
     {
