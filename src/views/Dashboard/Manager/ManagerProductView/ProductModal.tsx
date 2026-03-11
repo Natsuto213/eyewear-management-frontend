@@ -8,9 +8,10 @@ interface Props {
     onClose: () => void;
     onSave: (data: any) => Promise<void>;
     initialData: Product | null;
+    showPopup: (message: string, type: 'success' | 'error') => void; // 👈 Nhận hàm từ Cha truyền xuống
 }
 
-export function ProductModal({ isOpen, onClose, onSave, initialData }: Props) {
+export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }: Props) {
     const [formData, setFormData] = useState({
         id: 0,
         sku: '',
@@ -23,11 +24,11 @@ export function ProductModal({ isOpen, onClose, onSave, initialData }: Props) {
         allowPreorder: false,
         isActive: true,
 
-        // Gọng kính (Chỉ dùng khi Add)
+        // Gọng kính
         frameColor: '', frameTempleLength: 0, frameLensWidth: 0, frameBridgeWidth: 0, frameShapeName: '', frameMaterialName: '', frameDescription: '',
-        // Tròng kính (Chỉ dùng khi Add)
+        // Tròng kính
         lensTypeName: 'Đơn tròng', lensIndexValue: 0, lensDiameter: 0, lensAvailablePowerRange: '', lensIsBlueLightBlock: false, lensIsPhotochromic: false, lensDescription: '',
-        // Kính áp tròng (Chỉ dùng khi Add)
+        // Kính áp tròng
         contactLensUsageType: '', contactLensBaseCurve: 0, contactLensDiameter: 0, contactLensWaterContent: 0, contactLensAvailablePowerRange: '', contactLensQuantityPerBox: 0, contactLensMaterial: '', contactLensReplacementSchedule: '', contactLensColor: ''
     });
 
@@ -37,16 +38,13 @@ export function ProductModal({ isOpen, onClose, onSave, initialData }: Props) {
 
     useEffect(() => {
         if (initialData && isOpen) {
-            // NẠP DATA LÚC EDIT (Chỉ nạp Thông tin chung từ List trên bảng)
             const p = initialData as any;
-
-            // Tìm ảnh đại diện từ API
             const firstImageUrl = p.images?.find((img: any) => img.isAvatar)?.imageUrl 
                                   || p.images?.[0]?.imageUrl 
                                   || p.Image_URL;
 
             setFormData(prev => ({
-                ...prev, // Giữ nguyên các số 0 của thông số kỹ thuật vì mình ko hiện lên
+                ...prev, 
                 id: p.productID || p.id || 0,
                 sku: p.sku || '',
                 name: p.productName || p.name || '',
@@ -65,7 +63,6 @@ export function ProductModal({ isOpen, onClose, onSave, initialData }: Props) {
             setImageFiles([]);
 
         } else if (!initialData && isOpen) {
-            // RESET LÚC ADD MỚI
             setFormData({
                 id: 0, sku: '', name: '', price: 0, costPrice: 0, description: '', brandName: '', typeName: 'Gọng kính', allowPreorder: false, isActive: true,
                 frameColor: '', frameTempleLength: 0, frameLensWidth: 0, frameBridgeWidth: 0, frameShapeName: '', frameMaterialName: '', frameDescription: '',
@@ -75,10 +72,9 @@ export function ProductModal({ isOpen, onClose, onSave, initialData }: Props) {
             setImagePreviews([]);
             setImageFiles([]);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialData, isOpen]);
 
-    // Tránh kẹt Modal
     if (!isOpen) return null;
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -114,9 +110,12 @@ export function ProductModal({ isOpen, onClose, onSave, initialData }: Props) {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
         if (!initialData && imageFiles.length === 0) {
-            return alert("Vui lòng chọn ít nhất 1 hình ảnh cho sản phẩm mới!");
+            showPopup("Vui lòng chọn ít nhất 1 hình ảnh cho sản phẩm mới!", "error");
+            return; 
         }
+
         setIsSubmitting(true);
         await onSave({ ...formData, imageFiles });
         setIsSubmitting(false);
@@ -195,7 +194,6 @@ export function ProductModal({ isOpen, onClose, onSave, initialData }: Props) {
                             <div className="grid grid-cols-2 gap-4 items-center">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Loại sản phẩm *</label>
-                                    {/* Đã khóa Loại sản phẩm khi Edit */}
                                     <select name="typeName" value={formData.typeName} onChange={handleChange} disabled={isEditMode} className={`${inputClass} ${isEditMode ? 'bg-gray-100 cursor-not-allowed text-gray-500' : ''}`}>
                                         <option value="Gọng kính">Gọng kính</option>
                                         <option value="Tròng kính">Tròng kính</option>

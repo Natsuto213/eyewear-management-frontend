@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 
 import { Search, ShoppingCart, User } from "lucide-react";
 import { apiLogout } from "@/lib/userApi";
-import logo from "@/assets/Sora_logo.png";
+import logo from "@/assets/logo.png";
 import { useShoppingContext } from "../views/Cart/contexts/ShoppingContext";
 import CartItem from "../views/Cart/components/CartItem";
 import { formatCurrency } from "../views/Cart/helpers/common";
@@ -136,16 +136,14 @@ export default function Navbar() {
                         </div>
 
                         {/* Cart Dropdown Menu */}
-                        <div className="absolute right-0 mt-0 w-160 bg-white border border-gray-200 rounded-lg shadow-xl hidden group-hover:block z-50 transition-all duration-300">
-                            <div className="h-2 w-full bg-transparent"></div>
-                            <div className="bg-white rounded-lg overflow-hidden border border-gray-100">
-                                <div className="p-4">
-                                    <h3 className="text-lg font-semibold text-gray-800">Giỏ hàng của bạn</h3>
+                        <div className="absolute right-0 top-full pt-1 w-80 hidden group-hover:block z-50">
+                            <div className="bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
+                                <div className="p-4 bg-gray-50 border-b border-gray-100">
+                                    <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide">Giỏ hàng của bạn</h3>
                                 </div>
-                                <hr className="border-gray-100" />
-                                <div className="max-h-64 overflow-y-auto p-2 space-y-2">
+                                <div className="max-h-72 overflow-y-auto p-2">
                                     {cartItems.length === 0 ? (
-                                        <p className="text-sm text-gray-400 text-center py-4">Giỏ hàng trống</p>
+                                        <p className="text-sm text-gray-400 text-center py-6">Giỏ hàng trống</p>
                                     ) : (
                                         <table className="w-full">
                                             <tbody>
@@ -156,15 +154,14 @@ export default function Navbar() {
                                         </table>
                                     )}
                                 </div>
-                                <hr className="border-gray-100" />
-                                <div className="p-4 flex items-center justify-between bg-gray-50">
+                                <div className="p-4 flex items-center justify-between border-t border-gray-100 bg-gray-50">
                                     <div>
-                                        <p className="text-xs text-gray-400">Tổng cộng</p>
-                                        <p className="font-bold text-red-500 text-base">{formatCurrency(totalPrice)}</p>
+                                        <p className="text-xs text-gray-500 font-medium mb-0.5">Tổng cộng</p>
+                                        <p className="font-bold text-red-600 text-base">{formatCurrency(totalPrice)}</p>
                                     </div>
                                     <Link
                                         to="/cart"
-                                        className="inline-block px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium rounded-lg transition-colors"
+                                        className="inline-block px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium rounded-lg transition-colors"
                                     >
                                         Xem giỏ hàng →
                                     </Link>
@@ -188,15 +185,13 @@ export default function Navbar() {
                                 <User className="size-5 text-gray-600 group-hover:text-black transition" />
                             </button>
 
-                            {/* Menu Dropdown của User */}
-                            <div className="absolute right-0 mt-0 w-48 bg-white border border-gray-200 rounded-lg shadow-xl hidden group-hover:block z-50">
-                                {/* Đệm trong suốt để không bị mất hover */}
-                                <div className="h-2 w-full bg-transparent"></div>
-
-                                <div className="bg-white rounded-lg overflow-hidden border border-gray-100 py-2">
+                            {/* CẤU TRÚC DROPDOWN ĐÃ ĐƯỢC FIX LẠI */}
+                            <div className="absolute right-0 top-full pt-1 w-48 hidden group-hover:block z-50">
+                                {/* Thẻ bọc ngoài chứa box-shadow và viền */}
+                                <div className="bg-white border border-gray-200 rounded-xl shadow-xl py-2 overflow-hidden">
                                     <Link
                                         to="/profile"
-                                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-teal-600 transition"
+                                        className="block w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-teal-600 transition font-medium"
                                     >
                                         Hồ sơ cá nhân
                                     </Link>
@@ -205,7 +200,7 @@ export default function Navbar() {
                                     {isStaff && (
                                         <Link
                                             to={dashboardPath}
-                                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-purple-600 transition"
+                                            className="block w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-purple-600 transition font-medium"
                                         >
                                             Chuyển đến Dashboard
                                         </Link>
@@ -215,7 +210,7 @@ export default function Navbar() {
 
                                     <button
                                         onClick={handleLogout}
-                                        className="text-sm font-medium text-gray-600 hover:text-black transition"
+                                        className="block w-full text-left px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50 transition"
                                     >
                                         Đăng xuất
                                     </button>

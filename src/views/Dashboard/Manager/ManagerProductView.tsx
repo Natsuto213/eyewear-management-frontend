@@ -6,6 +6,8 @@ import { ProductHeader } from './ManagerProductView/ProductHeader';
 import { ProductTable } from './ManagerProductView/ProductTable';
 import { DeleteConfirmModal } from './ManagerProductView/DeleteConfirmModal';
 import { ProductModal } from './ManagerProductView/ProductModal';
+import { Popup } from '@/components/Popup'; // Import Popup
+import { ConfirmDialog } from '@/components/ConfirmDialog'; // Import ConfirmDialog
 
 export default function ManagerProductView() {
   // STATE DATA & LỌC
@@ -24,9 +26,19 @@ export default function ManagerProductView() {
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
-  // MODAL XÓA
+  // MODAL XÓA NGỪNG BÁN
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<number | null>(null);
+
+  // === STATE CHO POPUP VÀ CONFIRM MỞ BÁN LẠI ===
+  const [popup, setPopup] = useState({ isOpen: false, message: '', type: 'success' as 'success' | 'error' });
+  const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
+  const [productToRestore, setProductToRestore] = useState<any>(null);
+
+  // Hàm gọi nhanh Popup
+  const showPopup = (message: string, type: 'success' | 'error') => {
+    setPopup({ isOpen: true, message, type });
+  };
 
   // LOGIC LỌC
   const filtered = products.filter(p => {
@@ -52,7 +64,7 @@ export default function ManagerProductView() {
     if (sortBy === 'price_asc') return a.price - b.price;
     if (sortBy === 'price_desc') return b.price - a.price;
     if (sortBy === 'name_asc') return nameA.localeCompare(nameB);
-    return 0; 
+    return 0;
   });
 
   // LOGIC PHÂN TRANG
@@ -74,23 +86,6 @@ export default function ManagerProductView() {
   };
 
   useEffect(() => {
-<<<<<<< HEAD
-=======
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch("https://69a8008637caab4b8c606a09.mockapi.io/api/test");
-        if (!response.ok) {
-          throw new Error("Không tìm thấy api");
-        } 
-        const data = await response.json();
-        setProducts(data);
-      } catch (error) {
-        console.error("Lỗi khi tải dữ liệu API:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
->>>>>>> origin/dev/Kien
     fetchProducts();
   }, []);
 
@@ -105,7 +100,7 @@ export default function ManagerProductView() {
     setIsFormModalOpen(true);
   };
 
-  // XỬ LÝ MỞ MODAL SỬA (GIẢM TẢI: LẤY LUÔN DATA TRÊN BẢNG)
+  // XỬ LÝ MỞ MODAL SỬA 
   const handleEditClick = (product: any) => {
     setEditingProduct(product);
     setIsFormModalOpen(true);
@@ -114,11 +109,9 @@ export default function ManagerProductView() {
   // GỌI API KHI BẤM LƯU TỪ MODAL
   const handleSaveProduct = async (formData: any) => {
     if (editingProduct) {
-      // 🚀 NHÁNH SỬA (PUT) - ĐÃ CẬP NHẬT THEO SWAGGER MỚI NHẤT
+      // 🚀 NHÁNH SỬA (PUT)
       try {
         const currentId = editingProduct.id || editingProduct.productID;
-
-        // Xây dựng JSON payload y như hình ảnh Swagger của BE
         const putPayload = {
           id: currentId,
           sku: formData.sku,
@@ -130,25 +123,20 @@ export default function ManagerProductView() {
           typeName: formData.typeName
         };
 
-        // Bắn API PUT
         await api.put('api/products', putPayload);
-        
-        // (Tùy chọn) Gắn thêm API cập nhật ảnh nếu Backend có viết riêng 1 API Upload Image cho phần Update
-        // Vì trong Swagger PUT không thấy có trường hình ảnh.
 
-        alert("Cập nhật thông tin chung thành công!");
-        
-        // Load lại danh sách cho chắc ăn
+        showPopup("Cập nhật thông tin chung thành công!", "success"); // Đã thay bằng Popup
+
         fetchProducts();
         setIsFormModalOpen(false);
 
       } catch (error: any) {
         console.error("Lỗi khi cập nhật sản phẩm:", error);
-        alert("Có lỗi xảy ra khi cập nhật sản phẩm!");
+        showPopup("Có lỗi xảy ra khi cập nhật sản phẩm!", "error"); // Đã thay bằng Popup
       }
 
     } else {
-      // 🚀 NHÁNH THÊM MỚI (POST) - GIỮ NGUYÊN FORMDATA VÌ CÓ UP ẢNH & THÔNG SỐ
+      // 🚀 NHÁNH THÊM MỚI (POST) 
       try {
         const uploadData = new FormData();
 
@@ -205,19 +193,19 @@ export default function ManagerProductView() {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
 
-        alert("Thêm sản phẩm mới thành công!");
+        showPopup("Thêm sản phẩm mới thành công!", "success"); // Đã thay bằng Popup
         fetchProducts();
         setIsFormModalOpen(false);
 
       } catch (error: any) {
         console.error("Lỗi khi thêm sản phẩm:", error);
         const errMsg = error.response?.data?.message || error.response?.data?.result || "Có lỗi xảy ra khi gọi API Add!";
-        alert(`LỖI: ${errMsg}`);
+        showPopup(`LỖI: ${errMsg}`, "error"); // Đã thay bằng Popup
       }
     }
   };
 
-  // MỞ MODAL XÓA
+  // MỞ MODAL XÓA (Ngừng bán)
   const handleDeleteClick = (id: number) => {
     setProductToDelete(id);
     setIsDeleteModalOpen(true);
@@ -233,33 +221,42 @@ export default function ManagerProductView() {
           (p.id === productToDelete || p.productID === productToDelete) ? { ...p, isActive: false } : p
         )
       );
+      showPopup("Đã ngừng bán sản phẩm!", "success"); // Thêm thông báo nhẹ cho vui
       setIsDeleteModalOpen(false);
       setProductToDelete(null);
     } catch (error) {
       console.error("Lỗi khi xóa sản phẩm:", error);
-      alert("Lỗi 401: Vui lòng kiểm tra lại token đăng nhập hoặc quyền của bạn!");
+      showPopup("Lỗi 401: Vui lòng kiểm tra lại token đăng nhập hoặc quyền của bạn!", "error"); // Đã thay bằng Popup
       setIsDeleteModalOpen(false);
     }
   };
 
-  // MỞ BÁN LẠI (Status = true)
-  const handleRestoreProduct = async (product: any) => {
-    const currentName = product.productName || product.name;
-    const currentId = product.productID || product.id;
-    const currentBrand = product.brand?.brandName || product.brandName || product.Brand;
-    const currentType = product.productType?.typeName || product.typeName || product.Product_Type;
+  // ==========================================
+  // LOGIC MỚI: MỞ MODAL HỎI XÁC NHẬN MỞ BÁN LẠI
+  // ==========================================
+  const handleRestoreClick = (product: any) => {
+    setProductToRestore(product);
+    setIsRestoreModalOpen(true);
+  };
 
-    const isConfirm = window.confirm(`Bạn có chắc chắn muốn mở bán lại sản phẩm "${currentName}"?`);
-    if (!isConfirm) return;
+  // ==========================================
+  // LOGIC MỚI: GỌI API KHI XÁC NHẬN TRÊN MODAL MỞ BÁN
+  // ==========================================
+  const confirmRestoreProduct = async () => {
+    if (!productToRestore) return;
+
+    const currentName = productToRestore.productName || productToRestore.name;
+    const currentId = productToRestore.productID || productToRestore.id;
+    const currentBrand = productToRestore.brand?.brandName || productToRestore.brandName || productToRestore.Brand;
+    const currentType = productToRestore.productType?.typeName || productToRestore.typeName || productToRestore.Product_Type;
 
     try {
-      // ĐÃ CHỈNH SỬA PAYLOAD THEO ĐÚNG API PUT MỚI NHẤT
       const payload = {
         id: currentId,
-        sku: product.sku,
+        sku: productToRestore.sku,
         name: currentName,
-        price: product.price,
-        description: product.description,
+        price: productToRestore.price,
+        description: productToRestore.description,
         isActive: true,
         brandName: currentBrand,
         typeName: currentType
@@ -267,10 +264,14 @@ export default function ManagerProductView() {
 
       await api.put('api/products', payload);
       setProducts(prev => prev.map(p => (p.id === currentId || p.productID === currentId) ? { ...p, isActive: true } : p));
-      alert("Mở bán sản phẩm thành công!");
+
+      showPopup("Mở bán sản phẩm thành công!", "success"); // Đã thay bằng Popup
     } catch (error) {
       console.error("Lỗi khi khôi phục sản phẩm:", error);
-      alert("Có lỗi xảy ra khi khôi phục sản phẩm!");
+      showPopup("Có lỗi xảy ra khi khôi phục sản phẩm!", "error"); // Đã thay bằng Popup
+    } finally {
+      setIsRestoreModalOpen(false);
+      setProductToRestore(null);
     }
   };
 
@@ -295,9 +296,10 @@ export default function ManagerProductView() {
         setCurrentPage={setCurrentPage}
         onDeleteClick={handleDeleteClick}
         onEditClick={handleEditClick}
-        onRestoreClick={handleRestoreProduct}
+        onRestoreClick={handleRestoreClick} // Trỏ hàm mở modal vào đây
       />
 
+      {/* Modal xác nhận Ngừng Bán (Có sẵn của bạn) */}
       <DeleteConfirmModal
         isOpen={isDeleteModalOpen}
         productId={productToDelete}
@@ -313,6 +315,30 @@ export default function ManagerProductView() {
         initialData={editingProduct}
         onClose={() => setIsFormModalOpen(false)}
         onSave={handleSaveProduct}
+        showPopup={showPopup} 
+      />
+
+      {/* MODAL MỚI CHO VIỆC XÁC NHẬN MỞ BÁN LẠI SẢN PHẨM */}
+      <ConfirmDialog
+        isOpen={isRestoreModalOpen}
+        title="Xác nhận mở bán"
+        message={`Bạn có chắc chắn muốn kinh doanh lại sản phẩm "${productToRestore?.productName || productToRestore?.name}" không?`}
+        confirmText="Mở bán ngay"
+        cancelText="Hủy bỏ"
+        type="success" // Màu xanh lá cây đẹp mắt
+        onConfirm={confirmRestoreProduct}
+        onCancel={() => {
+          setIsRestoreModalOpen(false);
+          setProductToRestore(null);
+        }}
+      />
+
+      {/* POPUP THÔNG BÁO Ở GÓC MÀN HÌNH */}
+      <Popup
+        isOpen={popup.isOpen}
+        message={popup.message}
+        type={popup.type}
+        onClose={() => setPopup({ ...popup, isOpen: false })}
       />
     </div>
   );

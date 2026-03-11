@@ -6,7 +6,8 @@ import { StaffHeader } from './ManagerStaffView/StaffHeader';
 import { StaffTable } from './ManagerStaffView/StaffTable';
 import { DeleteConfirmModal } from './ManagerStaffView/DeleteConfirmModal';
 import { StaffModal } from './ManagerStaffView/StaffModal';
-import { Popup } from '@/components/Popup'; // Nhớ trỏ đúng đường dẫn tới file Popup vừa tạo
+import { Popup } from '@/components/Popup';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 
 export default function ManagerStaffView() {
     const [search, setSearch] = useState('');
@@ -25,29 +26,21 @@ export default function ManagerStaffView() {
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
     const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
 
-    // STATE CHO POPUP THÔNG BÁO
+    // STATE CHO POPUP VÀ CONFIRM RESTORE
     const [popup, setPopup] = useState({ isOpen: false, message: '', type: 'success' as 'success' | 'error' });
+    const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
+    const [staffToRestore, setStaffToRestore] = useState<Staff | null>(null);
 
     const [formData, setFormData] = useState({
-        username: '',
-        password: '',
-        email: '',
-        phone: '',
-        name: '',
-        dob: '',
-        address: '',
-        idNumber: '',
-        roleName: 'CUSTOMER',
-        status: true
+        username: '', password: '', email: '', phone: '', name: '', dob: '',
+        address: '', idNumber: '', roleName: 'CUSTOMER', status: true
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Hàm gọi nhanh Popup
     const showPopup = (message: string, type: 'success' | 'error') => {
         setPopup({ isOpen: true, message, type });
     };
 
-    // XEM USER
     useEffect(() => {
         const fetchStaff = async () => {
             try {
@@ -66,7 +59,6 @@ export default function ManagerStaffView() {
         setCurrentPage(1);
     }, [search, selectedRoles, sortBy]);
 
-    // LỌC DỮ LIỆU
     const filtered = staff.filter(s => {
         const staffName = s.name || '';
         const staffEmail = s.email || '';
@@ -116,24 +108,30 @@ export default function ManagerStaffView() {
         }
     };
 
-    const handleRestoreStaff = async (staffObj: Staff) => {
-        const isConfirm = window.confirm(`Bạn có chắc chắn muốn mở khóa tài khoản cho "${staffObj.name}"?`);
-        if (!isConfirm) return;
+    // BƯỚC 1: HÀM MỞ MODAL HỎI HAN
+    const handleRestoreClick = (staffObj: Staff) => {
+        setStaffToRestore(staffObj);
+        setIsRestoreModalOpen(true);
+    };
+
+    // BƯỚC 2: HÀM GỌI API KHI NGƯỜI DÙNG BẤM "XÁC NHẬN" TRÊN MODAL
+    const confirmRestoreStaff = async () => {
+        if (!staffToRestore) return;
 
         try {
             const putPayload = {
-                username: staffObj.username,
-                name: staffObj.name || "",
-                phone: staffObj.phone || "",
-                address: staffObj.address || null,
+                username: staffToRestore.username,
+                name: staffToRestore.name || "",
+                phone: staffToRestore.phone || "",
+                address: staffToRestore.address || null,
                 status: true,
-                roleName: staffObj.role?.name || 'CUSTOMER' 
+                roleName: staffToRestore.role?.name || 'CUSTOMER' 
             };
 
             await api.put('users/admin/update', putPayload);
 
             setStaff(prev => prev.map(s =>
-                (s.username === staffObj.username)
+                (s.username === staffToRestore.username)
                     ? { ...s, status: true }
                     : s
             ));
@@ -143,6 +141,10 @@ export default function ManagerStaffView() {
             console.error("Chi tiết lỗi:", error.response?.data);
             const backendErrorMsg = error.response?.data?.message || error.response?.data?.result || "Lỗi không xác định từ Server!";
             showPopup(backendErrorMsg, "error");
+        } finally {
+            // Nhớ đóng modal lại sau khi xong
+            setIsRestoreModalOpen(false);
+            setStaffToRestore(null);
         }
     };
 
@@ -247,7 +249,7 @@ export default function ManagerStaffView() {
                 setCurrentPage={setCurrentPage}
                 onDeleteClick={handleDeleteClick}
                 onEditClick={handleEditClick}
-                onRestoreClick={handleRestoreStaff}
+                onRestoreClick={handleRestoreClick} 
             />
 
             <DeleteConfirmModal
@@ -263,7 +265,21 @@ export default function ManagerStaffView() {
                 isEditing={!!editingStaff} isSubmitting={isSubmitting}
             />
 
-            {/* GỌI COMPONENT POPUP Ở ĐÂY */}
+            {/* MODAL MỚI CHO VIỆC MỞ KHÓA TÀI KHOẢN */}
+            <ConfirmDialog
+                isOpen={isRestoreModalOpen}
+                title="Xác nhận mở khóa"
+                message={`Bạn có chắc chắn muốn mở khóa tài khoản cho nhân viên "${staffToRestore?.name}" không?`}
+                confirmText="Mở khóa ngay"
+                cancelText="Hủy bỏ"
+                type="success" // Màu xanh lá cây đẹp mắt
+                onConfirm={confirmRestoreStaff}
+                onCancel={() => {
+                    setIsRestoreModalOpen(false);
+                    setStaffToRestore(null);
+                }}
+            />
+
             <Popup 
                 isOpen={popup.isOpen} 
                 message={popup.message} 
