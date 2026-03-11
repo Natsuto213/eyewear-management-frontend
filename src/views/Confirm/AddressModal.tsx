@@ -53,7 +53,7 @@ const AddressModal: React.FC<AddressModalProps> = ({ isOpen, onClose, onConfirm 
     } catch (err) { console.error(err); }
   };
 
-  // 3. Xử lý đổi Huyện -> Lấy Xã
+  
   const handleDistrictChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const dId = e.target.value;
     const dName = e.target.selectedOptions[0].text;

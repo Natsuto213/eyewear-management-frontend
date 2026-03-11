@@ -112,7 +112,7 @@ const Account: React.FC = () => {
                     <button
                         type="button"
                         onClick={() => setEditing(true)}
-                        className="rounded-xl bg-cyan-500 px-8 py-2.5 text-white font-semibold shadow-sm hover:bg-cyan-600 transition"
+                        className="rounded-xl bg-teal-600 px-8 py-2.5 text-white font-semibold shadow-sm hover:bg-teal-700 transition"
                     >
                         CHỈNH SỬA
                     </button>
@@ -120,7 +120,7 @@ const Account: React.FC = () => {
                     <button
                         type="button"
                         onClick={handleSave}
-                        className="rounded-xl bg-cyan-500 px-8 py-2.5 text-white font-semibold shadow-sm hover:bg-cyan-600 transition"
+                        className="rounded-xl bg-teal-600 px-8 py-2.5 text-white font-semibold shadow-sm hover:bg-teal-700 transition"
                     >
                         LƯU THÔNG TIN
                     </button>

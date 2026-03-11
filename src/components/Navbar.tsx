@@ -26,11 +26,10 @@ interface CartItemType {
 
 export default function Navbar() {
     const [showSearch, setShowSearch] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("access_token"));
     const location = useLocation();
-    const token = localStorage.getItem("access_token");
-    const isLoggedIn = !!token;
     const navigate = useNavigate();
-    const { cartItems, cartQty, totalPrice, fetchCart } = useShoppingContext();
+    const { cartItems, cartQty, totalPrice } = useShoppingContext();
 
     // LẤY THÔNG TIN USER TỪ LOCAL STORAGE
     const userSaved = localStorage.getItem("user");
@@ -67,6 +66,18 @@ export default function Navbar() {
         { name: "Về chúng tôi", path: "/about-us" },
     ];
 
+    const handleLogout = async () => {
+        try {
+            await apiLogout(); // Gọi API logout
+            localStorage.removeItem("access_token"); // Đảm bảo xóa token
+            localStorage.removeItem("user"); // Xóa thông tin người dùng
+            setIsLoggedIn(false); // Cập nhật trạng thái đăng xuất
+            navigate("/", { replace: true }); // Chuyển hướng về trang chủ sau khi logout
+        } catch (error) {
+            console.error("Logout failed:", error);
+        }
+    };
+
     return (
         <header className="w-full bg-white shadow-sm relative z-50">
             <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
@@ -97,7 +108,7 @@ export default function Navbar() {
 
                 {/* Chức năng bên phải (Search, Cart, User) */}
                 <div className="flex items-center gap-4">
-                    
+
                     {/* Search Icon */}
                     <div className="flex items-center relative">
                         <input
@@ -181,7 +192,7 @@ export default function Navbar() {
                             <div className="absolute right-0 mt-0 w-48 bg-white border border-gray-200 rounded-lg shadow-xl hidden group-hover:block z-50">
                                 {/* Đệm trong suốt để không bị mất hover */}
                                 <div className="h-2 w-full bg-transparent"></div>
-                                
+
                                 <div className="bg-white rounded-lg overflow-hidden border border-gray-100 py-2">
                                     <Link
                                         to="/profile"
@@ -189,7 +200,7 @@ export default function Navbar() {
                                     >
                                         Hồ sơ cá nhân
                                     </Link>
-                                    
+
                                     {/* NẾU LÀ NHÂN VIÊN/QUẢN LÝ SẼ HIỂN THỊ NÚT DASHBOARD */}
                                     {isStaff && (
                                         <Link
@@ -201,13 +212,10 @@ export default function Navbar() {
                                     )}
 
                                     <hr className="my-1 border-gray-100" />
-                                    
+
                                     <button
-                                        onClick={async () => {
-                                            await apiLogout();
-                                            window.location.href = "/";
-                                        }}
-                                        className="block w-full text-left px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition"
+                                        onClick={handleLogout}
+                                        className="text-sm font-medium text-gray-600 hover:text-black transition"
                                     >
                                         Đăng xuất
                                     </button>

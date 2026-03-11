@@ -74,6 +74,23 @@ export default function ManagerProductView() {
   };
 
   useEffect(() => {
+<<<<<<< HEAD
+=======
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch("https://69a8008637caab4b8c606a09.mockapi.io/api/test");
+        if (!response.ok) {
+          throw new Error("Không tìm thấy api");
+        } 
+        const data = await response.json();
+        setProducts(data);
+      } catch (error) {
+        console.error("Lỗi khi tải dữ liệu API:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+>>>>>>> origin/dev/Kien
     fetchProducts();
   }, []);
 

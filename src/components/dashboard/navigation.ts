@@ -58,21 +58,28 @@ export const roleTabsConfig: RoleTabs[] = [
         role: 'operation',
         displayName: 'Operation Staff',
         tabs: [
+            
             {
+                id: 'order-list',
+                label: 'Order List',
+                icon: ClipboardList,
+                path: '/operation-staff/orders'
+            },{
                 id: 'inventory',
                 label: 'Inventory Management',
                 icon: Package,
-                path: '/operation/inventory'
-            }, {
-                id: 'order-management',
-                label: 'Order Management',
-                icon: ClipboardList,
-                path: '/operation/order-management'
+                path: '/operation-staff/inventory'
             }, {
                 id: 'stock-report',
                 label: 'Stock Report',
                 icon: BarChart3,
-                path: '/operation/stock-report'
+                path: '/operation-staff/stock-report'
+            },
+            {
+                id: 'home-page',
+                label: 'Trang chủ',
+                icon: BarChart3,
+                path: '/'
             }
         ]
     },
