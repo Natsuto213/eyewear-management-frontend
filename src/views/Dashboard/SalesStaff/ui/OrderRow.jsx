@@ -1,5 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import { formatCurrency } from './utils/orderMaps';
 
 const orderTypeVN = {
     MIX_ORDER: 'Đơn hàng kết hợp',
@@ -40,7 +41,7 @@ const OrderRow = ({ order, index }) => {
             </td>
 
             <td className="px-4 py-3 text-center font-bold">
-                ${order.totalAmount}
+                {formatCurrency(order.totalAmount)}
             </td>
 
             <td className="px-4 py-3 text-center">

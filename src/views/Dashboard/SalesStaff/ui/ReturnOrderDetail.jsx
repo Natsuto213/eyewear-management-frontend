@@ -14,12 +14,16 @@ import CustomerAndOrderInfo from "./common/CustomerAndOrderInfo";
 import { mapOrderStatus, mapOrderType, formatCurrency, formatDateTime, mapReturnExchangeStatus, mapActionLabel } from "./utils/orderMaps.js";
 import { useParams } from "react-router-dom";
 import { api } from "@/lib/api";
+import { handleApprove, handleComplete, handleReject } from "./utils/apiReturn.js";
+import { useNavigate } from "react-router-dom";
 export default function ReturnOrderDetail() {
+    const navigate = useNavigate();
     const { returnExchangeId } = useParams();
     const [orderData, setOrderData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [openPrescriptionRows, setOpenPrescriptionRows] = useState({});
+    const [rejectReason, setRejectReason] = useState("");
 
     useEffect(() => {
         const fetchOrderDetail = async () => {
@@ -131,7 +135,7 @@ export default function ReturnOrderDetail() {
 
                                         <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-red-50 to-orange-50 rounded-xl border border-red-200">
                                             <span className="text-sm font-semibold text-gray-500 w-40">
-                                                Trạng thái yêu cầu:
+                                                Trạng thái trả hàng:
                                             </span>
                                             <span className="text-sm font-bold text-red-600">
                                                 {mapReturnExchangeStatus(orderData.returnExchangeStatus)}
@@ -268,7 +272,7 @@ export default function ReturnOrderDetail() {
                                             <button
                                                 className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-3 px-4 rounded-xl transition-all font-bold shadow"
                                                 type="button"
-                                                onClick={() => console.log("Chấp nhận yêu cầu")}
+                                                onClick={() => handleApprove(orderData.returnExchangeId, navigate)}
                                             >
                                                 <CheckCircle className="w-5 h-5" />
                                                 CHẤP NHẬN
@@ -276,11 +280,24 @@ export default function ReturnOrderDetail() {
                                             <button
                                                 className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white py-3 px-4 rounded-xl transition-all font-bold shadow"
                                                 type="button"
-                                                onClick={() => console.log("Từ chối yêu cầu")}
+                                                disabled={!rejectReason.trim()}
+                                                onClick={() => handleReject(orderData.returnExchangeId, rejectReason, navigate)}
                                             >
                                                 <XCircle className="w-5 h-5" />
                                                 TỪ CHỐI
                                             </button>
+                                            <div className="space-y-2">
+                                                <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+                                                    Lý do xử lý (Bắt buộc khi từ chối)
+                                                </label>
+                                                <textarea
+                                                    value={rejectReason}
+                                                    onChange={(e) => setRejectReason(e.target.value)}
+                                                    placeholder="Nhập lý do tại đây..."
+                                                    className="w-full p-3 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all resize-none bg-gray-50"
+                                                    rows="3"
+                                                />
+                                            </div>
                                         </div>
                                     )}
 
@@ -291,7 +308,7 @@ export default function ReturnOrderDetail() {
                                             <button
                                                 className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white py-3 px-4 rounded-xl transition-all font-bold shadow"
                                                 type="button"
-                                                onClick={() => console.log("Hoàn thành yêu cầu")}
+                                                onClick={() => handleComplete(orderData.returnExchangeId, navigate)}
                                             >
                                                 <CheckCircle className="w-5 h-5" />
                                                 HOÀN THÀNH

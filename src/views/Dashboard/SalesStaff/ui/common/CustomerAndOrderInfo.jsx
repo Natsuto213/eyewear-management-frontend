@@ -17,6 +17,8 @@ const mapShippingStatus = (status) => {
             return "Đã hoàn hàng";
         case "CANCELED":
             return "Đã hủy giao hàng";
+        case "PACKING":
+            return "Đang đóng gói";
         default:
             return status || "";
     }
