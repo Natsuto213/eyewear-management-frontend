@@ -33,12 +33,12 @@ export const roleTabsConfig: RoleTabs[] = [
         tabs: [
             {
                 id: 'orders',
-                label: 'Danh sach đơn hàng',
+                label: 'Danh sách đơn hàng',
                 icon: ShoppingCart,
                 path: '/sales/containers/orders'
             }, {
                 id: 'return-orders',
-                label: 'Danh sach đơn đổi trả',
+                label: 'Danh sách đơn đổi trả',
                 icon: FileText,
                 path: '/sales/containers/return-orders'
             }, {
