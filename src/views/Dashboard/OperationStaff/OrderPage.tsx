@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { fetchOrders } from "../../../lib/orders";
+import { motion } from "framer-motion";
+import { RefreshCcw, Package, AlertCircle } from "lucide-react";
 import OrderToolbar from "./OrderToolbar";
 import OrderTable from "./OrderTableOps";
 
@@ -14,7 +15,7 @@ export default function OrderPage() {
     searchQuery: "",
     status: "Tất cả",
     orderType: "Tất cả",
-    orderDate: "", // ← bỏ today, không lọc ngày mặc định
+    orderDate: "",
   });
 
   const token =
@@ -51,23 +52,36 @@ export default function OrderPage() {
       }
 
       // lấy toàn bộ đơn hàng
-      const params = {
-        orderCode: null,
-        orderDate: null,
-        orderType: null,
-        orderStatus: null,
-        page: 0,
-        size: 100,
+      const params = new URLSearchParams({
+        page: "0",
+        size: "100",
         sortBy: "orderDate",
         sortDir: "desc"
-      };
+      });
 
-      const res = await fetchOrders(token, params);
+      const res = await fetch(
+  `https://api-eyewear.purintech.id.vn/api/operation-staff/orders/search`,
+  {
+    method: "POST",                              // ← POST
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",        // ← thêm header
+    },
+    body: JSON.stringify({                       // ← truyền body JSON
+      page: 0,
+      size: 100,
+      sortBy: "orderDate",
+      sortDir: "desc"
+    }),
+  }
+);
 
-      const list = Array.isArray(res)
-        ? res
-        : res?.result?.content  // ← fix parse đúng structure API
-        || res?.content
+      const data = await res.json();
+
+      const list = Array.isArray(data.result)
+        ? data.result
+        : data?.result?.content
+        || data?.content
         || [];
 
       setOrders(list);
@@ -98,7 +112,7 @@ export default function OrderPage() {
       searchQuery: "",
       status: "Tất cả",
       orderType: "Tất cả",
-      orderDate: "", // ← reset cũng để rỗng
+      orderDate: "",
     });
   };
 
@@ -130,30 +144,59 @@ export default function OrderPage() {
   }, [orders, filters]);
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
 
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">
-            Quản lý đơn hàng
-          </h1>
-
-          <button
-            onClick={loadData}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-          >
-            Làm mới
-          </button>
-        </div>
-
-        {error && (
-          <div className="mb-4 text-red-500 font-medium">
-            ⚠️ {error}
+        {/* Header */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-wrap justify-between items-center gap-4 mb-8"
+        >
+          <div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
+              Quản lý đơn hàng
+            </h1>
+            <p className="text-gray-600">Danh sách tất cả đơn hàng trong hệ thống</p>
           </div>
+
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={loadData}
+            disabled={loading}
+            className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl font-semibold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <RefreshCcw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+            Làm mới
+          </motion.button>
+        </motion.div>
+
+        {/* Error Message */}
+        {error && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 bg-gradient-to-r from-red-100 to-rose-100 border-2 border-red-300 rounded-2xl p-5 shadow-lg"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-red-200 rounded-xl flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-red-700" />
+              </div>
+              <div>
+                <p className="text-red-700 font-bold text-lg">Lỗi tải dữ liệu</p>
+                <p className="text-red-600 text-sm">{error}</p>
+              </div>
+            </div>
+          </motion.div>
         )}
 
-        <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-200">
-
+        {/* Main Content */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
           <OrderToolbar
             filters={filters}
             onFilterChange={handleFilterChange}
@@ -167,8 +210,8 @@ export default function OrderPage() {
             orders={filteredOrders}
             loading={loading}
           />
+        </motion.div>
 
-        </div>
       </div>
     </div>
   );

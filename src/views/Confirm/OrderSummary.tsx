@@ -42,13 +42,14 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
           <span>Tạm tính</span>
           <span>{preview?.subTotal?.toLocaleString() || 0}đ</span>
         </div>
-        <div className="flex justify-between text-green-600 font-medium">
+        <div className="flex justify-between text-teal-600 font-medium">
           <span>Giảm giá</span>
           <span>-{preview?.discountAmount?.toLocaleString() || 0}đ</span>
         </div>
         <div className="flex justify-between text-zinc-500 font-medium">
           <span>Phí vận chuyển</span>
-          <span>{preview?.shippingFee === 0 ? <span className="text-green-600 font-bold uppercase text-[10px]">Miễn phí</span> : `${preview?.shippingFee?.toLocaleString() || 0}đ`}</span>
+          <span>{preview?.shippingFee === 0 ? <span className="text-teal-600 font-bold uppercase text-[10px]">Miễn phí</span>
+           : `${preview?.shippingFee?.toLocaleString() || 0}đ`}</span>
         </div>
 
         {/* HIỂN THỊ CỌC KHI CẦN */}

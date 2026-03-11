@@ -57,12 +57,7 @@ export const roleTabsConfig: RoleTabs[] = [
         role: 'operation',
         displayName: 'Operation Staff',
         tabs: [
-            {
-                id: 'order-management',
-                label: 'Order Management',
-                icon: ClipboardList,
-                path: '/operation-staff'
-            },
+            
             {
                 id: 'order-list',
                 label: 'Order List',
