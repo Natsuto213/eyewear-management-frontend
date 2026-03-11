@@ -30,14 +30,13 @@ export default function ManagerProductView() {
 
   // LOGIC LỌC
   const filtered = products.filter(p => {
-    // 1. Lọc theo chữ
-    const matchSearch = p.name?.toLowerCase().includes(search.toLowerCase()) ||
+    const currentName = p.productName || p.name || '';
+    const matchSearch = currentName.toLowerCase().includes(search.toLowerCase()) ||
       p.sku?.toLowerCase().includes(search.toLowerCase());
 
-    // 2. Lọc theo loại (Gọng kính, Tròng kính...)
-    const matchType = selectedTypes.length === 0 || selectedTypes.includes(p.Product_Type);
+    const currentType = p.productType?.typeName || p.typeName || p.Product_Type || '';
+    const matchType = selectedTypes.length === 0 || selectedTypes.includes(currentType);
 
-    // 3. SỬA: Lọc theo trạng thái
     const matchStatus =
       selectedStatus === 'all' ||
       (selectedStatus === 'active' && p.isActive === true) ||
@@ -46,34 +45,35 @@ export default function ManagerProductView() {
     return matchSearch && matchType && matchStatus;
   });
 
-  // LOGIC SẮP XẾP (Chạy trên mảng đã lọc)
+  // LOGIC SẮP XẾP 
   const sortedAndFiltered = [...filtered].sort((a, b) => {
+    const nameA = a.productName || a.name || '';
+    const nameB = b.productName || b.name || '';
     if (sortBy === 'price_asc') return a.price - b.price;
     if (sortBy === 'price_desc') return b.price - a.price;
-    if (sortBy === 'name_asc') return a.name.localeCompare(b.name);
-    return 0; // 'newest'
+    if (sortBy === 'name_asc') return nameA.localeCompare(nameB);
+    return 0; 
   });
 
   // LOGIC PHÂN TRANG
   const totalPages = Math.ceil(sortedAndFiltered.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-
-  // Dùng sortedAndFiltered thay vì filtered
   const currentItems = sortedAndFiltered.slice(startIndex, endIndex);
 
-  // XỬ LÝ XEM SẢN PHẨM
+  // XỬ LÝ LẤY SẢN PHẨM
+  const fetchProducts = async () => {
+    try {
+      const response = await api.get("api/products/admin/search");
+      setProducts(response.data);
+    } catch (error) {
+      console.error("Lỗi khi tải dữ liệu API:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await api.get("api/products/admin/search");
-        setProducts(response.data);
-      } catch (error) {
-        console.error("Lỗi khi tải dữ liệu API:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchProducts();
   }, []);
 
@@ -82,13 +82,14 @@ export default function ManagerProductView() {
     setCurrentPage(1);
   }, [search, selectedTypes, sortBy]);
 
-  // XỬ LÝ MỞ MODAL THÊM/SỬA
+  // XỬ LÝ MỞ MODAL THÊM
   const handleAddClick = () => {
     setEditingProduct(null);
     setIsFormModalOpen(true);
   };
 
-  const handleEditClick = (product: Product) => {
+  // XỬ LÝ MỞ MODAL SỬA (GIẢM TẢI: LẤY LUÔN DATA TRÊN BẢNG)
+  const handleEditClick = (product: any) => {
     setEditingProduct(product);
     setIsFormModalOpen(true);
   };
@@ -96,18 +97,48 @@ export default function ManagerProductView() {
   // GỌI API KHI BẤM LƯU TỪ MODAL
   const handleSaveProduct = async (formData: any) => {
     if (editingProduct) {
-      // (Nhánh Sửa PUT - Tạm thời giữ nguyên code cũ của bạn)
-      // ...
+      // 🚀 NHÁNH SỬA (PUT) - ĐÃ CẬP NHẬT THEO SWAGGER MỚI NHẤT
+      try {
+        const currentId = editingProduct.id || editingProduct.productID;
+
+        // Xây dựng JSON payload y như hình ảnh Swagger của BE
+        const putPayload = {
+          id: currentId,
+          sku: formData.sku,
+          name: formData.name,
+          price: formData.price,
+          description: formData.description || '',
+          isActive: formData.isActive,
+          brandName: formData.brandName,
+          typeName: formData.typeName
+        };
+
+        // Bắn API PUT
+        await api.put('api/products', putPayload);
+        
+        // (Tùy chọn) Gắn thêm API cập nhật ảnh nếu Backend có viết riêng 1 API Upload Image cho phần Update
+        // Vì trong Swagger PUT không thấy có trường hình ảnh.
+
+        alert("Cập nhật thông tin chung thành công!");
+        
+        // Load lại danh sách cho chắc ăn
+        fetchProducts();
+        setIsFormModalOpen(false);
+
+      } catch (error: any) {
+        console.error("Lỗi khi cập nhật sản phẩm:", error);
+        alert("Có lỗi xảy ra khi cập nhật sản phẩm!");
+      }
+
     } else {
-      // 🚀 NHÁNH THÊM MỚI (POST)
+      // 🚀 NHÁNH THÊM MỚI (POST) - GIỮ NGUYÊN FORMDATA VÌ CÓ UP ẢNH & THÔNG SỐ
       try {
         const uploadData = new FormData();
 
-        // 1. APPEND THÔNG TIN CHUNG
+        // 1. Thông tin chung
         uploadData.append('sku', formData.sku);
         uploadData.append('name', formData.name);
         uploadData.append('price', String(formData.price));
-        // Nếu costPrice trống hoặc bằng 0, mặc định lấy price
         uploadData.append('costPrice', String(formData.costPrice || formData.price));
         uploadData.append('description', formData.description || '');
         uploadData.append('brandName', formData.brandName);
@@ -115,14 +146,14 @@ export default function ManagerProductView() {
         uploadData.append('allowPreorder', String(formData.allowPreorder));
         uploadData.append('isActive', String(formData.isActive));
 
-        // 2. APPEND ẢNH (NẾU CÓ)
+        // 2. Ảnh
         if (formData.imageFiles && formData.imageFiles.length > 0) {
           formData.imageFiles.forEach((file: File) => {
             uploadData.append('imageFiles', file);
           });
         }
 
-        // 3. APPEND THÔNG SỐ KỸ THUẬT (Tùy theo loại sản phẩm)
+        // 3. Thông số kỹ thuật
         if (formData.typeName === 'Gọng kính') {
           uploadData.append('frameColor', formData.frameColor);
           uploadData.append('frameTempleLength', String(formData.frameTempleLength));
@@ -153,18 +184,12 @@ export default function ManagerProductView() {
           uploadData.append('contactLensColor', formData.contactLensColor);
         }
 
-        // BẮN API ĐI
         await api.post('api/products', uploadData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
+          headers: { 'Content-Type': 'multipart/form-data' }
         });
 
         alert("Thêm sản phẩm mới thành công!");
-
-        // Tải lại list
-        const response = await api.get("api/products/admin/search");
-        setProducts(response.data);
+        fetchProducts();
         setIsFormModalOpen(false);
 
       } catch (error: any) {
@@ -175,26 +200,22 @@ export default function ManagerProductView() {
     }
   };
 
-  // XỬ LÝ MỞ MODAL XÓA
+  // MỞ MODAL XÓA
   const handleDeleteClick = (id: number) => {
     setProductToDelete(id);
     setIsDeleteModalOpen(true);
   };
 
-  // GỌI API KHI BẤM XÓA TỪ MODAL
+  // XÓA MỀM (Status = false)
   const handleConfirmDelete = async () => {
     if (productToDelete === null) return;
     try {
-      // 1. Gọi API Xóa (sửa isActive của sản phẩm thành False)
       await api.delete(`api/products/${productToDelete}`);
-
-      // 2. Cập nhật lại UI thành trạng thái đã ẩn (isActive: false) thay vì vứt nó ra khỏi mảng
       setProducts(prev =>
         prev.map(p =>
-          p.id === productToDelete ? { ...p, isActive: false } : p
+          (p.id === productToDelete || p.productID === productToDelete) ? { ...p, isActive: false } : p
         )
       );
-
       setIsDeleteModalOpen(false);
       setProductToDelete(null);
     } catch (error) {
@@ -204,30 +225,32 @@ export default function ManagerProductView() {
     }
   };
 
-  // XỬ LÍ KHI BẤM RESTORE PRODUCT (Sửa isActive thành true)
-  const handleRestoreProduct = async (product: Product) => {
-    const isConfirm = window.confirm(`Bạn có chắc chắn muốn mở bán lại sản phẩm "${product.name}"?`);
+  // MỞ BÁN LẠI (Status = true)
+  const handleRestoreProduct = async (product: any) => {
+    const currentName = product.productName || product.name;
+    const currentId = product.productID || product.id;
+    const currentBrand = product.brand?.brandName || product.brandName || product.Brand;
+    const currentType = product.productType?.typeName || product.typeName || product.Product_Type;
+
+    const isConfirm = window.confirm(`Bạn có chắc chắn muốn mở bán lại sản phẩm "${currentName}"?`);
     if (!isConfirm) return;
 
     try {
+      // ĐÃ CHỈNH SỬA PAYLOAD THEO ĐÚNG API PUT MỚI NHẤT
       const payload = {
-        id: product.id,
+        id: currentId,
         sku: product.sku,
-        name: product.name,
+        name: currentName,
         price: product.price,
         description: product.description,
         isActive: true,
-        brandName: product.Brand,
-        typeName: product.Product_Type
+        brandName: currentBrand,
+        typeName: currentType
       };
 
-      // Gọi API PUT
       await api.put('api/products', payload);
-
-      // Cập nhật lại list sản phẩm trên giao diện mà không cần load lại trang
-      setProducts(prev => prev.map(p => p.id === product.id ? { ...p, isActive: true } : p));
+      setProducts(prev => prev.map(p => (p.id === currentId || p.productID === currentId) ? { ...p, isActive: true } : p));
       alert("Mở bán sản phẩm thành công!");
-
     } catch (error) {
       console.error("Lỗi khi khôi phục sản phẩm:", error);
       alert("Có lỗi xảy ra khi khôi phục sản phẩm!");
@@ -237,14 +260,10 @@ export default function ManagerProductView() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 h-full overflow-y-auto relative w-full max-w-[100vw]">
       <ProductHeader
-        search={search}
-        setSearch={setSearch}
-        selectedTypes={selectedTypes}
-        setSelectedTypes={setSelectedTypes}
-        selectedStatus={selectedStatus}
-        setSelectedStatus={setSelectedStatus}
-        sortBy={sortBy}
-        setSortBy={setSortBy}
+        search={search} setSearch={setSearch}
+        selectedTypes={selectedTypes} setSelectedTypes={setSelectedTypes}
+        selectedStatus={selectedStatus} setSelectedStatus={setSelectedStatus}
+        sortBy={sortBy} setSortBy={setSortBy}
         onAddClick={handleAddClick}
       />
 

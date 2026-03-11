@@ -1,16 +1,30 @@
-// productConfig.ts
+// ManagerProductView/productConfig.ts
+
 export interface Product {
-  id: number;
-  name: string;
+  // Các field chung cơ bản nhất từ API Search
+  productID?: number;
+  id?: number;
+  productName?: string;
+  name?: string;
   sku: string;
   description: string;
   price: number;
+  costPrice?: number;
   allowPreorder: boolean;
   isActive: boolean;
-  Image_URL: string;
-  Brand: string;
-  Product_Type: string;
-  frameId?: number;
+
+  // Thương hiệu và Loại sản phẩm
+  brand?: { brandID?: number; brandName?: string };
+  brandName?: string;
+  Brand?: string;
+
+  productType?: { productTypeID?: number; typeName?: string };
+  typeName?: string;
+  Product_Type?: string;
+
+  // Hình ảnh
+  images?: { imageID?: number; imageUrl?: string; isAvatar?: boolean }[];
+  Image_URL?: string;
 }
 
 export const formatPrice = (price: number) =>
