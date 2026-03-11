@@ -165,6 +165,7 @@ const Loginpage: React.FC = () => {
                             Đăng nhập bằng Google
                         </button>
 
+                        {/* Register */}
                         <p className="mt-6 text-center text-sm text-zinc-600">
                             Bạn chưa có tài khoản?
                             <Link
