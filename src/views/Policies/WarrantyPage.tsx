@@ -1,16 +1,26 @@
 import React, { useState } from 'react';
-import { Camera, X, Shield, RefreshCw, Clock, CheckCircle } from 'lucide-react';
+import { Camera, X, RefreshCw, Clock, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import LoginPopup from "@/views/Cart/components/LoginPopup"; 
 
 export default function WarrantyPage() {
     const [orderCode, setOrderCode] = useState('');
+    const [quantity, setQuantity] = useState<number>(1);
+    const [requestType, setRequestType] = useState<string>('WARRANTY'); 
     const [description, setDescription] = useState('');
+    
+    const [refundMethod, setRefundMethod] = useState('');
+    const [refundAccountNumber, setRefundAccountNumber] = useState('');
+
     const [images, setImages] = useState<File[]>([]);
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // STATE ĐỂ HIỂN THỊ LOGIN POPUP
+    const [showLoginPopup, setShowLoginPopup] = useState(false);
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
@@ -25,8 +35,6 @@ export default function WarrantyPage() {
 
     const removeImage = (index: number) => {
         setImages(prev => prev.filter((_, i) => i !== index));
-
-        // Revoke the URL to free up memory
         URL.revokeObjectURL(imagePreviews[index]);
         setImagePreviews(prev => prev.filter((_, i) => i !== index));
     };
@@ -34,9 +42,44 @@ export default function WarrantyPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        // 1. KIỂM TRA ĐĂNG NHẬP
+        const token = localStorage.getItem("access_token");
+        const userStr = localStorage.getItem("user");
+        
+        if (!token || !userStr) {
+            // MỞ POPUP ĐĂNG NHẬP THAY VÌ HIỆN TOAST LỖI
+            setShowLoginPopup(true);
+            return;
+        }
+
+        const userData = JSON.parse(userStr);
+        const userId = userData?.id || userData?.userId || userData?.User_ID; 
+
+        if (!userId) {
+            setShowLoginPopup(true);
+            return;
+        }
+
+        // 2. VALIDATE CÁC TRƯỜNG DỮ LIỆU
         if (!orderCode.trim()) {
             toast.error('Vui lòng nhập mã đơn');
             return;
+        }
+
+        if (quantity <= 0) {
+            toast.error('Số lượng phải lớn hơn 0');
+            return;
+        }
+
+        if (requestType === 'RETURN') {
+            if (!refundMethod.trim()) {
+                toast.error('Vui lòng nhập phương thức hoàn tiền (VD: MoMo, Vietcombank...)');
+                return;
+            }
+            if (!refundAccountNumber.trim()) {
+                toast.error('Vui lòng nhập số tài khoản / số điện thoại nhận tiền');
+                return;
+            }
         }
 
         if (!description.trim()) {
@@ -48,17 +91,28 @@ export default function WarrantyPage() {
 
         try {
             const formData = new FormData();
+            
+            formData.append('User_ID', userId.toString());
             formData.append('orderCode', orderCode);
+            formData.append('quantity', quantity.toString());
+            formData.append('Return_Type', requestType); 
+
+            if (requestType === 'RETURN') {
+                formData.append('Refund_Method', refundMethod);
+                formData.append('Refund_Account_Number', refundAccountNumber);
+            }
+
             formData.append('description', description);
 
-            // Append all images
-            images.forEach((image, index) => {
+            images.forEach((image) => {
                 formData.append('images', image);
             });
 
-            // Send to API
             const response = await fetch('http://localhost:8080/warranty', {
                 method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
                 body: formData,
             });
 
@@ -66,12 +120,16 @@ export default function WarrantyPage() {
                 toast.success('Gửi đơn thành công!');
                 // Reset form
                 setOrderCode('');
+                setQuantity(1);
+                setRequestType('WARRANTY');
+                setRefundMethod('');
+                setRefundAccountNumber('');
                 setDescription('');
                 setImages([]);
                 imagePreviews.forEach(url => URL.revokeObjectURL(url));
                 setImagePreviews([]);
             } else {
-                toast.error('Có lỗi xảy ra. Vui lòng thử lại!');
+                toast.error('Có lỗi xảy ra từ máy chủ. Vui lòng thử lại!');
             }
         } catch (error) {
             console.error('Error submitting warranty request:', error);
@@ -82,11 +140,10 @@ export default function WarrantyPage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col bg-gray-50">
-            < Navbar />
+        <div className="min-h-screen flex flex-col bg-gray-50 relative">
+            <Navbar />
 
             <main className="flex-1 container mx-auto px-4 py-12">
-                {/* Header */}
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-bold text-blue-600 mb-2">
                         YÊU CẦU BẢO HÀNH - ĐỔI TRẢ
@@ -96,29 +153,88 @@ export default function WarrantyPage() {
                     </p>
                 </div>
 
-                {/* Two Column Layout */}
                 <div className="grid lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
                     {/* Left Column - Form */}
                     <div>
                         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8 space-y-6">
                             <h2 className="text-xl font-bold text-gray-800 mb-4">Thông tin yêu cầu</h2>
 
-                            {/* Order Code Input */}
-                            <div>
-                                <label className="block text-gray-700 font-medium mb-2">
-                                    Nhập mã đơn <span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    value={orderCode}
-                                    onChange={(e) => setOrderCode(e.target.value)}
-                                    placeholder="Nhập mã đơn hàng"
-                                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
-                                    required
-                                />
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <div className="md:col-span-2">
+                                    <label className="block text-gray-700 font-medium mb-2">
+                                        Nhập mã đơn <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={orderCode}
+                                        onChange={(e) => setOrderCode(e.target.value)}
+                                        placeholder="Nhập mã đơn hàng"
+                                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="md:col-span-1">
+                                    <label className="block text-gray-700 font-medium mb-2">
+                                        Số lượng <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        value={quantity}
+                                        onChange={(e) => setQuantity(Number(e.target.value))}
+                                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="md:col-span-1">
+                                    <label className="block text-gray-700 font-medium mb-2">
+                                        Yêu cầu <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                        value={requestType}
+                                        onChange={(e) => setRequestType(e.target.value)}
+                                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors bg-white"
+                                        required
+                                    >
+                                        <option value="WARRANTY">Bảo hành</option>
+                                        <option value="RETURN">Đổi trả</option>
+                                    </select>
+                                </div>
                             </div>
 
-                            {/* Description Textarea */}
+                            {requestType === 'RETURN' && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-100 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <div>
+                                        <label className="block text-gray-700 font-medium mb-2">
+                                            Phương thức hoàn tiền <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={refundMethod}
+                                            onChange={(e) => setRefundMethod(e.target.value)}
+                                            placeholder="VD: MoMo, Vietcombank, TPBank..."
+                                            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors bg-white"
+                                            required={requestType === 'RETURN'}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-gray-700 font-medium mb-2">
+                                            Số tài khoản / SĐT <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={refundAccountNumber}
+                                            onChange={(e) => setRefundAccountNumber(e.target.value)}
+                                            placeholder="Nhập số tài khoản / SĐT ví"
+                                            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
+                                            required={requestType === 'RETURN'}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
                             <div>
                                 <label className="block text-gray-700 font-medium mb-2">
                                     Mô tả <span className="text-red-500">*</span>
@@ -133,13 +249,10 @@ export default function WarrantyPage() {
                                 />
                             </div>
 
-                            {/* Image Upload */}
                             <div>
                                 <label className="block text-gray-700 font-medium mb-2">
                                     Thêm hình ảnh
                                 </label>
-
-                                {/* Upload Button */}
                                 <div className="mb-4">
                                     <label className="inline-flex items-center gap-2 px-6 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
                                         <Camera className="w-5 h-5 text-gray-600" />
@@ -154,7 +267,6 @@ export default function WarrantyPage() {
                                     </label>
                                 </div>
 
-                                {/* Image Previews */}
                                 {imagePreviews.length > 0 && (
                                     <div className="grid grid-cols-3 gap-4">
                                         {imagePreviews.map((preview, index) => (
@@ -177,7 +289,6 @@ export default function WarrantyPage() {
                                 )}
                             </div>
 
-                            {/* Submit Button */}
                             <div className="pt-4">
                                 <button
                                     type="submit"
@@ -193,7 +304,6 @@ export default function WarrantyPage() {
                     {/* Right Column - Warranty Policy */}
                     <div className="bg-white rounded-lg shadow-lg p-8">
                         <div className="space-y-8">
-                            {/* Warranty Policy */}
                             <div>
                                 <h3 className="font-bold text-blue-600 text-lg mb-4 flex items-center gap-2">
                                     <CheckCircle className="w-5 h-5" />
@@ -207,7 +317,6 @@ export default function WarrantyPage() {
                                             Áp dụng cho các sản phẩm mua trên hệ thống bán kính mắt trực tuyến, bao gồm gọng kính và tròng kính.
                                         </p>
                                     </div>
-
                                     <div>
                                         <h4 className="font-semibold text-gray-800 mb-2">2. Thời gian bảo hành</h4>
                                         <ul className="text-sm text-gray-700 pl-4 space-y-1">
@@ -215,7 +324,6 @@ export default function WarrantyPage() {
                                             <li>• Thời gian bảo hành được tính từ ngày khách hàng nhận hàng</li>
                                         </ul>
                                     </div>
-
                                     <div>
                                         <h4 className="font-semibold text-gray-800 mb-2">3. Điều kiện bảo hành</h4>
                                         <p className="text-sm text-gray-700 pl-4 mb-1">Sản phẩm được bảo hành trong các trường hợp:</p>
@@ -224,32 +332,11 @@ export default function WarrantyPage() {
                                             <li>• Lỗi gia công tròng kính (đối với đơn prescription)</li>
                                         </ul>
                                     </div>
-
-                                    <div>
-                                        <h4 className="font-semibold text-red-600 mb-2">4. Trường hợp không bảo hành</h4>
-                                        <ul className="text-sm text-gray-700 pl-4 space-y-1">
-                                            <li>• Hư hỏng do va đập, rơi vỡ, trầy xước trong quá trình sử dụng</li>
-                                            <li>• Sử dụng sai cách hoặc bảo quản không đúng hướng dẫn</li>
-                                            <li>• Hao mòn tự nhiên theo thời gian</li>
-                                            <li>• Tròng kính đã gia công theo đơn prescription nhưng sai do thông tin khách hàng cung cấp</li>
-                                        </ul>
-                                    </div>
-
-                                    <div>
-                                        <h4 className="font-semibold text-gray-800 mb-2">5. Quy trình bảo hành</h4>
-                                        <ul className="text-sm text-gray-700 pl-4 space-y-1">
-                                            <li>• Khách hàng liên hệ bộ phận hỗ trợ và cung cấp thông tin đơn hàng</li>
-                                            <li>• Hệ thống kiểm tra và xác nhận điều kiện bảo hành</li>
-                                            <li>• Thời gian xử lý bảo hành: 7 ngày làm việc</li>
-                                        </ul>
-                                    </div>
                                 </div>
                             </div>
 
-                            {/* Divider */}
                             <div className="border-t-2 border-gray-200"></div>
 
-                            {/* Return/Exchange Policy */}
                             <div>
                                 <h3 className="font-bold text-blue-600 text-lg mb-4 flex items-center gap-2">
                                     <RefreshCw className="w-5 h-5" />
@@ -265,43 +352,17 @@ export default function WarrantyPage() {
                                             <li>• Giao sai sản phẩm, sai mẫu mã so với đơn hàng</li>
                                         </ul>
                                     </div>
-
                                     <div>
-                                        <h4 className="font-semibold text-gray-800 mb-2">2. Thời gian đổi trả</h4>
-                                        <p className="text-sm text-gray-700 pl-4">
-                                            Yêu cầu đổi trả trong vòng 7 ngày kể từ ngày nhận hàng
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <h4 className="font-semibold text-red-600 mb-2">3. Trường hợp không áp dụng</h4>
-                                        <ul className="text-sm text-gray-700 pl-4 space-y-1">
-                                            <li>• Sản phẩm đã qua sử dụng, trầy xước do người dùng</li>
-                                            <li>• Tròng kính gia công theo đơn thuốc (trừ lỗi kỹ thuật)</li>
-                                            <li>• Sản phẩm hư hỏng do va đập hoặc bảo quản không đúng cách</li>
-                                        </ul>
-                                    </div>
-
-                                    <div>
-                                        <h4 className="font-semibold text-gray-800 mb-2">4. Quy trình đổi trả</h4>
+                                        <h4 className="font-semibold text-gray-800 mb-2">2. Quy trình đổi trả</h4>
                                         <ul className="text-sm text-gray-700 pl-4 space-y-1">
                                             <li>• Khách hàng liên hệ bộ phận hỗ trợ và cung cấp thông tin đơn hàng</li>
                                             <li>• Hệ thống kiểm tra và xác nhận điều kiện đổi trả</li>
                                             <li>• Thực hiện đổi sản phẩm hoặc hoàn tiền theo quy định</li>
                                         </ul>
                                     </div>
-
-                                    <div>
-                                        <h4 className="font-semibold text-gray-800 mb-2">5. Hoàn tiền</h4>
-                                        <ul className="text-sm text-gray-700 pl-4 space-y-1">
-                                            <li>• Hoàn tiền theo phương thức thanh toán ban đầu (Momo/Tiền mặt)</li>
-                                            <li>• Thời gian hoàn tiền: 2-3 ngày làm việc sau khi xác nhận</li>
-                                        </ul>
-                                    </div>
                                 </div>
                             </div>
 
-                            {/* Contact Info */}
                             <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-600">
                                 <h3 className="font-bold text-blue-600 mb-2 flex items-center gap-2">
                                     <Clock className="w-5 h-5" />
@@ -316,9 +377,14 @@ export default function WarrantyPage() {
                         </div>
                     </div>
                 </div>
-            </main >
+            </main>
 
             <Footer />
-        </div >
+
+            {/* NHÚNG COMPONENT POPUP ĐĂNG NHẬP VÀO ĐÂY */}
+            {showLoginPopup && (
+                <LoginPopup onClose={() => setShowLoginPopup(false)} />
+            )}
+        </div>
     )
 }
