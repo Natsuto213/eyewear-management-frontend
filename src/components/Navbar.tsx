@@ -135,17 +135,19 @@ export default function Navbar() {
                             </span>
                         </div>
 
-                        {/* Cart Dropdown Menu */}
-                        <div className="absolute right-0 top-full pt-1 w-80 hidden group-hover:block z-50">
+                        {/* Cart Dropdown Menu - ĐÃ FIX CHIỀU RỘNG */}
+                        <div className="absolute right-0 top-full pt-1 w-[580px] hidden group-hover:block z-50">
                             <div className="bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
                                 <div className="p-4 bg-gray-50 border-b border-gray-100">
                                     <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide">Giỏ hàng của bạn</h3>
                                 </div>
-                                <div className="max-h-72 overflow-y-auto p-2">
+
+                                {/* Cho phép cuộn ngang nếu nội dung bảng quá rộng so với 480px */}
+                                <div className="max-h-80 overflow-y-auto overflow-x-auto p-3">
                                     {cartItems.length === 0 ? (
                                         <p className="text-sm text-gray-400 text-center py-6">Giỏ hàng trống</p>
                                     ) : (
-                                        <table className="w-full">
+                                        <table className="w-full min-w-max border-separate border-spacing-y-2">
                                             <tbody>
                                                 {(cartItems as CartItemType[]).map((item) => (
                                                     <CartItem key={item.cartItemId} {...item} />
@@ -154,6 +156,7 @@ export default function Navbar() {
                                         </table>
                                     )}
                                 </div>
+
                                 <div className="p-4 flex items-center justify-between border-t border-gray-100 bg-gray-50">
                                     <div>
                                         <p className="text-xs text-gray-500 font-medium mb-0.5">Tổng cộng</p>
@@ -180,14 +183,11 @@ export default function Navbar() {
                         </Link>
                     ) : (
                         <div className="relative group ml-1">
-                            {/* Nút Avatar */}
                             <button className="p-2 hover:bg-gray-100 rounded-lg transition flex items-center">
                                 <User className="size-5 text-gray-600 group-hover:text-black transition" />
                             </button>
 
-                            {/* CẤU TRÚC DROPDOWN ĐÃ ĐƯỢC FIX LẠI */}
                             <div className="absolute right-0 top-full pt-1 w-48 hidden group-hover:block z-50">
-                                {/* Thẻ bọc ngoài chứa box-shadow và viền */}
                                 <div className="bg-white border border-gray-200 rounded-xl shadow-xl py-2 overflow-hidden">
                                     <Link
                                         to="/profile"
@@ -196,7 +196,6 @@ export default function Navbar() {
                                         Hồ sơ cá nhân
                                     </Link>
 
-                                    {/* NẾU LÀ NHÂN VIÊN/QUẢN LÝ SẼ HIỂN THỊ NÚT DASHBOARD */}
                                     {isStaff && (
                                         <Link
                                             to={dashboardPath}
