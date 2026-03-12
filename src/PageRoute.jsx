@@ -5,8 +5,10 @@ import LoginPage from "./views/Loginpage";
 import RegisterPage from "./views/RegisterPage";
 import ProfilePage from "./views/ProfilePage";
 import Account from "./views/AccountPage";
+
 import AllProductLayout from "./views/AllProduct/AllProductLayout";
 import AllProductFilter from "./views/AllProduct/AllProductFilter";
+
 import ProductDetail from "./views/ProductDetail";
 import Cart from "./views/Cart/components/CartPage";
 import Confirm from "./views/Confirm/Confirm";
@@ -14,6 +16,12 @@ import WarrantyPage from "./views/Policies/WarrantyPage";
 import SuccessPage from "./views/SuccessPage";
 import CancelPage from "./views/CancelPage";
 import { ShoppingContextProvider } from "./views/Cart/contexts/ShoppingContext";
+
+import { SalesStaffLayout } from './views/Dashboard/SalesStaff/SalesStaffLayout';
+import OrderTable from './views/Dashboard/SalesStaff/containers/OrderTable';
+import OrderDetail from './views/Dashboard/SalesStaff/ui/OrderDetail';
+import ReturnOrderTable from './views/Dashboard/SalesStaff/containers/ReturnOrderTable';
+import ReturnOrderDetail from './views/Dashboard/SalesStaff/ui/ReturnOrderDetail';
 
 import { OperationStaffLayout } from "./views/Dashboard/OperationStaff/OperationStaffLayout";
 import OrderPage from "./views/Dashboard/OperationStaff/OrderPage";
@@ -26,13 +34,6 @@ import ManagerStaffView from './views/Dashboard/Manager/ManagerStaffView';
 import ManagerStatisticView from './views/Dashboard/Manager/ManagerStatisticView';
 import ManagerSalesView from './views/Dashboard/Manager/ManagerSalesView';
 import ManagerPoliciesView from './views/Dashboard/Manager/ManagerPoliciesView';
-
-import OrderTable from './views/Dashboard/SalesStaff/containers/OrderTable';
-import { SalesStaffLayout } from './views/Dashboard/SalesStaff/SalesStaffLayout';
-import OrderDetail from './views/Dashboard/SalesStaff/ui/OrderDetail';
-import ReturnOrderTable from './views/Dashboard/SalesStaff/containers/ReturnOrderTable';
-import ReturnOrderDetail from './views/Dashboard/SalesStaff/ui/ReturnOrderDetail';
-
 
 export default function PageRoute() {
   return (
@@ -62,6 +63,14 @@ export default function PageRoute() {
           <Route path="account" element={<Account />} />
         </Route>
 
+        <Route path="/sales" element={<SalesStaffLayout />}>
+          <Route index element={<OrderTable />} />
+          <Route path="containers/orders" element={<OrderTable />} />
+          <Route path="containers/return-orders" element={<ReturnOrderTable />} />
+          <Route path="ui/orderdetail/:orderId" element={<OrderDetail />} />
+          <Route path="ui/returnorderdetail/:returnExchangeId" element={<ReturnOrderDetail />} />
+        </Route>
+        
         <Route path="/operation" element={<OperationStaffLayout />} >
           <Route index element={<OrderPage />} />
           <Route path="orders" element={<OrderPage />} />
@@ -76,14 +85,6 @@ export default function PageRoute() {
           <Route path="policies" element={<ManagerPoliciesView />} />
           <Route path="sales" element={<ManagerSalesView />} />
           <Route path="static" element={<ManagerStatisticView />} />
-        </Route>
-
-        <Route path="/sales" element={<SalesStaffLayout />}>
-          <Route index element={<OrderTable />} />
-          <Route path="containers/orders" element={<OrderTable />} />
-          <Route path="containers/return-orders" element={<ReturnOrderTable />} />
-          <Route path="ui/orderdetail/:orderId" element={<OrderDetail />} />
-          <Route path="ui/returnorderdetail/:returnExchangeId" element={<ReturnOrderDetail />} />
         </Route>
 
       </Routes>

@@ -6,7 +6,7 @@ import { apiLogin } from "../lib/userApi";
 import loginImg from "@/assets/login.png";
 import { useShoppingContext } from "./Cart/contexts/ShoppingContext";
 
-const Loginpage: React.FC = () => {
+const LoginPage: React.FC = () => {
     const navigate = useNavigate();
     const { fetchCart } = useShoppingContext();
     const [username, setUsername] = useState("");
@@ -214,4 +214,4 @@ const Loginpage: React.FC = () => {
     );
 };
 
-export default Loginpage;
+export default LoginPage;
