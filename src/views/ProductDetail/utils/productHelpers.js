@@ -15,21 +15,16 @@ import { PRODUCT_TYPES } from "./constants";
  *   isFrame:   boolean,  - Gọng kính
  *   isLenses:  boolean,  - Tròng kính
  *   isContact: boolean,  - Kính áp tròng
- *   needsPrescription: boolean - Có cần đơn thuốc không (Tròng hoặc Kính áp tròng)
  * }}
  */
 export function getProductFlags(product) {
-  const type = product?.Product_Type ?? "";
+    const type = product?.Product_Type ?? "";
 
-  const isFrame   = type === PRODUCT_TYPES.FRAME;
-  const isLenses  = type === PRODUCT_TYPES.LENSES;
-  const isContact = type === PRODUCT_TYPES.CONTACT;
+    const isFrame = type === PRODUCT_TYPES.FRAME;
+    const isLenses = type === PRODUCT_TYPES.LENSES;
+    const isContact = type === PRODUCT_TYPES.CONTACT;
 
-  // Cần đơn thuốc khi là Gọng, Tròng (không phải Kính áp tròng)
-  // Kính áp tròng thường mua theo hộp, không cắt theo đơn
-  const needsPrescription = isFrame || isLenses;
-
-  return { isFrame, isLenses, isContact, needsPrescription };
+    return { isFrame, isLenses, isContact };
 }
 
 /**
@@ -50,30 +45,30 @@ export function getProductFlags(product) {
  * }}
  */
 export function getRelatedLists(product, flags) {
-  const { isFrame, isLenses, isContact } = flags;
+    const { isFrame, isLenses, isContact } = flags;
 
-  let complementaryTitle    = "";
-  let complementaryProducts = [];
-  let similarTitle          = "Sản phẩm tương tự";
-  let similarProducts       = [];
+    let complementaryTitle = "";
+    let complementaryProducts = [];
+    let similarTitle = "Sản phẩm tương tự";
+    let similarProducts = [];
 
-  if (isFrame) {
-    complementaryTitle    = "Tròng kính bổ trợ";
-    complementaryProducts = product?.relatedLenses ?? [];
-    similarProducts       = product?.relatedFrames  ?? [];
-  } else if (isLenses) {
-    complementaryTitle    = "Gọng kính bổ trợ";
-    complementaryProducts = product?.relatedFrames  ?? [];
-    similarProducts       = product?.relatedLenses  ?? [];
-  } else if (isContact) {
-    complementaryProducts = [];
-    similarProducts       = product?.relatedContactLenses ?? [];
-  }
+    if (isFrame) {
+        complementaryTitle = "Tròng kính bổ trợ";
+        complementaryProducts = product?.relatedLenses ?? [];
+        similarProducts = product?.relatedFrames ?? [];
+    } else if (isLenses) {
+        complementaryTitle = "Gọng kính bổ trợ";
+        complementaryProducts = product?.relatedFrames ?? [];
+        similarProducts = product?.relatedLenses ?? [];
+    } else if (isContact) {
+        complementaryProducts = [];
+        similarProducts = product?.relatedContactLenses ?? [];
+    }
 
-  return {
-    complementaryTitle,
-    complementaryProducts,
-    similarTitle,
-    similarProducts,
-  };
+    return {
+        complementaryTitle,
+        complementaryProducts,
+        similarTitle,
+        similarProducts,
+    };
 }

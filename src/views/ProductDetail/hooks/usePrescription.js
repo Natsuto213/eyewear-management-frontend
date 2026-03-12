@@ -8,9 +8,6 @@
  *  - Lỗi validate từng field (hiện ngay khi người dùng rời khỏi ô input - onBlur)
  *  - Hàm reset khi đổi sản phẩm
  *
- * Lý do tách ra hook riêng:
- *  - Giữ index.jsx gọn, dễ đọc
- *  - Logic validate không lẫn vào UI
  *
  * Ghi chú về hiệu năng:
  *  - Không dùng useCallback vì các component con (PrescriptionForm...)

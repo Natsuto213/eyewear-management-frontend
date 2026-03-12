@@ -34,6 +34,7 @@ export default function PrescriptionInputTabs({ data, errors, onUpdate, onBlur }
                     }
                 });
                 const result = response.data;
+                console.log("API parse-image result:", result);
                 if (result.code === 1000 && result.result) {
                     // Map API fields to rxData
                     const parsed = result.result;
@@ -55,8 +56,11 @@ export default function PrescriptionInputTabs({ data, errors, onUpdate, onBlur }
                     Object.entries(rxMap).forEach(([field, value]) => {
                         onUpdate && onUpdate(field, value ?? "");
                     });
-                    setMode("form");
                     if (parsed.warnings) setWarnings(parsed.warnings);
+                    console.log("Parsed prescription data:", rxMap, "Warnings:", parsed.warnings);
+                    if (parsed.warnings?.length === 0) {
+                        setMode("form");
+                    }
                 } else {
                     setWarnings([result.message || "Không nhận diện được đơn thuốc."]);
                 }

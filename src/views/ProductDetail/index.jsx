@@ -1,9 +1,4 @@
 /**
- * index.jsx - ProductDetail Page
- * ================================
- * Trang chi tiết sản phẩm. Đây là "bộ khung" lắp ráp các component lại với nhau.
- * Tất cả logic phức tạp đã được tách vào hooks/ và utils/ để file này gọn, dễ đọc.
- *
  * Luồng hoạt động:
  *  1. Lấy :id từ URL (useParams)
  *  2. Fetch dữ liệu sản phẩm qua useProductDetail hook
@@ -32,7 +27,6 @@ import RelatedSection from "./components/RelatedSection";
 import LoadingState from "./components/LoadingState";
 import ErrorState from "./components/ErrorState";
 
-// ── Custom Hooks ──
 import { useProductDetail } from "./hooks/useProductDetail";
 import { usePrescription } from "./hooks/usePrescription";
 
@@ -46,13 +40,8 @@ import LoginPopup from "@/views/Cart/components/LoginPopup";
 import { getProductFlags, getRelatedLists } from "./utils/productHelpers";
 
 export default function ProductDetailPage() {
-    // ─── Lấy id sản phẩm từ URL (/product/:id) ────────────────────────────────
     const { id } = useParams();
-
-    // ─── Lấy trạng thái popup đăng nhập từ ShoppingContext ────────────────────
     const { showLoginPopup, setShowLoginPopup } = useShoppingContext();
-
-    // ─── Hook 1: Fetch dữ liệu sản phẩm từ API ────────────────────────────────
     const { product, loading, error } = useProductDetail(id);
 
     // ─── Hook 2: Quản lý state form đơn thuốc mắt ─────────────────────────────
@@ -65,30 +54,15 @@ export default function ProductDetailPage() {
         resetPrescription,             // Hàm reset form về mặc định (0 hết)
     } = usePrescription();
 
-    // ─── Ref: đánh dấu đã mount lần đầu chưa ─────────────────────────────────
-    // Mục đích: phân biệt "lần đầu vào trang (F5)" vs "chuyển sang id khác"
-    // - Lần đầu mount: isMounted = false → KHÔNG reset (giữ data từ localStorage)
-    // - Đổi id sau đó:  isMounted = true  → reset form + scroll lên đầu
-    const isMounted = useRef(false);
-
-    /**
-     * useEffect: Khi id thay đổi (người dùng điều hướng sang sản phẩm khác)
-     *  → Reset form đơn thuốc về 0
-     *  → Scroll lên đầu trang
-     *
-     * Lần đầu mount (F5): bỏ qua reset để giữ dữ liệu đã lưu trong localStorage.
-     */
+    const prevIdRef = useRef(id);
     useEffect(() => {
-        // Lần đầu mount: chỉ đánh dấu đã mount, không reset
-        if (!isMounted.current) {
-            isMounted.current = true;
-            return;
+        if (prevIdRef.current !== id) {
+            console.log("ID sản phẩm thay đổi, reset form và scroll lên đầu", { id });
+            resetPrescription();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            prevIdRef.current = id; // Cập nhật ref với id mới
         }
-        // Từ lần thứ 2 trở đi (id thực sự thay đổi): reset form và scroll lên đầu
-        resetPrescription();
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [id]); // Chỉ chạy khi id thay đổi
+    }, [id]);
 
     // ─── Hiển thị màn hình loading/lỗi ────────────────────────────────────────
     if (loading) return <LoadingState />;
