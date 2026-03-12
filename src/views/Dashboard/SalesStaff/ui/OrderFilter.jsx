@@ -18,12 +18,21 @@ const orderStatusVN = {
     PROCESSING: "Đang xử lý",
 };
 
-const OrderFilter = ({ filters, onFilterChange, onResetFilter, statusList, orderTypeList }) => {
+const returnExchangeStatusVN = {
+    RETURN: 'Yêu cầu trả hàng',
+    EXCHANGE: 'Yêu cầu đổi hàng',
+    PENDING: 'Chờ xử lý',
+    APPROVED: 'Đã duyệt',
+    REJECTED: 'Từ chối',
+    COMPLETED: 'Hoàn tất',
+};
+
+const OrderFilter = ({ filters, onFilterChange, onResetFilter, statusList, orderTypeList, returnExchangeStatusList }) => {
     return (
         <div className="mb-5 rounded-xl bg-white p-5 shadow">
             <h3 className="mb-4 text-base font-semibold text-gray-700">Bộ lọc đơn hàng</h3>
 
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-5">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-6">
                 <div>
                     <label className="mb-1 block text-sm font-medium text-gray-600">Mã đơn hàng</label>
                     <input
@@ -81,6 +90,23 @@ const OrderFilter = ({ filters, onFilterChange, onResetFilter, statusList, order
                         ))}
                     </select>
                 </div>
+
+                {returnExchangeStatusList && (
+                    <div>
+                        <label className="mb-1 block text-sm font-medium text-gray-600">Trạng thái đổi/trả</label>
+                        <select
+                            name="returnExchangeStatus"
+                            value={filters.returnExchangeStatus}
+                            onChange={onFilterChange}
+                            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"
+                        >
+                            <option value="">-- Tất cả --</option>
+                            {returnExchangeStatusList.map((s) => (
+                                <option key={s} value={s}>{returnExchangeStatusVN[s] || s}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
 
                 <div className="flex items-end">
                     <button
