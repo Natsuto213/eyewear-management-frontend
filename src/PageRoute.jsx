@@ -3,16 +3,11 @@ import "./PageRoute.css";
 import HomePage from "./views/HomePage";
 import LoginPage from "./views/Loginpage";
 import RegisterPage from "./views/RegisterPage";
-<<<<<<< HEAD
 
 import ProfilePage from "./views/ProfileCustomer/ProfilePage";
 import Account from "./views/ProfileCustomer/AccountPage";
 import OrderDetailCustomer from "./views/ProfileCustomer/OrderDetailCustomer";
 
-=======
-import ProfilePage from "./views/ProfilePage";
-import Account from "./views/AccountPage";
->>>>>>> 696b3dc9017bfa499f087a21b7292256c390fcfe
 
 import AllProductLayout from "./views/AllProduct/AllProductLayout";
 import AllProductFilter from "./views/AllProduct/AllProductFilter";

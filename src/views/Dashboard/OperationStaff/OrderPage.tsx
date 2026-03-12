@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useLocation } from "react-router";
 import { motion } from "framer-motion";
 import { RefreshCcw, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
@@ -27,81 +27,84 @@ export default function OrderPage() {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
 
-  const loadData = useCallback(async (page = 0) => {
-    if (!token) {
-      setError("Phiên đăng nhập hết hạn.");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-
-      if (statusData.length === 0) {
-        const res = await fetch(
-          "https://api-eyewear.purintech.id.vn/api/operation-staff/orders/status-options",
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        const data = await res.json();
+  // ✅ Fetch status options 1 lần duy nhất
+  useEffect(() => {
+    if (!token) return;
+    fetch("https://api-eyewear.purintech.id.vn/api/operation-staff/orders/status-options", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then((data) => {
         if (data.code === 1000) setStatusData(data.result || []);
+      })
+      .catch(() => {});
+  }, [token]);
+
+  // ✅ loadData chỉ phụ thuộc token và filters, không phụ thuộc statusData
+  const loadData = useCallback(
+    async (page = 0) => {
+      if (!token) {
+        setError("Phiên đăng nhập hết hạn.");
+        setLoading(false);
+        return;
       }
 
-      const body: any = {
-        page,
-        size: PAGE_SIZE,
-        sortBy: "orderDate",
-        sortDir: "desc",
-      };
+      try {
+        setLoading(true);
 
-      // Truyền filter vào body nếu có
-      if (filters.searchQuery.trim()) body.orderCode = filters.searchQuery.trim();
-      if (filters.status !== "Tất cả") body.orderStatus = filters.status;
-      if (filters.orderType !== "Tất cả") body.orderType = filters.orderType;
-      if (filters.orderDate) body.orderDate = filters.orderDate;
+        const body: any = {
+          page,
+          size: PAGE_SIZE,
+          sortBy: "orderDate",
+          sortDir: "desc",
+        };
 
-      const res = await fetch(
-        "https://api-eyewear.purintech.id.vn/api/operation-staff/orders/search",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        }
-      );
+        if (filters.searchQuery.trim()) body.orderCode = filters.searchQuery.trim();
+        if (filters.status !== "Tất cả") body.orderStatus = filters.status;
+        if (filters.orderType !== "Tất cả") body.orderType = filters.orderType;
+        if (filters.orderDate) body.orderDate = filters.orderDate;
 
-      const data = await res.json();
-      const result = data?.result;
+        const res = await fetch(
+          "https://api-eyewear.purintech.id.vn/api/operation-staff/orders/search",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+          }
+        );
 
-      setOrders(result?.content || []);
-      setTotalPages(result?.totalPages || 1);
-      setTotalElements(result?.totalElements || 0);
-      setCurrentPage(result?.number || 0);
-      setError(null);
-    } catch (err: any) {
-      setError(err.message || "Không thể tải đơn hàng");
-    } finally {
-      setLoading(false);
-    }
-  }, [token, statusData.length, filters]);
+        const data = await res.json();
+        const result = data?.result;
 
+        setOrders(result?.content || []);
+        setTotalPages(result?.totalPages || 1);
+        setTotalElements(result?.totalElements || 0);
+        setCurrentPage(result?.number || 0);
+        setError(null);
+      } catch (err: any) {
+        setError(err.message || "Không thể tải đơn hàng");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [token, filters] // ✅ bỏ statusData.length
+  );
+
+  // ✅ Chạy lại loadData mỗi khi filters thay đổi (bao gồm cả lần mount đầu)
   useEffect(() => {
     loadData(0);
-  }, []);
+  }, [loadData]);
 
-  // Reload khi quay lại từ OrderDetail
+  // ✅ Reload khi quay lại từ OrderDetail
   useEffect(() => {
     if (location.state?.refresh) {
       loadData(currentPage);
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
-
-  // Khi filter thay đổi reset về trang 0
-  useEffect(() => {
-    loadData(0);
-  }, [filters]);
 
   const handleFilterChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -132,7 +135,11 @@ export default function OrderPage() {
     } else {
       pages.push(0);
       if (currentPage > 2) pages.push("...");
-      for (let i = Math.max(1, currentPage - 1); i <= Math.min(totalPages - 2, currentPage + 1); i++) {
+      for (
+        let i = Math.max(1, currentPage - 1);
+        i <= Math.min(totalPages - 2, currentPage + 1);
+        i++
+      ) {
         pages.push(i);
       }
       if (currentPage < totalPages - 3) pages.push("...");
@@ -156,7 +163,9 @@ export default function OrderPage() {
               Quản lý đơn hàng
             </h1>
             <p className="text-gray-600">
-              Tổng cộng <span className="font-bold text-indigo-600">{totalElements}</span> đơn hàng
+              Tổng cộng{" "}
+              <span className="font-bold text-indigo-600">{totalElements}</span>{" "}
+              đơn hàng
             </p>
           </div>
 
@@ -217,8 +226,13 @@ export default function OrderPage() {
             >
               {/* Info */}
               <p className="text-sm text-gray-500">
-                Trang <span className="font-bold text-indigo-600">{currentPage + 1}</span> / {totalPages}
-                {" "}· Hiển thị <span className="font-bold">{orders.length}</span> / <span className="font-bold">{totalElements}</span> đơn
+                Trang{" "}
+                <span className="font-bold text-indigo-600">
+                  {currentPage + 1}
+                </span>{" "}
+                / {totalPages} · Hiển thị{" "}
+                <span className="font-bold">{orders.length}</span> /{" "}
+                <span className="font-bold">{totalElements}</span> đơn
               </p>
 
               {/* Buttons */}
@@ -238,7 +252,12 @@ export default function OrderPage() {
                 <div className="flex items-center gap-1">
                   {pageNumbers().map((page, idx) =>
                     page === "..." ? (
-                      <span key={`ellipsis-${idx}`} className="px-2 text-gray-400 font-bold">...</span>
+                      <span
+                        key={`ellipsis-${idx}`}
+                        className="px-2 text-gray-400 font-bold"
+                      >
+                        ...
+                      </span>
                     ) : (
                       <motion.button
                         key={page}
@@ -246,9 +265,10 @@ export default function OrderPage() {
                         whileTap={{ scale: 0.9 }}
                         onClick={() => handlePageChange(page as number)}
                         className={`w-9 h-9 rounded-xl font-bold text-sm transition-all shadow-sm
-                          ${currentPage === page
-                            ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg"
-                            : "bg-white border-2 border-indigo-100 text-gray-600 hover:bg-indigo-50"
+                          ${
+                            currentPage === page
+                              ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg"
+                              : "bg-white border-2 border-indigo-100 text-gray-600 hover:bg-indigo-50"
                           }`}
                       >
                         {(page as number) + 1}
@@ -271,7 +291,6 @@ export default function OrderPage() {
             </motion.div>
           )}
         </motion.div>
-
       </div>
     </div>
   );
