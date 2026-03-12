@@ -20,7 +20,7 @@ export function DeleteConfirmModal({ isOpen, productId, onCancel, onConfirm }: P
           </div>
           <h3 className="text-lg font-bold text-gray-900 mb-2">Xác nhận xóa sản phẩm</h3>
           <p className="text-sm text-gray-500 mb-6">
-            Bạn có chắc chắn muốn xóa sản phẩm mang mã <span className="font-semibold text-gray-700">{productId}</span> này không? Hành động này không thể hoàn tác.
+            Bạn có chắc chắn muốn xóa sản phẩm mang mã <span className="font-semibold text-red-700">#{productId}</span> này không? Hành động này không thể hoàn tác.
           </p>
 
           <div className="flex items-center gap-3 w-full">

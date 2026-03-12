@@ -7,7 +7,8 @@ import {
     Users,
     ShieldCheck,
     TrendingUp,
-    Tag
+    Tag,
+    House
 } from 'lucide-react';
 
 export type Role = 'sales' | 'operation' | 'manager';
@@ -31,13 +32,18 @@ export const roleTabsConfig: RoleTabs[] = [
         displayName: 'Sales Staff',
         tabs: [
             {
+                id: 'home',
+                label: 'Về lại trang chủ',
+                icon: House,
+                path: '/'
+            }, {
                 id: 'orders',
-                label: 'Danh sach đơn hàng',
+                label: 'Danh sách đơn hàng',
                 icon: ShoppingCart,
                 path: '/sales/containers/orders'
             }, {
                 id: 'return-orders',
-                label: 'Danh sach đơn đổi trả',
+                label: 'Danh sách đơn đổi trả',
                 icon: FileText,
                 path: '/sales/containers/return-orders'
             }, {
@@ -58,21 +64,26 @@ export const roleTabsConfig: RoleTabs[] = [
         displayName: 'Operation Staff',
         tabs: [
             {
+                id: 'home',
+                label: 'Về lại trang chủ',
+                icon: House,
+                path: '/'
+            }, {
+                id: 'order-list',
+                label: 'Order List',
+                icon: ClipboardList,
+                path: '/operation/orders'
+            }, {
                 id: 'inventory',
                 label: 'Inventory Management',
                 icon: Package,
                 path: '/operation/inventory'
             }, {
-                id: 'order-management',
-                label: 'Order Management',
-                icon: ClipboardList,
-                path: '/operation/order-management'
-            }, {
                 id: 'stock-report',
                 label: 'Stock Report',
                 icon: BarChart3,
                 path: '/operation/stock-report'
-            }
+            },  
         ]
     },
     {
@@ -80,6 +91,11 @@ export const roleTabsConfig: RoleTabs[] = [
         displayName: 'Manager',
         tabs: [
             {
+                id: 'home',
+                label: 'Về lại trang chủ',
+                icon: House,
+                path: '/'
+            }, {
                 id: 'product',
                 label: 'Danh sách sản phẩm',
                 icon: Package,

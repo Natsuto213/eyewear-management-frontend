@@ -5,7 +5,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import loginImg from "@/assets/login.png";
 
-const Registerpage: React.FC = () => {
+const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -220,4 +220,4 @@ const Registerpage: React.FC = () => {
   );
 };
 
-export default Registerpage;
+export default RegisterPage;

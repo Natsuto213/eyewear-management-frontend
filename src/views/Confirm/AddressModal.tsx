@@ -5,6 +5,7 @@ interface AddressModalProps {
   isOpen: boolean;
   onClose: () => void;
   // FIX: Thêm provinceCode vào type của codes
+
   onConfirm: (fullAddress: string, isSave: boolean, codes: {provinceCode?: string; provinceName?: string; districtCode: string; districtName: string; wardCode: string, wardName: string, street: string}) => void;
 }
 
@@ -52,7 +53,7 @@ const AddressModal: React.FC<AddressModalProps> = ({ isOpen, onClose, onConfirm 
     } catch (err) { console.error(err); }
   };
 
-  // 3. Xử lý đổi Huyện -> Lấy Xã
+  
   const handleDistrictChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const dId = e.target.value;
     const dName = e.target.selectedOptions[0].text;

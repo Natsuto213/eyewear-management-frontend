@@ -49,7 +49,7 @@ const ShippingForm: React.FC<ShippingFormProps> = ({ form, setForm, onOpenModal 
             <button
               type="button"
               onClick={onOpenModal}
-              className="rounded-xl bg-zinc-900 px-6 py-3 text-sm font-bold text-white hover:bg-zinc-800 transition"
+              className="rounded-xl bg-teal-600 px-6 py-3 text-sm font-bold text-white hover:bg-teal-700 transition"
             >
               + Cập nhật địa chỉ
             </button>
