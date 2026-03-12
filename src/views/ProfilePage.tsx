@@ -65,7 +65,7 @@ const orders: Order[] = [
   },
 ];
 
-const Profilepage: React.FC = () => {
+const ProfilePage: React.FC = () => {
   const isAccountPage = useMatch("/profile/account");
   const navigate = useNavigate();
 
@@ -322,4 +322,4 @@ const Profilepage: React.FC = () => {
   );
 };
 
-export default Profilepage;
+export default ProfilePage;

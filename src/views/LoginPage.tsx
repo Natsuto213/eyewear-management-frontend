@@ -1,12 +1,12 @@
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiLogin } from "../lib/userApi";
 import loginImg from "@/assets/login.png";
 import { useShoppingContext } from "./Cart/contexts/ShoppingContext";
 
-const Loginpage: React.FC = () => {
+const LoginPage: React.FC = () => {
     const navigate = useNavigate();
     const { fetchCart } = useShoppingContext();
     const [username, setUsername] = useState("");
@@ -15,36 +15,73 @@ const Loginpage: React.FC = () => {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
+    // Kiểm tra nếu đã có username được lưu từ trước
+    useEffect(() => {
+        const savedUsername = localStorage.getItem("remember_username");
+        if (savedUsername) {
+            setUsername(savedUsername);
+            setRemember(true);
+        }
+    }, []);
+
     const roleRedirects = (role: string) => {
-        switch (role) {
+        console.log("Điều hướng cho Role:", role);
+        // Chuyển về Uppercase để tránh lỗi so sánh chữ hoa chữ thường từ API
+        const upperRole = role?.toUpperCase();
+
+        switch (upperRole) {
             case "CUSTOMER":
                 return "/";
             case "MANAGER":
                 return "/manager";
             case "SALES STAFF":
+            case "SALES_STAFF": // Phòng trường hợp API dùng snake_case
                 return "/sales";
+            case "OPERATIONS STAFF":
+            case "OPERATIONS_STAFF":
+                return "/operation";
             default:
-                return "/login";
-        }
-    }
-
-    const handleLogin = async () => {
-        setError("");
-        setLoading(true);
-        try {
-            const res = await apiLogin(username, password);
-            if (remember) localStorage.setItem("remember_username", username);
-            else localStorage.removeItem("remember_username");
-
-            const { role, name } = res
-            await fetchCart(); // Tải lại giỏ hàng sau khi login thành công
-            navigate(roleRedirects(role));
-        } catch (err: any) {
-            setError(err?.response?.data?.message || err?.message || "Login failed");
-        } finally {
-            setLoading(false);
+                console.warn("Role không xác định, điều hướng về trang chủ");
+                return "/";
         }
     };
+
+    const handleLogin = async () => {
+    setError("");
+    setLoading(true);
+    try {
+        const res = await apiLogin(username, password);
+        
+        // Kiểm tra xem backend trả về role ở đâu. 
+        // Nếu res là kết quả từ apiLogin trả về res.data.result, thì lấy như sau:
+        const userRole = res?.role || res?.result?.role; 
+
+        console.log("Full Response:", res); // Bạn nhấn F12 xem role nằm ở đâu nhé
+        console.log("Detected Role:", userRole);
+
+        if (remember) {
+            localStorage.setItem("remember_username", username);
+        } else {
+            localStorage.removeItem("remember_username");
+        }
+
+        if (userRole?.toUpperCase() === "CUSTOMER") {
+            await fetchCart();
+        }
+        
+        const redirectPath = roleRedirects(userRole);
+        console.log("Điều hướng tới path:", redirectPath);
+
+        // Đảm bảo navigate chạy sau khi các log/logic trên hoàn tất
+        navigate(redirectPath, { replace: true });
+
+    } catch (err: any) {
+        console.error("Login Error:", err);
+        setError(err?.response?.data?.message || err?.message || "Đăng nhập thất bại");
+    } finally {
+        setLoading(false);
+    }
+};
 
     const inputBase =
         "w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm " +
@@ -81,14 +118,12 @@ const Loginpage: React.FC = () => {
                             </p>
                         </div>
 
-                        {/* Error */}
                         {error && (
                             <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                                 {error}
                             </div>
                         )}
 
-                        {/* Username */}
                         <label className="mb-2 block text-sm font-medium text-zinc-700">
                             Tài khoản / Email
                         </label>
@@ -99,10 +134,10 @@ const Loginpage: React.FC = () => {
                                 className={inputBase}
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                             />
                         </div>
 
-                        {/* Password */}
                         <label className="mb-2 mt-4 block text-sm font-medium text-zinc-700">
                             Mật khẩu
                         </label>
@@ -112,11 +147,11 @@ const Loginpage: React.FC = () => {
                             className={inputBase}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                         />
 
-                        {/* Remember + forgot */}
                         <div className="mt-4 flex items-center justify-between">
-                            <label className="flex items-center gap-2 text-sm text-zinc-600">
+                            <label className="flex items-center gap-2 text-sm text-zinc-600 cursor-pointer">
                                 <input
                                     type="checkbox"
                                     checked={remember}
@@ -134,7 +169,6 @@ const Loginpage: React.FC = () => {
                             </Link>
                         </div>
 
-                        {/* Login button */}
                         <button
                             type="button"
                             onClick={handleLogin}
@@ -150,14 +184,12 @@ const Loginpage: React.FC = () => {
                             {loading ? "Đang đăng nhập..." : "Đăng nhập"}
                         </button>
 
-                        {/* Divider */}
                         <div className="my-6 flex items-center gap-3">
                             <div className="h-px flex-1 bg-zinc-200" />
                             <span className="text-xs text-zinc-500">hoặc</span>
                             <div className="h-px flex-1 bg-zinc-200" />
                         </div>
 
-                        {/* Google button */}
                         <button
                             type="button"
                             className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-800 transition hover:-translate-y-0.5 hover:border-zinc-300 hover:bg-zinc-50 hover:shadow-md active:translate-y-0"
@@ -165,7 +197,6 @@ const Loginpage: React.FC = () => {
                             Đăng nhập bằng Google
                         </button>
 
-                        {/* Register */}
                         <p className="mt-6 text-center text-sm text-zinc-600">
                             Bạn chưa có tài khoản?
                             <Link
@@ -175,11 +206,6 @@ const Loginpage: React.FC = () => {
                                 Đăng ký ngay
                             </Link>
                         </p>
-
-                        {/* Small note */}
-                        <p className="mt-3 text-center text-xs text-zinc-400">
-                            Bằng việc đăng nhập, bạn đồng ý với điều khoản sử dụng.
-                        </p>
                     </div>
                 </div>
             </div>
@@ -188,4 +214,4 @@ const Loginpage: React.FC = () => {
     );
 };
 
-export default Loginpage;
+export default LoginPage;
