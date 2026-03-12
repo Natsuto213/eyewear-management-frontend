@@ -1,21 +1,21 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useLocation } from "react-router";
 import { motion } from "framer-motion";
-import { RefreshCcw, AlertCircle } from "lucide-react";
+import { RefreshCcw, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import OrderToolbar from "./OrderToolbar";
 import OrderTable from "./OrderTableOps";
 
 export default function OrderPage() {
-
   const [orders, setOrders] = useState<any[]>([]);
   const [statusData, setStatusData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalElements, setTotalElements] = useState(0);
+  const PAGE_SIZE = 10;
 
   const location = useLocation();
-  const didRefresh = useRef(false); // ← tránh double reload
 
   const [filters, setFilters] = useState({
     searchQuery: "",
@@ -25,11 +25,9 @@ export default function OrderPage() {
   });
 
   const token =
-    typeof window !== "undefined"
-      ? localStorage.getItem("access_token")
-      : null;
+    typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (page = 0) => {
     if (!token) {
       setError("Phiên đăng nhập hết hạn.");
       setLoading(false);
@@ -39,17 +37,28 @@ export default function OrderPage() {
     try {
       setLoading(true);
 
-      // load status options — chỉ load 1 lần
-      const statusRes = await fetch(
-        "https://api-eyewear.purintech.id.vn/api/operation-staff/orders/status-options",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      const statusJson = await statusRes.json();
-      if (statusJson.code === 1000) {
-        setStatusData(statusJson.result || []);
+      if (statusData.length === 0) {
+        const res = await fetch(
+          "https://api-eyewear.purintech.id.vn/api/operation-staff/orders/status-options",
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const data = await res.json();
+        if (data.code === 1000) setStatusData(data.result || []);
       }
 
-      // lấy toàn bộ đơn hàng
+      const body: any = {
+        page,
+        size: PAGE_SIZE,
+        sortBy: "orderDate",
+        sortDir: "desc",
+      };
+
+      // Truyền filter vào body nếu có
+      if (filters.searchQuery.trim()) body.orderCode = filters.searchQuery.trim();
+      if (filters.status !== "Tất cả") body.orderStatus = filters.status;
+      if (filters.orderType !== "Tất cả") body.orderType = filters.orderType;
+      if (filters.orderDate) body.orderDate = filters.orderDate;
+
       const res = await fetch(
         "https://api-eyewear.purintech.id.vn/api/operation-staff/orders/search",
         {
@@ -58,48 +67,41 @@ export default function OrderPage() {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            page: 0,
-            size: 100,
-            sortBy: "orderDate",
-            sortDir: "desc",
-          }),
+          body: JSON.stringify(body),
         }
       );
 
       const data = await res.json();
+      const result = data?.result;
 
-      const list = Array.isArray(data.result)
-        ? data.result
-        : data?.result?.content
-        || data?.content
-        || [];
-
-      setOrders(list);
+      setOrders(result?.content || []);
+      setTotalPages(result?.totalPages || 1);
+      setTotalElements(result?.totalElements || 0);
+      setCurrentPage(result?.number || 0);
       setError(null);
     } catch (err: any) {
       setError(err.message || "Không thể tải đơn hàng");
     } finally {
       setLoading(false);
     }
-  }, [token]); // ← bỏ statusData.length khỏi dependency
+  }, [token, statusData.length, filters]);
 
-  // Load lần đầu
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    loadData(0);
+  }, []);
 
-  // ← Reload khi quay lại từ OrderDetail
+  // Reload khi quay lại từ OrderDetail
   useEffect(() => {
-    if (location.state?.refresh && !didRefresh.current) {
-      didRefresh.current = true;
-      loadData();
-      // Xóa state để không reload lại lần sau
-      window.history.replaceState({}, "");
-    } else if (!location.state?.refresh) {
-      didRefresh.current = false; // reset cho lần navigate tiếp
+    if (location.state?.refresh) {
+      loadData(currentPage);
+      window.history.replaceState({}, document.title);
     }
-  }, [location.state, loadData]);
+  }, [location.state]);
+
+  // Khi filter thay đổi reset về trang 0
+  useEffect(() => {
+    loadData(0);
+  }, [filters]);
 
   const handleFilterChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -117,30 +119,27 @@ export default function OrderPage() {
     });
   };
 
-  const filteredOrders = useMemo(() => {
-    return orders.filter((o: any) => {
-      const needle = filters.searchQuery.toLowerCase().trim();
+  const handlePageChange = (page: number) => {
+    if (page < 0 || page >= totalPages) return;
+    loadData(page);
+  };
 
-      const matchSearch =
-        !needle ||
-        o.orderCode?.toLowerCase().includes(needle) ||
-        o.customerName?.toLowerCase().includes(needle);
-
-      const matchStatus =
-        filters.status === "Tất cả" ||
-        o.orderStatus === filters.status;
-
-      const matchType =
-        filters.orderType === "Tất cả" ||
-        o.orderType === filters.orderType;
-
-      const matchDate =
-        !filters.orderDate ||
-        (o.orderDate && o.orderDate.startsWith(filters.orderDate));
-
-      return matchSearch && matchStatus && matchType && matchDate;
-    });
-  }, [orders, filters]);
+  // Tạo danh sách số trang hiển thị (tối đa 5 trang xung quanh trang hiện tại)
+  const pageNumbers = () => {
+    const pages: (number | "...")[] = [];
+    if (totalPages <= 7) {
+      for (let i = 0; i < totalPages; i++) pages.push(i);
+    } else {
+      pages.push(0);
+      if (currentPage > 2) pages.push("...");
+      for (let i = Math.max(1, currentPage - 1); i <= Math.min(totalPages - 2, currentPage + 1); i++) {
+        pages.push(i);
+      }
+      if (currentPage < totalPages - 3) pages.push("...");
+      pages.push(totalPages - 1);
+    }
+    return pages;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 md:p-8">
@@ -156,13 +155,15 @@ export default function OrderPage() {
             <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
               Quản lý đơn hàng
             </h1>
-            <p className="text-gray-600">Danh sách tất cả đơn hàng trong hệ thống</p>
+            <p className="text-gray-600">
+              Tổng cộng <span className="font-bold text-indigo-600">{totalElements}</span> đơn hàng
+            </p>
           </div>
 
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={loadData}
+            onClick={() => loadData(currentPage)}
             disabled={loading}
             className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl font-semibold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -190,7 +191,7 @@ export default function OrderPage() {
           </motion.div>
         )}
 
-        {/* Main Content */}
+        {/* Toolbar + Table */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -201,14 +202,74 @@ export default function OrderPage() {
             onFilterChange={handleFilterChange}
             onResetFilter={handleResetFilter}
             statusData={statusData}
-            total={filteredOrders.length}
-            original={orders.length}
+            total={orders.length}
+            original={totalElements}
           />
 
-          <OrderTable
-            orders={filteredOrders}
-            loading={loading}
-          />
+          <OrderTable orders={orders} loading={loading} />
+
+          {/* Pagination */}
+          {!loading && totalPages > 1 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-6 flex items-center justify-between flex-wrap gap-4"
+            >
+              {/* Info */}
+              <p className="text-sm text-gray-500">
+                Trang <span className="font-bold text-indigo-600">{currentPage + 1}</span> / {totalPages}
+                {" "}· Hiển thị <span className="font-bold">{orders.length}</span> / <span className="font-bold">{totalElements}</span> đơn
+              </p>
+
+              {/* Buttons */}
+              <div className="flex items-center gap-2">
+                {/* Nút Trước */}
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 0}
+                  className="flex items-center gap-1 px-4 py-2 rounded-xl bg-white border-2 border-indigo-100 text-indigo-600 font-semibold text-sm hover:bg-indigo-50 transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="w-4 h-4" /> Trước
+                </motion.button>
+
+                {/* Số trang */}
+                <div className="flex items-center gap-1">
+                  {pageNumbers().map((page, idx) =>
+                    page === "..." ? (
+                      <span key={`ellipsis-${idx}`} className="px-2 text-gray-400 font-bold">...</span>
+                    ) : (
+                      <motion.button
+                        key={page}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => handlePageChange(page as number)}
+                        className={`w-9 h-9 rounded-xl font-bold text-sm transition-all shadow-sm
+                          ${currentPage === page
+                            ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg"
+                            : "bg-white border-2 border-indigo-100 text-gray-600 hover:bg-indigo-50"
+                          }`}
+                      >
+                        {(page as number) + 1}
+                      </motion.button>
+                    )
+                  )}
+                </div>
+
+                {/* Nút Tiếp */}
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage >= totalPages - 1}
+                  className="flex items-center gap-1 px-4 py-2 rounded-xl bg-white border-2 border-indigo-100 text-indigo-600 font-semibold text-sm hover:bg-indigo-50 transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Tiếp <ChevronRight className="w-4 h-4" />
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
         </motion.div>
 
       </div>

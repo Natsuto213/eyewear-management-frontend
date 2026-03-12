@@ -3,8 +3,12 @@ import "./PageRoute.css";
 import HomePage from "./views/HomePage";
 import LoginPage from "./views/Loginpage";
 import RegisterPage from "./views/RegisterPage";
-import ProfilePage from "./views/ProfilePage";
-import Account from "./views/AccountPage";
+
+import ProfilePage from "./views/ProfileCustomer/ProfilePage";
+import Account from "./views/ProfileCustomer/AccountPage";
+import OrderDetailCustomer from "./views/ProfileCustomer/OrderDetailCustomer";
+
+
 import AllProductLayout from "./views/AllProduct/AllProductLayout";
 import AllProductFilter from "./views/AllProduct/AllProductFilter";
 import ProductDetail from "./views/ProductDetail";
@@ -60,6 +64,7 @@ export default function PageRoute() {
 
         <Route path="/profile" element={<ProfilePage />}>
           <Route path="account" element={<Account />} />
+          <Route path="orders/:orderId" element={<OrderDetailCustomer />} />
         </Route>
 
         <Route path="/operation" element={<OperationStaffLayout />} >
