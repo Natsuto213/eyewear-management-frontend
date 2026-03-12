@@ -67,10 +67,10 @@ export default function PageRoute() {
           <Route path="orders/:orderId" element={<OrderDetailCustomer />} />
         </Route>
 
-        <Route path="/operation" element={<OperationStaffLayout />} >
+        <Route path="/operation-staff" element={<OperationStaffLayout />} >
           <Route index element={<OrderPage />} />
           <Route path="orders" element={<OrderPage />} />
-          <Route path="/operation-staff/orders/:orderId" element={<OrderDetailOps />} />
+          <Route path="orders/:orderId" element={<OrderDetailOps />} />
           <Route path="inventory" element={<InventoryPage />} />
         </Route>
 
