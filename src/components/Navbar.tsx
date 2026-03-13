@@ -47,7 +47,7 @@ export default function Navbar() {
             case "SALES STAFF":
                 return "/sales/containers/orders";
             case "OPERATIONS STAFF":
-                return "/operation/inventory";
+                return "/operation-staff/orders";
             default:
                 return "/";
         }

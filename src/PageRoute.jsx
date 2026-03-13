@@ -3,8 +3,11 @@ import "./PageRoute.css";
 import HomePage from "./views/HomePage";
 import LoginPage from "./views/LoginPage";
 import RegisterPage from "./views/RegisterPage";
-import ProfilePage from "./views/ProfilePage";
-import Account from "./views/AccountPage";
+
+import ProfilePage from "./views/ProfileCustomer/ProfilePage";
+import Account from "./views/ProfileCustomer/AccountPage";
+import OrderDetailCustomer from "./views/ProfileCustomer/OrderDetailCustomer";
+
 
 import AllProductLayout from "./views/AllProduct/AllProductLayout";
 import AllProductFilter from "./views/AllProduct/AllProductFilter";
@@ -61,8 +64,10 @@ export default function PageRoute() {
 
         <Route path="/profile" element={<ProfilePage />}>
           <Route path="account" element={<Account />} />
+          <Route path="orders/:orderId" element={<OrderDetailCustomer />} />
         </Route>
 
+       
         <Route path="/sales" element={<SalesStaffLayout />}>
           <Route index element={<OrderTable />} />
           <Route path="containers/orders" element={<OrderTable />} />
@@ -71,10 +76,10 @@ export default function PageRoute() {
           <Route path="ui/returnorderdetail/:returnExchangeId" element={<ReturnOrderDetail />} />
         </Route>
         
-        <Route path="/operation" element={<OperationStaffLayout />} >
+        <Route path="/operation-staff" element={<OperationStaffLayout />} >
           <Route index element={<OrderPage />} />
           <Route path="orders" element={<OrderPage />} />
-          <Route path="/operation-staff/orders/:orderId" element={<OrderDetailOps />} />
+          <Route path="orders/:orderId" element={<OrderDetailOps />} />
           <Route path="inventory" element={<InventoryPage />} />
         </Route>
 
