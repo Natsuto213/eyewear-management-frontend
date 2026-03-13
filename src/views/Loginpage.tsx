@@ -39,7 +39,7 @@ const LoginPage: React.FC = () => {
                 return "/sales";
             case "OPERATIONS STAFF":
             case "OPERATIONS_STAFF":
-                return "/operation-staff";
+                return "/operation";
             default:
                 console.warn("Role không xác định, điều hướng về trang chủ");
                 return "/";
