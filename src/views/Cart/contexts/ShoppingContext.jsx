@@ -195,10 +195,11 @@ export function ShoppingContextProvider({ children }) {
 
                 showLoginPopup,     // Trạng thái popup đăng nhập
                 setShowLoginPopup,  // Bật/tắt popup đăng nhập
+                showSuccessPopup,   // Trạng thái popup thành công
+                setShowSuccessPopup // Bật/tắt popup thành công
             }}
         >
             {children}
-            <CartSuccessPopup show={showSuccessPopup} onClose={() => setShowSuccessPopup(false)} />
         </ShoppingContext.Provider>
     );
 }

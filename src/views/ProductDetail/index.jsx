@@ -35,24 +35,19 @@ import { useShoppingContext } from "@/views/Cart/contexts/ShoppingContext";
 
 // ── Login Popup ──
 import LoginPopup from "@/views/Cart/components/LoginPopup";
+// ── Cart Success Popup ──
+import CartSuccessPopup from "@/views/Cart/components/CartSuccessPopup";
 
 // ── Utilities ──
 import { getProductFlags, getRelatedLists } from "./utils/productHelpers";
 
 export default function ProductDetailPage() {
     const { id } = useParams();
-    const { showLoginPopup, setShowLoginPopup } = useShoppingContext();
+    const { showLoginPopup, setShowLoginPopup, showSuccessPopup, setShowSuccessPopup } = useShoppingContext();
     const { product, loading, error } = useProductDetail(id);
 
     // ─── Hook 2: Quản lý state form đơn thuốc mắt ─────────────────────────────
-    const {
-        data: rxData,       // Dữ liệu 10 fields đơn thuốc
-        errors: rxErrors,     // Lỗi validate từng field
-        updateField: onUpdateRx,   // Hàm cập nhật 1 field
-        validateOnBlur: onBlurRx,     // Hàm validate khi rời ô input
-        validateAll: validateAllRx, // Hàm validate toàn bộ trước khi thêm vào giỏ
-        resetPrescription,             // Hàm reset form về mặc định (0 hết)
-    } = usePrescription();
+    const { formik, resetPrescription } = usePrescription();
 
     const prevIdRef = useRef(id);
     useEffect(() => {
@@ -62,7 +57,7 @@ export default function ProductDetailPage() {
             window.scrollTo({ top: 0, behavior: "smooth" });
             prevIdRef.current = id; // Cập nhật ref với id mới
         }
-    }, [id]);
+    }, [id, resetPrescription]);
 
     // ─── Hiển thị màn hình loading/lỗi ────────────────────────────────────────
     if (loading) return <LoadingState />;
@@ -90,11 +85,11 @@ export default function ProductDetailPage() {
                 <LoginPopup onClose={() => setShowLoginPopup(false)} />
             )}
 
-            {/* ── Vùng nội dung chính (max 1400px, có padding responsive) ── */}
-            <main className="max-w-350 mx-auto px-4 md:px-10 py-8">
+            {showSuccessPopup && (
+                <CartSuccessPopup show={showSuccessPopup} onClose={() => setShowSuccessPopup(false)} />
+            )}
 
-                {/* ── GRID 2 CỘT: 60% Gallery | 40% Thông tin ── */}
-                {/* Mobile: 1 cột dọc / Desktop: 2 cột ngang */}
+            <main className="max-w-350 mx-auto px-4 md:px-10 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-[60%_40%] gap-8 items-start">
 
                     {/* ── CỘT TRÁI: Gallery ảnh sản phẩm ── */}
@@ -115,14 +110,10 @@ export default function ProductDetailPage() {
                 - QuantitySelector + Nút "Thêm vào giỏ" */}
                         <AddToCartBar
                             product={product}
+                            formik={formik} // Truyền object formik xuống
                             isFrame={isFrame}
                             isLenses={isLenses}
                             isContact={isContact}
-                            rxData={rxData}
-                            rxErrors={rxErrors}
-                            onUpdateRx={onUpdateRx}
-                            onBlurRx={onBlurRx}
-                            validateAllRx={validateAllRx}
                         />
 
                         {/* Accordion: Mô tả / Vận chuyển / Bảo hành / Cửa hàng */}

@@ -1,38 +1,15 @@
 /**
 
- *
- * Props nhận từ index.jsx:
- * @param {object}   product         - Dữ liệu sản phẩm
- * @param {boolean}  isFrame         - True nếu là Gọng kính
- * @param {boolean}  isLenses        - True nếu là Tròng kính
- * @param {boolean}  isContact       - True nếu là Kính áp tròng
- * @param {object}   rxData          - Dữ liệu đơn thuốc từ usePrescription
- * @param {object}   rxErrors        - Lỗi validate đơn thuốc
- * @param {function} onUpdateRx      - Hàm cập nhật field đơn thuốc
- * @param {function} onBlurRx        - Hàm validate onBlur đơn thuốc
- * @param {function} validateAllRx   - Hàm validate toàn bộ đơn thuốc
  */
 
 import { useState } from "react";
-import PrescriptionForm from "./PrescriptionForm";
 import QuantitySelector from "./QuantitySelector";
 import LensModal from "./LensModal";
 import { PRODUCT_TYPES } from "../utils/constants";
 import { useShoppingContext } from "../../Cart/contexts/ShoppingContext";
 import PrescriptionInputTabs from "./PrescriptionInputTabs";
 
-export default function AddToCartBar({
-    product,
-    isFrame,
-    isLenses,
-    isContact,
-    rxData,
-    rxErrors,
-    onUpdateRx,
-    onBlurRx,
-    validateAllRx,
-}) {
-    // ─── State: số lượng ──────────────────────────────────────────────────────
+export default function AddToCartBar({ product, isFrame, isLenses, formik }) {
     const [quantity, setQuantity] = useState(1);
 
     // ─── State: người dùng đã tick "mua đơn lẻ" chưa ─────────────────────────
@@ -68,16 +45,18 @@ export default function AddToCartBar({
      *     - Đơn lẻ:  { productId, quantity, prescription }
      *     - Mua kèm: { productId, pairedProductId, quantity, prescription }
      */
-    function handleAddToCart() {
-        // Bước 1: Validate đơn thuốc cho tất cả loại (Gọng, Tròng, Kính áp tròng đều có form)
-        const isValid = validateAllRx();
-        if (!isValid) {
+    async function handleAddToCart() {
+        const errors = await formik.validateForm();
+
+        if (Object.keys(errors).length > 0) {
+            formik.setTouched(
+                Object.keys(formik.initialValues).reduce((acc, key) => ({ ...acc, [key]: true }), {})
+            );
             alert("Vui lòng kiểm tra lại thông số đơn thuốc!");
             return;
         }
 
         // Bước 2: Chỉ Gọng/Tròng mới cần chọn phương án mua
-        // Kính áp tròng bỏ qua bước này (luôn là đơn lẻ)
         if ((isFrame || isLenses) && !isSoloChecked && !pairedProduct) {
             alert(`Vui lòng tick "${soloLabel}" hoặc "${pairLabel}" để tiếp tục!`);
             return;
@@ -92,7 +71,7 @@ export default function AddToCartBar({
             nameProduct: product.name,                          // Tên sản phẩm chính
             imgProduct: product.imageUrls,                      // Ảnh sản phẩm chính
             quantity,
-            prescription: rxData,                               // Tất cả loại đều gửi đơn thuốc
+            prescription: formik.values,                               // Tất cả loại đều gửi đơn thuốc
 
             // ── Loại sản phẩm + ID riêng theo loại (dùng cho API) ──
             productType: product.Product_Type,                  // "Gọng kính" | "Tròng kính" | "Kính áp tròng"
@@ -124,13 +103,8 @@ export default function AddToCartBar({
         }
     }
 
-    // ─── Kiểm tra form đơn thuốc có dữ liệu khác 0 không ────────────────────
-    // Duyệt qua tất cả giá trị trong rxData (10 field).
-    // Nếu có BẤT KỲ field nào khác "0" và khác "" → hasRxData = true (người dùng đã nhập độ)
-    // Ví dụ: leftSPH = "-3.00" → hasRxData = true → bắt buộc phải chọn tròng kính
-    const hasRxData = Object.values(rxData).some(
-        (val) => val !== "0" && val !== "" && val !== "0.00"
-    );
+    // Logic kiểm tra xem đã nhập độ chưa để disable solo
+    const hasRxData = Object.values(formik.values).some(v => v !== "0" && v !== "" && v !== 0);
 
     // ─── Checkbox "Không mua tròng kính" có bị disable không ────────────────
     // Chỉ disable khi: đang xem Gọng kính VÀ người dùng đã nhập độ
@@ -149,10 +123,7 @@ export default function AddToCartBar({
         <div className="space-y-5">
             {/* ── PrescriptionInputTabs: cho phép nhập hoặc upload ảnh đơn thuốc ── */}
             <PrescriptionInputTabs
-                data={rxData}
-                errors={rxErrors}
-                onUpdate={onUpdateRx}
-                onBlur={onBlurRx}
+                formik={formik}
             />
 
             {/* ── Phần chọn phương án (chỉ Gọng/Tròng) ── */}
