@@ -83,7 +83,12 @@ export const roleTabsConfig: RoleTabs[] = [
                 label: 'Stock Report',
                 icon: BarChart3,
                 path: '/operation-staff/stock-report'
-            },  
+            }, {
+                id: 'purchase-card',
+                label: 'Phiếu đặt hàng',
+                icon: BarChart3,
+                path: '/operation-staff/purchase-card'
+            }
         ]
     },
     {
