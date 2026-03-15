@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Truck, Search, PlusCircle, Trash2, Calendar, ShoppingBag } from 'lucide-react';
+import { Truck, Search, PlusCircle, Trash2, Calendar, ShoppingBag, Plus, Minus } from 'lucide-react';
 
 // 1. DỮ LIỆU GIẢ LẬP: DANH SÁCH CÁC NHÀ CUNG CẤP (SUPPLIERS)
 const suppliers = [
@@ -39,10 +39,10 @@ const PurchaseCard = () => {
     // Lọc danh sách sản phẩm theo TỪ KHÓA và NHÀ CUNG CẤP đã chọn
     const availableProducts = useMemo(() => {
         if (!selectedSupplierId) return []; // Chưa chọn nhà cung cấp thì không hiện SP
-        return allProducts.filter(p => 
+        return allProducts.filter(p =>
             p.supplierId === selectedSupplierId &&
-            (p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-             p.code.toLowerCase().includes(searchQuery.toLowerCase()))
+            (p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                p.code.toLowerCase().includes(searchQuery.toLowerCase()))
         );
     }, [searchQuery, selectedSupplierId]);
 
@@ -55,13 +55,23 @@ const PurchaseCard = () => {
         setSelectedProducts([]);
     }, [selectedSupplierId]);
 
+    // 🚀 ĐÃ SỬA: HÀM THÊM SẢN PHẨM TỪ BẢNG TÌM KIẾM
     const handleAddProduct = (product: any) => {
         const existing = selectedProducts.find(p => p.id === product.id);
+        
         if (existing) {
-            alert("Sản phẩm này đã có trong danh sách đặt hàng!");
-            return;
+            // Nếu đã có -> Tăng số lượng lên 1
+            setSelectedProducts(selectedProducts.map(p => {
+                if (p.id === product.id) {
+                    const currentQty = p.orderQty === '' ? 0 : parseInt(p.orderQty);
+                    return { ...p, orderQty: (currentQty + 1).toString() };
+                }
+                return p;
+            }));
+        } else {
+            // Nếu chưa có -> Thêm mới với số lượng 1
+            setSelectedProducts([...selectedProducts, { ...product, orderQty: '1' }]);
         }
-        setSelectedProducts([...selectedProducts, { ...product, orderQty: 1 }]);
     };
 
     const handleRemoveProduct = (productId: number) => {
@@ -70,10 +80,33 @@ const PurchaseCard = () => {
 
     const handleQtyChange = (id: number, value: string) => {
         if (value === '' || /^\d+$/.test(value)) {
-            setSelectedProducts(selectedProducts.map(p => 
+            setSelectedProducts(selectedProducts.map(p =>
                 p.id === id ? { ...p, orderQty: value } : p
             ));
         }
+    };
+
+    // HÀM TĂNG SỐ LƯỢNG
+    const handleIncrement = (id: number) => {
+        setSelectedProducts(selectedProducts.map(p => {
+            if (p.id === id) {
+                const currentQty = p.orderQty === '' ? 0 : parseInt(p.orderQty);
+                return { ...p, orderQty: (currentQty + 1).toString() };
+            }
+            return p;
+        }));
+    };
+
+    // HÀM GIẢM SỐ LƯỢNG
+    const handleDecrement = (id: number) => {
+        setSelectedProducts(selectedProducts.map(p => {
+            if (p.id === id) {
+                const currentQty = p.orderQty === '' ? 0 : parseInt(p.orderQty);
+                const newQty = currentQty > 1 ? currentQty - 1 : 1; // Tối thiểu là 1
+                return { ...p, orderQty: newQty.toString() };
+            }
+            return p;
+        }));
     };
 
     const formatCurrency = (val: number) => new Intl.NumberFormat('vi-VN').format(Math.round(val));
@@ -81,7 +114,6 @@ const PurchaseCard = () => {
     const totalOrderValue = useMemo(() => {
         return selectedProducts.reduce((sum, p) => {
             const qty = p.orderQty === '' ? 0 : parseInt(p.orderQty);
-            // Công thức: Giá * Số lượng * (1 + VAT%)
             return sum + (p.price * qty * (1 + p.vat / 100));
         }, 0);
     }, [selectedProducts]);
@@ -108,8 +140,8 @@ const PurchaseCard = () => {
                         <div className="space-y-5">
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Nguồn nhập (Công ty) *</label>
-                                <select 
-                                    className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm py-2"
+                                <select
+                                    className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm py-2 px-4"
                                     value={selectedSupplierId}
                                     onChange={(e) => setSelectedSupplierId(e.target.value)}
                                 >
@@ -122,17 +154,17 @@ const PurchaseCard = () => {
 
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Mã nguồn</label>
-                                <input type="text" disabled className="w-full bg-gray-100 border-gray-200 rounded-lg text-sm py-2 text-gray-600 font-mono" value={selectedSupplier?.code || ''} placeholder="Tự động điền..." />
+                                <input type="text" disabled className="w-full bg-gray-100 border-gray-200 rounded-lg text-sm py-2 px-4 text-gray-600 font-mono" value={selectedSupplier?.code || ''} placeholder="Tự động điền..." />
                             </div>
 
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Số điện thoại</label>
-                                <input type="text" disabled className="w-full bg-gray-100 border-gray-200 rounded-lg text-sm py-2 text-gray-600" value={selectedSupplier?.phone || ''} placeholder="Tự động điền..." />
+                                <input type="text" disabled className="w-full bg-gray-100 border-gray-200 rounded-lg text-sm py-2 px-4 text-gray-600" value={selectedSupplier?.phone || ''} placeholder="Tự động điền..." />
                             </div>
 
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Địa chỉ</label>
-                                <textarea disabled className="w-full bg-gray-100 border-gray-200 rounded-lg text-sm py-2 text-gray-600 resize-none" rows={2} value={selectedSupplier?.address || ''} placeholder="Tự động điền..." />
+                                <textarea disabled className="w-full bg-gray-100 border-gray-200 rounded-lg text-sm py-2 px-4 text-gray-600 resize-none" rows={2} value={selectedSupplier?.address || ''} placeholder="Tự động điền..." />
                             </div>
                         </div>
 
@@ -140,14 +172,14 @@ const PurchaseCard = () => {
                         <div className="space-y-5 border-l-0 md:border-l border-gray-100 md:pl-8">
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Mã phiếu đặt hàng</label>
-                                <input type="text" disabled className="w-full bg-gray-100 border-gray-200 rounded-lg text-sm py-2 text-blue-700 font-bold font-mono" value="PO-AUTO-001" />
+                                <input type="text" disabled className="w-full bg-gray-100 border-gray-200 rounded-lg text-sm py-2 px-4 text-blue-700 font-bold font-mono" value="PO-AUTO-001" />
                             </div>
 
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
                                     <Calendar className="w-4 h-4" /> Ngày đặt *
                                 </label>
-                                <input type="date" className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm py-2" value={orderDate} onChange={(e) => setOrderDate(e.target.value)} />
+                                <input type="date" className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm py-2 px-4" value={orderDate} onChange={(e) => setOrderDate(e.target.value)} />
                             </div>
                         </div>
                     </div>
@@ -161,10 +193,10 @@ const PurchaseCard = () => {
                         <Search className="w-5 h-5 text-blue-600" /> Tìm kiếm sản phẩm
                     </h2>
                     <div className="relative w-72">
-                        <input 
-                            type="text" 
-                            placeholder="Nhập tên hoặc mã sản phẩm..." 
-                            className="w-full pl-9 pr-3 py-1.5 border-gray-300 rounded-full text-sm focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+                        <input
+                            type="text"
+                            placeholder="Nhập tên hoặc mã sản phẩm..."
+                            className="w-full pl-9 pr-4 py-1.5 border-gray-300 rounded-full text-sm focus:ring-blue-500 focus:border-blue-500 shadow-sm"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -194,7 +226,7 @@ const PurchaseCard = () => {
                                         <td className="p-3 text-center font-mono text-gray-500 text-xs">{p.code}</td>
                                         <td className="p-3 text-right text-gray-700">{formatCurrency(p.price)} đ</td>
                                         <td className="p-3 text-center">
-                                            <button 
+                                            <button
                                                 onClick={() => handleAddProduct(p)}
                                                 className="inline-flex items-center gap-1 bg-blue-100 hover:bg-blue-600 text-blue-700 hover:text-white px-3 py-1.5 rounded-md text-xs font-bold transition-colors"
                                                 title="Thêm vào danh sách đặt"
@@ -228,7 +260,7 @@ const PurchaseCard = () => {
                                 <th className="p-3 uppercase text-[11px] font-bold text-gray-600 text-center">Mã hàng</th>
                                 <th className="p-3 uppercase text-[11px] font-bold text-gray-600 text-center w-16">ĐVT</th>
                                 <th className="p-3 uppercase text-[11px] font-bold text-gray-600 text-right">Đơn giá (VNĐ)</th>
-                                <th className="p-3 uppercase text-[11px] font-bold text-gray-600 text-center w-28 bg-yellow-50">SL Nhập *</th>
+                                <th className="p-3 uppercase text-[11px] font-bold text-gray-600 text-center w-36 bg-yellow-50">SL Nhập *</th>
                                 <th className="p-3 uppercase text-[11px] font-bold text-gray-600 text-center w-16">VAT</th>
                                 <th className="p-3 uppercase text-[11px] font-bold text-gray-600 text-right">Thành tiền (VNĐ)</th>
                                 <th className="p-3 uppercase text-[11px] font-bold text-gray-600 text-center w-16">Xóa</th>
@@ -253,22 +285,38 @@ const PurchaseCard = () => {
                                             <td className="p-3 text-center font-mono text-xs text-gray-500">{p.code}</td>
                                             <td className="p-3 text-center text-gray-500">{p.unit}</td>
                                             <td className="p-3 text-right text-gray-700">{formatCurrency(p.price)}</td>
-                                            
-                                            {/* Ô nhập Số Lượng */}
+
+                                            {/* Ô NHO NG NÚT TĂNG GIẢM */}
                                             <td className="p-3 bg-yellow-50/50">
-                                                <input
-                                                    type="text"
-                                                    className="w-full text-center font-bold text-blue-700 rounded-md border-gray-300 focus:ring-blue-500 focus:border-blue-500 py-1"
-                                                    value={p.orderQty}
-                                                    onChange={(e) => handleQtyChange(p.id, e.target.value)}
-                                                    placeholder="0"
-                                                />
+                                                <div className="flex items-center justify-center bg-white border border-gray-300 rounded-md overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 w-full">
+                                                    <button
+                                                        type="button"
+                                                        className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
+                                                        onClick={() => handleDecrement(p.id)}
+                                                        disabled={p.orderQty === '' || parseInt(p.orderQty) <= 1}
+                                                    >
+                                                        <Minus className="w-3.5 h-3.5" />
+                                                    </button>
+                                                    <input
+                                                        type="text"
+                                                        className="w-12 text-center font-bold text-blue-700 border-none p-1 text-sm focus:ring-0"
+                                                        value={p.orderQty}
+                                                        onChange={(e) => handleQtyChange(p.id, e.target.value)}
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                                                        onClick={() => handleIncrement(p.id)}
+                                                    >
+                                                        <Plus className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
                                             </td>
-                                            
+
                                             <td className="p-3 text-center text-gray-500">{p.vat}%</td>
                                             <td className="p-3 text-right font-bold text-gray-900">{formatCurrency(totalLine)}</td>
                                             <td className="p-3 text-center">
-                                                <button 
+                                                <button
                                                     onClick={() => handleRemoveProduct(p.id)}
                                                     className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
                                                     title="Xóa mặt hàng này"
@@ -299,8 +347,8 @@ const PurchaseCard = () => {
             <div className="flex justify-center pt-4 pb-10">
                 <button
                     className={`py-4 px-16 rounded-xl font-bold shadow-lg flex items-center gap-3 transition-all transform active:scale-95 text-lg uppercase tracking-wider
-                        ${selectedProducts.length > 0 
-                            ? 'bg-blue-700 hover:bg-blue-800 text-white shadow-blue-300 hover:-translate-y-1' 
+                        ${selectedProducts.length > 0
+                            ? 'bg-blue-700 hover:bg-blue-800 text-white shadow-blue-300 hover:-translate-y-1'
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
                     disabled={selectedProducts.length === 0}
                     onClick={() => alert("Đã xác nhận tạo Phiếu Đặt Hàng thành công!")}
