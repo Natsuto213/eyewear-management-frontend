@@ -67,7 +67,16 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
 
         <div className="flex justify-between items-center pt-4 border-t-2 border-dashed">
           <span className="font-bold text-zinc-900 text-base">Tổng cộng</span>
-          <span className="text-2xl font-black text-red-600 tracking-tight">{preview?.totalAmount?.toLocaleString() || 0}đ</span>
+          <div className="text-right">
+            {(preview?.appliedPromotionId || needsDeposit) && preview?.remainingAmount != null ? (
+              <>
+                <span className="block text-xs text-zinc-400 line-through">{preview?.totalAmount?.toLocaleString()}đ</span>
+                <span className="text-2xl font-black text-red-600 tracking-tight">{preview?.remainingAmount?.toLocaleString()}đ</span>
+              </>
+            ) : (
+              <span className="text-2xl font-black text-red-600 tracking-tight">{preview?.totalAmount?.toLocaleString() || 0}đ</span>
+            )}
+          </div>
         </div>
       </div>
 

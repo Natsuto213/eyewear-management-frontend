@@ -1,10 +1,13 @@
 import { Routes, Route } from "react-router-dom";
 import "./PageRoute.css";
 import HomePage from "./views/HomePage";
-import LoginPage from "./views/Loginpage";
+import LoginPage from "./views/LoginPage";
 import RegisterPage from "./views/RegisterPage";
-import ProfilePage from "./views/ProfilePage";
-import Account from "./views/AccountPage";
+
+import ProfilePage from "./views/ProfileCustomer/ProfilePage";
+import Account from "./views/ProfileCustomer/AccountPage";
+import OrderDetailCustomer from "./views/ProfileCustomer/OrderDetailCustomer";
+
 
 import AllProductLayout from "./views/AllProduct/AllProductLayout";
 import AllProductFilter from "./views/AllProduct/AllProductFilter";
@@ -34,6 +37,7 @@ import ManagerStaffView from './views/Dashboard/Manager/ManagerStaffView';
 import ManagerStatisticView from './views/Dashboard/Manager/ManagerStatisticView';
 import ManagerSalesView from './views/Dashboard/Manager/ManagerSalesView';
 import ManagerPoliciesView from './views/Dashboard/Manager/ManagerPoliciesView';
+import PurchaseCard from "./views/Dashboard/OperationStaff/Inventory/PurchaseCard";
 
 export default function PageRoute() {
   return (
@@ -61,7 +65,9 @@ export default function PageRoute() {
 
         <Route path="/profile" element={<ProfilePage />}>
           <Route path="account" element={<Account />} />
+          <Route path="orders/:orderId" element={<OrderDetailCustomer />} />
         </Route>
+
 
         <Route path="/sales" element={<SalesStaffLayout />}>
           <Route index element={<OrderTable />} />
@@ -70,12 +76,14 @@ export default function PageRoute() {
           <Route path="ui/orderdetail/:orderId" element={<OrderDetail />} />
           <Route path="ui/returnorderdetail/:returnExchangeId" element={<ReturnOrderDetail />} />
         </Route>
-        
-        <Route path="/operation" element={<OperationStaffLayout />} >
+
+        <Route path="/operation-staff" element={<OperationStaffLayout />} >
           <Route index element={<OrderPage />} />
           <Route path="orders" element={<OrderPage />} />
-          <Route path="/operation-staff/orders/:orderId" element={<OrderDetailOps />} />
+          <Route path="orders/:orderId" element={<OrderDetailOps />} />
           <Route path="inventory" element={<InventoryPage />} />
+
+          <Route path="purchase-card" element={<PurchaseCard />} />
         </Route>
 
         <Route path="/manager" element={<ManagerLayout />}>

@@ -1,68 +1,75 @@
 import React, { useState } from 'react';
-import { Camera, X, RefreshCw, Clock, CheckCircle } from 'lucide-react';
+import { Camera, X, RefreshCw, Clock, CheckCircle, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import LoginPopup from "@/views/Cart/components/LoginPopup"; 
+import { Popup } from "@/components/Popup"; 
+import { api } from "@/lib/api";
 
 export default function WarrantyPage() {
-    const [orderCode, setOrderCode] = useState('');
+    const [orderDetailId, setOrderDetailId] = useState<number | ''>('');
     const [quantity, setQuantity] = useState<number>(1);
     const [requestType, setRequestType] = useState<string>('WARRANTY'); 
     const [description, setDescription] = useState('');
     
-    const [refundMethod, setRefundMethod] = useState('');
+    const [refundMethod, setRefundMethod] = useState(''); 
     const [refundAccountNumber, setRefundAccountNumber] = useState('');
 
-    const [images, setImages] = useState<File[]>([]);
-    const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+    const [image, setImage] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    // STATE ĐỂ HIỂN THỊ LOGIN POPUP
     const [showLoginPopup, setShowLoginPopup] = useState(false);
+
+    const [popup, setPopup] = useState({ isOpen: false, title: '', message: '', type: 'success' as 'success' | 'error' });
+
+    const showPopup = (message: string, type: 'success' | 'error', title: string = '') => {
+        setPopup({ isOpen: true, title, message, type });
+    };
+
+    const isImageEmpty = !imagePreview;
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
-        if (!files) return;
+        if (!files || files.length === 0) return;
 
-        const newFiles = Array.from(files);
-        const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+        if (files.length > 1) {
+            toast.error("Vui lòng chỉ chọn 1 hình ảnh duy nhất để minh chứng!");
+        }
 
-        setImages(prev => [...prev, ...newFiles]);
-        setImagePreviews(prev => [...prev, ...newPreviews]);
+        const file = files[0];
+        
+        if (imagePreview) {
+            URL.revokeObjectURL(imagePreview);
+        }
+
+        const newPreview = URL.createObjectURL(file);
+        setImage(file);
+        setImagePreview(newPreview);
     };
 
-    const removeImage = (index: number) => {
-        setImages(prev => prev.filter((_, i) => i !== index));
-        URL.revokeObjectURL(imagePreviews[index]);
-        setImagePreviews(prev => prev.filter((_, i) => i !== index));
+    const removeImage = () => {
+        if (imagePreview) {
+            URL.revokeObjectURL(imagePreview);
+        }
+        setImage(null);
+        setImagePreview(null);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // 1. KIỂM TRA ĐĂNG NHẬP
         const token = localStorage.getItem("access_token");
-        const userStr = localStorage.getItem("user");
         
-        if (!token || !userStr) {
-            // MỞ POPUP ĐĂNG NHẬP THAY VÌ HIỆN TOAST LỖI
+        if (!token) {
             setShowLoginPopup(true);
             return;
         }
 
-        const userData = JSON.parse(userStr);
-        const userId = userData?.id || userData?.userId || userData?.User_ID; 
-
-        if (!userId) {
-            setShowLoginPopup(true);
-            return;
-        }
-
-        // 2. VALIDATE CÁC TRƯỜNG DỮ LIỆU
-        if (!orderCode.trim()) {
-            toast.error('Vui lòng nhập mã đơn');
+        if (orderDetailId === '' || orderDetailId <= 0) {
+            toast.error('Vui lòng nhập ID chi tiết đơn hàng hợp lệ');
             return;
         }
 
@@ -71,6 +78,7 @@ export default function WarrantyPage() {
             return;
         }
 
+        // Chỉ validate Hoàn tiền khi chọn Đổi trả
         if (requestType === 'RETURN') {
             if (!refundMethod.trim()) {
                 toast.error('Vui lòng nhập phương thức hoàn tiền (VD: MoMo, Vietcombank...)');
@@ -83,7 +91,12 @@ export default function WarrantyPage() {
         }
 
         if (!description.trim()) {
-            toast.error('Vui lòng nhập mô tả');
+            toast.error('Vui lòng nhập lý do (mô tả)');
+            return;
+        }
+
+        if (isImageEmpty) {
+            toast.error("Vui lòng tải lên 1 hình ảnh để minh chứng!");
             return;
         }
 
@@ -92,48 +105,44 @@ export default function WarrantyPage() {
         try {
             const formData = new FormData();
             
-            formData.append('User_ID', userId.toString());
-            formData.append('orderCode', orderCode);
+            formData.append('orderDetailId', orderDetailId.toString());
             formData.append('quantity', quantity.toString());
-            formData.append('Return_Type', requestType); 
+            formData.append('returnReason', description);
+            formData.append('returnType', requestType); 
 
+            // CHỈ APPEND 2 TRƯỜNG NÀY KHI LÀ RETURN. NẾU BẢO HÀNH THÌ BỎ QUA.
             if (requestType === 'RETURN') {
-                formData.append('Refund_Method', refundMethod);
-                formData.append('Refund_Account_Number', refundAccountNumber);
+                formData.append('refundMethod', refundMethod);
+                formData.append('refundAccountNumber', refundAccountNumber);
             }
 
-            formData.append('description', description);
+            formData.append('image', image as Blob);
 
-            images.forEach((image) => {
-                formData.append('images', image);
-            });
-
-            const response = await fetch('http://localhost:8080/warranty', {
-                method: 'POST',
+            await api.post('/api/return-exchanges', formData, {
                 headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                body: formData,
+                    'Content-Type': 'multipart/form-data'
+                }
             });
 
-            if (response.ok) {
-                toast.success('Gửi đơn thành công!');
-                // Reset form
-                setOrderCode('');
-                setQuantity(1);
-                setRequestType('WARRANTY');
-                setRefundMethod('');
-                setRefundAccountNumber('');
-                setDescription('');
-                setImages([]);
-                imagePreviews.forEach(url => URL.revokeObjectURL(url));
-                setImagePreviews([]);
-            } else {
-                toast.error('Có lỗi xảy ra từ máy chủ. Vui lòng thử lại!');
-            }
-        } catch (error) {
+            showPopup("Yêu cầu của bạn đã được gửi và đang chờ xử lý.", "success", "Gửi đơn thành công!");
+            
+            // Reset form sau khi gửi thành công
+            setOrderDetailId('');
+            setQuantity(1);
+            setRequestType('WARRANTY');
+            setRefundMethod('');
+            setRefundAccountNumber('');
+            setDescription('');
+            removeImage();
+
+        } catch (error: any) {
             console.error('Error submitting warranty request:', error);
-            toast.error('Không thể kết nối tới server. Vui lòng kiểm tra lại!');
+            
+            const backendErrorMsg = error.response?.data?.message 
+                                 || error.response?.data?.result 
+                                 || 'Có lỗi xảy ra từ máy chủ. Vui lòng kiểm tra lại thông tin!';
+                                 
+            showPopup(backendErrorMsg, "error", "Gửi yêu cầu thất bại!");
         } finally {
             setIsSubmitting(false);
         }
@@ -162,13 +171,14 @@ export default function WarrantyPage() {
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                 <div className="md:col-span-2">
                                     <label className="block text-gray-700 font-medium mb-2">
-                                        Nhập mã đơn <span className="text-red-500">*</span>
+                                        Mã chi tiết đơn hàng (ID) <span className="text-red-500">*</span>
                                     </label>
                                     <input
-                                        type="text"
-                                        value={orderCode}
-                                        onChange={(e) => setOrderCode(e.target.value)}
-                                        placeholder="Nhập mã đơn hàng"
+                                        type="number"
+                                        min="1"
+                                        value={orderDetailId}
+                                        onChange={(e) => setOrderDetailId(Number(e.target.value))}
+                                        placeholder="Ví dụ: 1024"
                                         className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
                                         required
                                     />
@@ -204,17 +214,19 @@ export default function WarrantyPage() {
                                 </div>
                             </div>
 
+                            {/* Khu vực Chọn hoàn tiền: Chỉ hiện khi là RETURN */}
                             {requestType === 'RETURN' && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-100 animate-in fade-in slide-in-from-top-2 duration-300">
                                     <div>
                                         <label className="block text-gray-700 font-medium mb-2">
                                             Phương thức hoàn tiền <span className="text-red-500">*</span>
                                         </label>
+                                        {/* TRẢ LẠI THÀNH INPUT TEXT CHO PHÉP NHẬP TỰ DO */}
                                         <input
                                             type="text"
                                             value={refundMethod}
                                             onChange={(e) => setRefundMethod(e.target.value)}
-                                            placeholder="VD: MoMo, Vietcombank, TPBank..."
+                                            placeholder="VD: MoMo, Vietcombank..."
                                             className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors bg-white"
                                             required={requestType === 'RETURN'}
                                         />
@@ -237,7 +249,7 @@ export default function WarrantyPage() {
 
                             <div>
                                 <label className="block text-gray-700 font-medium mb-2">
-                                    Mô tả <span className="text-red-500">*</span>
+                                    Lý do <span className="text-red-500">*</span>
                                 </label>
                                 <textarea
                                     value={description}
@@ -251,51 +263,60 @@ export default function WarrantyPage() {
 
                             <div>
                                 <label className="block text-gray-700 font-medium mb-2">
-                                    Thêm hình ảnh
+                                    Thêm hình ảnh minh chứng (Chỉ 1 ảnh) <span className="text-red-500">*</span>
                                 </label>
-                                <div className="mb-4">
-                                    <label className="inline-flex items-center gap-2 px-6 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
-                                        <Camera className="w-5 h-5 text-gray-600" />
-                                        <span className="text-gray-700">Chọn ảnh</span>
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            multiple
-                                            onChange={handleImageUpload}
-                                            className="hidden"
-                                        />
-                                    </label>
+                                
+                                <div className="flex flex-wrap gap-3 items-start">
+                                    {!imagePreview && (
+                                        <label className={`w-32 h-32 shrink-0 border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition-colors
+                                            ${isImageEmpty 
+                                                ? 'border-red-400 bg-red-50 text-red-500 hover:border-red-500 hover:bg-red-100' 
+                                                : 'border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-500'
+                                            }`}
+                                        >
+                                            <Upload className="h-6 w-6 mb-2" />
+                                            <span className="text-xs font-medium">Tải lên</span>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleImageUpload}
+                                                className="hidden"
+                                            />
+                                        </label>
+                                    )}
+
+                                    {imagePreview && (
+                                        <div className="relative group w-32 h-32">
+                                            <img
+                                                src={imagePreview}
+                                                alt="Preview"
+                                                className="w-full h-full object-cover rounded-xl border-2 border-blue-200 shadow-sm"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={removeImage}
+                                                className="absolute top-1 right-1 p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors shadow-md opacity-0 group-hover:opacity-100"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
 
-                                {imagePreviews.length > 0 && (
-                                    <div className="grid grid-cols-3 gap-4">
-                                        {imagePreviews.map((preview, index) => (
-                                            <div key={index} className="relative group">
-                                                <img
-                                                    src={preview}
-                                                    alt={`Preview ${index + 1}`}
-                                                    className="w-full h-32 object-cover rounded-lg border-2 border-gray-200"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeImage(index)}
-                                                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                                >
-                                                    <X className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
+                                {isImageEmpty && (
+                                    <p className="text-xs text-red-500 mt-2 font-medium">
+                                        Vui lòng tải lên 1 hình ảnh để hoàn tất yêu cầu.
+                                    </p>
                                 )}
                             </div>
 
                             <div className="pt-4">
                                 <button
                                     type="submit"
-                                    disabled={isSubmitting}
-                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled={isSubmitting || isImageEmpty}
+                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
                                 >
-                                    {isSubmitting ? 'Đang gửi...' : 'Gửi đơn'}
+                                    {isSubmitting ? 'Đang gửi...' : 'Gửi đơn yêu cầu'}
                                 </button>
                             </div>
                         </form>
@@ -381,10 +402,18 @@ export default function WarrantyPage() {
 
             <Footer />
 
-            {/* NHÚNG COMPONENT POPUP ĐĂNG NHẬP VÀO ĐÂY */}
+            {/* Các popup thông báo */}
             {showLoginPopup && (
                 <LoginPopup onClose={() => setShowLoginPopup(false)} />
             )}
+
+            <Popup 
+                isOpen={popup.isOpen} 
+                title={popup.title}
+                message={popup.message} 
+                type={popup.type} 
+                onClose={() => setPopup({ ...popup, isOpen: false })} 
+            />
         </div>
     )
 }
