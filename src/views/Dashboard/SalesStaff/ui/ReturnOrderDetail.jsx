@@ -26,28 +26,28 @@ export default function ReturnOrderDetail() {
     const [openPrescriptionRows, setOpenPrescriptionRows] = useState({});
     const [rejectReason, setRejectReason] = useState("");
 
+    const fetchOrderDetail = async () => {
+        try {
+            setLoading(true);
+            setError("");
+
+            const response = await api.get(`api/staff/return-exchange/${returnExchangeId}`);
+            console.log("API response:", response.data);
+
+            setOrderData(response.data.result);
+        } catch (err) {
+            console.error(err);
+            setError(
+                err?.response?.data?.message ||
+                err?.message ||
+                "Không tải được chi tiết đơn hàng"
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchOrderDetail = async () => {
-            try {
-                setLoading(true);
-                setError("");
-
-                const response = await api.get(`api/staff/return-exchange/${returnExchangeId}`);
-                console.log("API response:", response.data);
-
-                setOrderData(response.data.result);
-            } catch (err) {
-                console.error(err);
-                setError(
-                    err?.response?.data?.message ||
-                    err?.message ||
-                    "Không tải được chi tiết đơn hàng"
-                );
-            } finally {
-                setLoading(false);
-            }
-        };
-
         if (returnExchangeId) {
             fetchOrderDetail();
         }
@@ -282,7 +282,7 @@ export default function ReturnOrderDetail() {
                                             <button
                                                 className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-3 px-4 rounded-xl transition-all font-bold shadow"
                                                 type="button"
-                                                onClick={() => handleApprove(orderData.returnExchangeId, navigate)}
+                                                onClick={() => handleApprove(orderData.returnExchangeId, fetchOrderDetail)}
                                             >
                                                 <CheckCircle className="w-5 h-5" />
                                                 CHẤP NHẬN
@@ -291,7 +291,7 @@ export default function ReturnOrderDetail() {
                                                 className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white py-3 px-4 rounded-xl transition-all font-bold shadow"
                                                 type="button"
                                                 disabled={!rejectReason.trim()}
-                                                onClick={() => handleReject(orderData.returnExchangeId, rejectReason, navigate)}
+                                                onClick={() => handleReject(orderData.returnExchangeId, rejectReason, fetchOrderDetail)}
                                             >
                                                 <XCircle className="w-5 h-5" />
                                                 TỪ CHỐI
@@ -318,7 +318,7 @@ export default function ReturnOrderDetail() {
                                             <button
                                                 className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white py-3 px-4 rounded-xl transition-all font-bold shadow"
                                                 type="button"
-                                                onClick={() => handleComplete(orderData.returnExchangeId, navigate)}
+                                                onClick={() => handleComplete(orderData.returnExchangeId, fetchOrderDetail)}
                                             >
                                                 <CheckCircle className="w-5 h-5" />
                                                 HOÀN THÀNH

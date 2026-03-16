@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-export const handleReject = async (returnExchangeId, reason, navigate) => {
+export const handleReject = async (returnExchangeId, reason, fetchOrderDetail) => {
     try {
         const res = await api.put(`api/staff/return-exchange/${returnExchangeId}/status`, {
             action: "REJECT",
@@ -7,7 +7,7 @@ export const handleReject = async (returnExchangeId, reason, navigate) => {
         });
         console.log("API response COMPLETE:", res.data);
         alert("Hoàn tất yêu cầu thành công!");
-        navigate("/sales/containers/return-orders");
+        fetchOrderDetail(); // Gọi lại API để cập nhật thông tin đơn hàng mới nhất sau khi từ chối
         return res.data;
     } catch (err) {
         console.error("Lỗi khi gọi API:", err);
@@ -19,14 +19,14 @@ export const handleReject = async (returnExchangeId, reason, navigate) => {
     }
 }
 
-export const handleApprove = async (returnExchangeId, navigate) => {
+export const handleApprove = async (returnExchangeId, fetchOrderDetail) => {
     try {
         const res = await api.put(`api/staff/return-exchange/${returnExchangeId}/status`, {
             action: "APPROVE"
         });
         console.log("API response COMPLETE:", res.data);
         alert("Hoàn tất yêu cầu thành công!");
-        navigate("/sales/containers/return-orders");
+        fetchOrderDetail(); // Gọi lại API để cập nhật thông tin đơn hàng mới nhất sau khi từ chối
         return res.data;
     } catch (err) {
         console.error("Lỗi khi gọi API:", err);
@@ -38,14 +38,14 @@ export const handleApprove = async (returnExchangeId, navigate) => {
     }
 }
 
-export const handleComplete = async (returnExchangeId, navigate) => {
+export const handleComplete = async (returnExchangeId, fetchOrderDetail) => {
     try {
         const res = await api.put(`api/staff/return-exchange/${returnExchangeId}/status`, {
             action: "COMPLETE"
         });
         console.log("API response COMPLETE:", res.data);
         alert("Hoàn tất yêu cầu thành công!");
-        navigate("/sales/containers/return-orders");
+        fetchOrderDetail(); // Gọi lại API để cập nhật thông tin đơn hàng mới nhất sau khi từ chối
         return res.data;
     } catch (err) {
         console.error("Lỗi khi gọi API:", err);

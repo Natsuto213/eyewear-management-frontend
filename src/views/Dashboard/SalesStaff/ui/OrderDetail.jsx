@@ -21,28 +21,28 @@ export default function OrderDetail() {
     const [error, setError] = useState("");
     const [openPrescriptionRows, setOpenPrescriptionRows] = useState({});
 
+    const fetchOrderDetail = async () => {
+        try {
+            setLoading(true);
+            setError("");
+
+            const response = await api.get(`api/staff/orders/${orderId}`);
+            console.log("API response:", response.data);
+
+            setOrderData(response.data.result);
+        } catch (err) {
+            console.error(err);
+            setError(
+                err?.response?.data?.message ||
+                err?.message ||
+                "Không tải được chi tiết đơn hàng"
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchOrderDetail = async () => {
-            try {
-                setLoading(true);
-                setError("");
-
-                const response = await api.get(`api/staff/orders/${orderId}`);
-                console.log("API response:", response.data);
-
-                setOrderData(response.data.result);
-            } catch (err) {
-                console.error(err);
-                setError(
-                    err?.response?.data?.message ||
-                    err?.message ||
-                    "Không tải được chi tiết đơn hàng"
-                );
-            } finally {
-                setLoading(false);
-            }
-        };
-
         if (orderId) {
             fetchOrderDetail();
         }
@@ -54,7 +54,7 @@ export default function OrderDetail() {
 
             console.log("API response:", res.data);
             alert("Xác nhận đơn hàng thành công!");
-            navigate("/sales/containers/orders");
+            fetchOrderDetail(); // Gọi lại API để cập nhật thông tin đơn hàng mới nhất sau khi xác nhận
         } catch (err) {
             console.error("Lỗi khi gọi API:", err);
             alert(
