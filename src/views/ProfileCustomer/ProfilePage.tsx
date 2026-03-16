@@ -18,6 +18,7 @@ interface OrderRow {
 
 const orderStatusConfig: Record<string, { label: string; color: string }> = {
   PENDING:    { label: "Chờ xác nhận",    color: "bg-yellow-50 text-yellow-700" },
+  PARTIALLY_PAID: { label: "Đã đặt cọc",       color: "bg-amber-50 text-amber-700" },
   CONFIRMED:  { label: "Đã xác nhận",     color: "bg-blue-50 text-blue-700" },
   PROCESSING: { label: "Đang gia công",   color: "bg-amber-50 text-amber-700" },
   READY:      { label: "Chờ vận chuyển",  color: "bg-purple-50 text-purple-700" },

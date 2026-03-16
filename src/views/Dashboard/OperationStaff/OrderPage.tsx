@@ -59,7 +59,7 @@ export default function OrderPage() {
           sortDir: "desc",
         };
 
-        if (filters.searchQuery.trim()) body.orderCode = filters.searchQuery.trim();
+        
         if (filters.status !== "Tất cả") body.orderStatus = filters.status;
         if (filters.orderType !== "Tất cả") body.orderType = filters.orderType;
         if (filters.orderDate) body.orderDate = filters.orderDate;
@@ -79,7 +79,16 @@ export default function OrderPage() {
         const data = await res.json();
         const result = data?.result;
 
-        setOrders(result?.content || []);
+        const rawContent = result?.content || [];
+        const q = filters.searchQuery.trim().toLowerCase();
+        const filtered = q
+          ? rawContent.filter((o: any) =>
+              o.customerName?.toLowerCase().includes(q) ||
+              o.orderCode?.toLowerCase().includes(q)
+            )
+          : rawContent;
+
+        setOrders(filtered);
         setTotalPages(result?.totalPages || 1);
         setTotalElements(result?.totalElements || 0);
         setCurrentPage(result?.number || 0);
