@@ -3,17 +3,17 @@ import React, { useState } from 'react';
 import { X, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 
-import LoginPopup from "@/views/Cart/components/LoginPopup"; 
-import { Popup } from "@/components/Popup"; 
+import LoginPopup from "@/views/Cart/components/LoginPopup";
+import { Popup } from "@/components/Popup";
 import { api } from "@/lib/api";
 
 export default function WarrantyForm() {
     const [orderDetailId, setOrderDetailId] = useState<number | ''>('');
     const [quantity, setQuantity] = useState<number>(1);
-    const [requestType, setRequestType] = useState<string>('WARRANTY'); 
+    const [requestType, setRequestType] = useState<string>('WARRANTY');
     const [description, setDescription] = useState('');
-    
-    const [refundMethod, setRefundMethod] = useState(''); 
+
+    const [refundMethod, setRefundMethod] = useState('');
     const [refundAccountNumber, setRefundAccountNumber] = useState('');
 
     // Hình minh chứng
@@ -23,7 +23,7 @@ export default function WarrantyForm() {
     // Hình QR Code
     const [qrImage, setQrImage] = useState<File | null>(null);
     const [qrImagePreview, setQrImagePreview] = useState<string | null>(null);
-    
+
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showLoginPopup, setShowLoginPopup] = useState(false);
 
@@ -115,17 +115,17 @@ export default function WarrantyForm() {
 
         try {
             const formData = new FormData();
-            
+
             formData.append('orderDetailId', orderDetailId.toString());
             formData.append('quantity', quantity.toString());
             formData.append('returnReason', description);
-            formData.append('returnType', requestType); 
+            formData.append('returnType', requestType);
 
             if (requestType === 'RETURN') {
                 formData.append('refundMethod', refundMethod);
                 formData.append('refundAccountNumber', refundAccountNumber);
                 if (qrImage) {
-                    formData.append('qrCodeImage', qrImage as Blob); 
+                    formData.append('qrCodeImage', qrImage as Blob);
                 }
             }
 
@@ -136,7 +136,7 @@ export default function WarrantyForm() {
             });
 
             showPopup("Yêu cầu của bạn đã được gửi và đang chờ xử lý.", "success", "Gửi đơn thành công!");
-            
+
             // Reset form
             setOrderDetailId('');
             setQuantity(1);
@@ -189,9 +189,13 @@ export default function WarrantyForm() {
                         </div>
                         <div>
                             <label className="block text-gray-700 font-medium mb-2">Số tài khoản / SĐT <span className="text-red-500">*</span></label>
-                            <input type="text" value={refundAccountNumber} onChange={(e) => setRefundAccountNumber(e.target.value)} placeholder="Nhập số tài khoản / SĐT ví" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors" required={requestType === 'RETURN'} />
+                            <input type="text" value={refundAccountNumber} onChange={(e) => setRefundAccountNumber(e.target.value)} placeholder="VD: 07534512" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors" required={requestType === 'RETURN'} />
                         </div>
-                        
+                        <div>
+                            <label className="block text-gray-700 font-medium mb-2">Họ và tên chủ tài khoản <span className="text-red-500">*</span></label>
+                            <input type="text" value={refundMethod} onChange={(e) => setRefundMethod(e.target.value)} placeholder="VD: NGUYEN VIET DUNG" className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors bg-white" required={requestType === 'RETURN'} />
+                        </div>
+
                         <div className="md:col-span-2 pt-2 border-t border-gray-200 mt-2">
                             <label className="block text-gray-700 font-medium mb-2">Ảnh QR Code tài khoản (Tùy chọn)</label>
                             <div className="flex flex-wrap gap-3 items-start">

@@ -65,9 +65,9 @@ export default function PageRoute() {
 
         <Route path="/profile" element={<ProfilePage />}>
           <Route path="account" element={<Account />} />
-          <Route path="orders/:orderId" element={<OrderDetailCustomer />} />
         </Route>
 
+        <Route path="/profile/orders/:orderId" element={<OrderDetailCustomer />} />
 
         <Route path="/sales" element={<SalesStaffLayout />}>
           <Route index element={<OrderTable />} />

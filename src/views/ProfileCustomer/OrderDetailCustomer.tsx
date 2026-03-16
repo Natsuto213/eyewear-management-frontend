@@ -4,6 +4,7 @@ import {
   ArrowLeft, MapPin, Phone, Mail, Package,
   Clock, CheckCircle2, XCircle, Truck, Eye,
 } from "lucide-react";
+import Navbar from "@/components/Navbar";
 
 const BASE_URL = "https://api-eyewear.purintech.id.vn";
 
@@ -18,30 +19,30 @@ const formatDate = (str: string) => {
 // ─── Timeline definitions ────────────────────────────────────────────────────
 
 const prescriptionTimeline = [
-  { key: "CONFIRMED",  label: "Đã xác nhận",      orderStatus: "CONFIRMED" },
-  { key: "PROCESSING", label: "Đang gia công",     orderStatus: "PROCESSING" },
-  { key: "PACKING",    label: "Đóng gói",          shippingStatus: "PACKING" },
-  { key: "SHIPPING",   label: "Đang vận chuyển",   shippingStatus: "SHIPPING" },
-  { key: "DELIVERED",  label: "Đã giao",           shippingStatus: "DELIVERED" },
-  { key: "COMPLETED",  label: "Hoàn thành",        orderStatus: "COMPLETED" },
+  { key: "CONFIRMED", label: "Đã xác nhận", orderStatus: "CONFIRMED" },
+  { key: "PROCESSING", label: "Đang gia công", orderStatus: "PROCESSING" },
+  { key: "PACKING", label: "Đóng gói", shippingStatus: "PACKING" },
+  { key: "SHIPPING", label: "Đang vận chuyển", shippingStatus: "SHIPPING" },
+  { key: "DELIVERED", label: "Đã giao", shippingStatus: "DELIVERED" },
+  { key: "COMPLETED", label: "Hoàn thành", orderStatus: "COMPLETED" },
 ];
 
 const normalTimeline = [
-  { key: "CONFIRMED",  label: "Đã xác nhận",      orderStatus: "CONFIRMED" },
-  { key: "PACKING",    label: "Đóng gói",          shippingStatus: "PACKING" },
-  { key: "SHIPPING",   label: "Đang vận chuyển",   shippingStatus: "SHIPPING" },
-  { key: "DELIVERED",  label: "Đã giao",           shippingStatus: "DELIVERED" },
-  { key: "COMPLETED",  label: "Hoàn thành",        orderStatus: "COMPLETED" },
+  { key: "CONFIRMED", label: "Đã xác nhận", orderStatus: "CONFIRMED" },
+  { key: "PACKING", label: "Đóng gói", shippingStatus: "PACKING" },
+  { key: "SHIPPING", label: "Đang vận chuyển", shippingStatus: "SHIPPING" },
+  { key: "DELIVERED", label: "Đã giao", shippingStatus: "DELIVERED" },
+  { key: "COMPLETED", label: "Hoàn thành", orderStatus: "COMPLETED" },
 ];
 
 function getTimelineStatus(
   step: { orderStatus?: string; shippingStatus?: string },
   order: any
 ): "done" | "active" | "pending" {
-  const orderStatusOrder  = ["CONFIRMED", "PROCESSING", "READY", "COMPLETED"];
+  const orderStatusOrder = ["CONFIRMED", "PROCESSING", "READY", "COMPLETED"];
   const shippingStatusOrder = ["PENDING", "PACKING", "SHIPPING", "DELIVERED"];
 
-  const currentOrderIdx   = orderStatusOrder.indexOf(order.orderStatus);
+  const currentOrderIdx = orderStatusOrder.indexOf(order.orderStatus);
   const currentShippingIdx = shippingStatusOrder.indexOf(order.shippingStatus);
 
   if (step.orderStatus) {
@@ -65,22 +66,22 @@ function getTimelineStatus(
 // ─── Status configs ──────────────────────────────────────────────────────────
 
 const orderStatusConfig: Record<string, { label: string; bg: string; text: string; icon: any }> = {
-  PENDING:    { label: "Chờ xác nhận",   bg: "bg-yellow-100", text: "text-yellow-800", icon: Clock },
-  CONFIRMED:  { label: "Đã xác nhận",    bg: "bg-blue-100",   text: "text-blue-800",   icon: CheckCircle2 },
-  PROCESSING: { label: "Đang gia công",  bg: "bg-amber-100",  text: "text-amber-800",  icon: Package },
-  READY:      { label: "Chờ vận chuyển", bg: "bg-purple-100", text: "text-purple-800", icon: Package },
-  COMPLETED:  { label: "Hoàn thành",     bg: "bg-green-100",  text: "text-green-800",  icon: CheckCircle2 },
-  CANCELED:   { label: "Đã hủy",         bg: "bg-red-100",    text: "text-red-800",    icon: XCircle },
+  PENDING: { label: "Chờ xác nhận", bg: "bg-yellow-100", text: "text-yellow-800", icon: Clock },
+  CONFIRMED: { label: "Đã xác nhận", bg: "bg-blue-100", text: "text-blue-800", icon: CheckCircle2 },
+  PROCESSING: { label: "Đang gia công", bg: "bg-amber-100", text: "text-amber-800", icon: Package },
+  READY: { label: "Chờ vận chuyển", bg: "bg-purple-100", text: "text-purple-800", icon: Package },
+  COMPLETED: { label: "Hoàn thành", bg: "bg-green-100", text: "text-green-800", icon: CheckCircle2 },
+  CANCELED: { label: "Đã hủy", bg: "bg-red-100", text: "text-red-800", icon: XCircle },
 };
 
 const shippingConfig: Record<string, { label: string; bg: string; text: string; icon: any }> = {
-  PENDING:   { label: "Chờ xử lý",      bg: "bg-zinc-100",   text: "text-zinc-700",   icon: Clock },
-  PACKING:   { label: "Đang đóng gói",  bg: "bg-blue-100",   text: "text-blue-800",   icon: Package },
-  SHIPPING:  { label: "Đang giao hàng", bg: "bg-indigo-100", text: "text-indigo-800", icon: Truck },
-  DELIVERED: { label: "Đã giao",        bg: "bg-green-100",  text: "text-green-800",  icon: CheckCircle2 },
-  FAILED:    { label: "Giao thất bại",  bg: "bg-red-100",    text: "text-red-800",    icon: XCircle },
-  RETURNED:  { label: "Hoàn hàng",      bg: "bg-orange-100", text: "text-orange-800", icon: XCircle },
-  CANCELED:  { label: "Đã hủy",         bg: "bg-red-100",    text: "text-red-800",    icon: XCircle },
+  PENDING: { label: "Chờ xử lý", bg: "bg-zinc-100", text: "text-zinc-700", icon: Clock },
+  PACKING: { label: "Đang đóng gói", bg: "bg-blue-100", text: "text-blue-800", icon: Package },
+  SHIPPING: { label: "Đang giao hàng", bg: "bg-indigo-100", text: "text-indigo-800", icon: Truck },
+  DELIVERED: { label: "Đã giao", bg: "bg-green-100", text: "text-green-800", icon: CheckCircle2 },
+  FAILED: { label: "Giao thất bại", bg: "bg-red-100", text: "text-red-800", icon: XCircle },
+  RETURNED: { label: "Hoàn hàng", bg: "bg-orange-100", text: "text-orange-800", icon: XCircle },
+  CANCELED: { label: "Đã hủy", bg: "bg-red-100", text: "text-red-800", icon: XCircle },
 };
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -88,9 +89,9 @@ const shippingConfig: Record<string, { label: string; bg: string; text: string; 
 export default function OrderDetailCustomer() {
   const { orderId } = useParams();
   const navigate = useNavigate();
-  const [order, setOrder]   = useState<any>(null);
+  const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError]   = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -99,7 +100,7 @@ export default function OrderDetailCustomer() {
     const fetchDetail = async () => {
       try {
         setLoading(true);
-        const res  = await fetch(`${BASE_URL}/orders/${orderId}/detail`, {
+        const res = await fetch(`${BASE_URL}/orders/${orderId}/detail`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -139,13 +140,13 @@ export default function OrderDetailCustomer() {
   );
 
   // ── Derived state ──────────────────────────────────────────────────────────
-  const orderStatus   = orderStatusConfig[order.orderStatus]   || { label: order.orderStatus,   bg: "bg-zinc-100", text: "text-zinc-800", icon: Package };
+  const orderStatus = orderStatusConfig[order.orderStatus] || { label: order.orderStatus, bg: "bg-zinc-100", text: "text-zinc-800", icon: Package };
   const shippingStatus = shippingConfig[order.shippingStatus] || { label: order.shippingStatus, bg: "bg-zinc-100", text: "text-zinc-800", icon: Truck };
-  const OrderStatusIcon   = orderStatus.icon;
+  const OrderStatusIcon = orderStatus.icon;
   const ShippingStatusIcon = shippingStatus.icon;
 
   const isCanceled = order.orderStatus === "CANCELED" || order.shippingStatus === "CANCELED";
-  const isFailed   = order.shippingStatus === "FAILED";
+  const isFailed = order.shippingStatus === "FAILED";
   const isReturned = order.shippingStatus === "RETURNED";
 
   const timeline = order.hasPrescriptionItem ? prescriptionTimeline : normalTimeline;
@@ -220,21 +221,19 @@ export default function OrderDetailCustomer() {
                     <div className="relative w-full flex items-center justify-center mb-3">
                       {index > 0 && (
                         <div
-                          className={`absolute right-1/2 top-4 w-full h-0.5 -z-0 ${
-                            status === "done" || status === "active"
+                          className={`absolute right-1/2 top-4 w-full h-0.5 -z-0 ${status === "done" || status === "active"
                               ? "bg-teal-400"
                               : "bg-zinc-200"
-                          }`}
+                            }`}
                         />
                       )}
                       <div
-                        className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center shrink-0 border-2 transition-all ${
-                          status === "done"
+                        className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center shrink-0 border-2 transition-all ${status === "done"
                             ? "bg-teal-500 border-teal-500 text-white"
                             : status === "active"
-                            ? "bg-white border-teal-500 shadow-lg shadow-teal-100"
-                            : "bg-white border-zinc-200"
-                        }`}
+                              ? "bg-white border-teal-500 shadow-lg shadow-teal-100"
+                              : "bg-white border-zinc-200"
+                          }`}
                       >
                         {status === "done" ? (
                           <CheckCircle2 className="w-4 h-4" />
@@ -248,13 +247,12 @@ export default function OrderDetailCustomer() {
 
                     {/* Label */}
                     <p
-                      className={`text-xs font-semibold text-center leading-tight ${
-                        status === "done"
+                      className={`text-xs font-semibold text-center leading-tight ${status === "done"
                           ? "text-teal-600"
                           : status === "active"
-                          ? "text-teal-700"
-                          : "text-zinc-400"
-                      }`}
+                            ? "text-teal-700"
+                            : "text-zinc-400"
+                        }`}
                     >
                       {step.label}
                     </p>
