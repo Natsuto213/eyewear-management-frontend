@@ -3,6 +3,8 @@ import { RefreshCw, Clock, CheckCircle, ClipboardList, User, PackageSearch, File
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import WarrantyForm from "@/components/WarrantyForm";
+
 
 export default function WarrantyPage() {
     return (
@@ -23,82 +25,7 @@ export default function WarrantyPage() {
 
                     {/* Cột trái: HƯỚNG DẪN THAO TÁC */}
                     <div className="bg-white rounded-lg shadow-lg p-8 h-fit flex flex-col">
-                        <h2 className="text-xl font-bold text-gray-800 mb-6 border-b border-gray-100 pb-4 flex items-center gap-2">
-                            <ClipboardList className="w-6 h-6 text-blue-600" />
-                            Hướng dẫn gửi yêu cầu
-                        </h2>
-
-                        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8 rounded-r-lg">
-                            <p className="text-sm text-yellow-800 font-medium">
-                                <span className="font-bold text-red-600">* Lưu ý quan trọng:</span> Bạn phải đăng nhập vào hệ thống để có thể thực hiện gửi yêu cầu Bảo hành / Đổi trả.
-                            </p>
-                        </div>
-
-                        <div className="space-y-8 flex-1">
-                            {/* Bước 1 */}
-                            <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                                    <User className="w-5 h-5" />
-                                </div>
-                                <div className="pt-1">
-                                    <h4 className="font-bold text-gray-800 mb-1">Bước 1: Truy cập hồ sơ</h4>
-                                    <p className="text-sm text-gray-600 leading-relaxed">
-                                        Ấn vào biểu tượng
-                                        <span className="inline-flex items-center justify-center p-1 bg-gray-100 rounded text-gray-700 mx-1">
-                                            <User className="w-4 h-4" />
-                                        </span>
-                                        (nằm ở góc trên bên trái màn hình). Sau đó chọn mục <strong>"Hồ sơ cá nhân"</strong>.
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Bước 2 */}
-                            <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                                    <PackageSearch className="w-5 h-5" />
-                                </div>
-                                <div className="pt-1">
-                                    <h4 className="font-bold text-gray-800 mb-1">Bước 2: Tìm đơn hàng</h4>
-                                    <p className="text-sm text-gray-600 leading-relaxed">
-                                        Chuyển sang <strong>"Đơn hàng của tôi"</strong> và tìm chọn đúng đơn hàng mà bạn cần bảo hành hoặc đổi trả.
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Bước 3 */}
-                            <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                                    <FileEdit className="w-5 h-5" />
-                                </div>
-                                <div className="pt-1">
-                                    <h4 className="font-bold text-gray-800 mb-1">Bước 3: Điền thông tin</h4>
-                                    <p className="text-sm text-gray-600 leading-relaxed">
-                                        Bấm vào nút Yêu cầu trên đơn hàng, sau đó <strong>vui lòng điền mọi thông tin</strong> theo đơn yêu cầu (Lý do, hình ảnh minh chứng,...).
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Bước 4 */}
-                            <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                                    <Send className="w-5 h-5 ml-0.5" />
-                                </div>
-                                <div className="pt-1">
-                                    <h4 className="font-bold text-gray-800 mb-1">Bước 4: Hoàn tất</h4>
-                                    <p className="text-sm text-gray-600 leading-relaxed">
-                                        Kiểm tra lại toàn bộ thông tin và ấn <strong>"Gửi đơn yêu cầu"</strong>. Hệ thống sẽ tiếp nhận và xử lý trong thời gian sớm nhất.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Lời ngỏ chân thành */}
-                        <div className="mt-10 bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-100 text-center">
-                            <HeartHandshake className="w-8 h-8 text-blue-500 mx-auto mb-3" />
-                            <p className="text-m text-gray-700 leading-relaxed">
-                                Chân thành cảm ơn bạn đã tin tưởng lựa chọn sản phẩm của mắt kính Sora. Nếu có bất kỳ sai sót nào phát sinh từ sản phẩm hay trong quá trình vận chuyển, mong bạn thông cảm và đừng ngần ngại gửi yêu cầu nhé. Mắt kính Sora cam kết sẽ luôn đồng hành và hỗ trợ xử lý vấn đề của bạn một cách nhanh chóng, thỏa đáng nhất! ❤️
-                            </p>
-                        </div>
+                        <WarrantyForm />
                     </div>
 
                     {/* Cột phải: CHÍNH SÁCH */}

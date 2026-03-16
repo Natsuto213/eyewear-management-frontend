@@ -75,14 +75,9 @@ export const roleTabsConfig: RoleTabs[] = [
                 path: '/operation-staff/orders'
             }, {
                 id: 'inventory',
-                label: 'Inventory Management',
+                label: 'Quản lý kho',
                 icon: Package,
                 path: '/operation-staff/inventory'
-            }, {
-                id: 'stock-report',
-                label: 'Stock Report',
-                icon: BarChart3,
-                path: '/operation-staff/stock-report'
             }, {
                 id: 'purchase-card',
                 label: 'Phiếu đặt hàng',
