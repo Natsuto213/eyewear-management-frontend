@@ -70,7 +70,7 @@ export const roleTabsConfig: RoleTabs[] = [
                 path: '/'
             }, {
                 id: 'order-list',
-                label: 'Order List',
+                label: 'Danh sách đơn hàng',
                 icon: ClipboardList,
                 path: '/operation-staff/orders'
             }, {

@@ -114,7 +114,7 @@ export function Sidebar({
           title={collapsed ? "Logout" : undefined}
         >
           <LogOut className="h-5 w-5 shrink-0" />
-          {!collapsed && <span>Logout</span>}
+          {!collapsed && <span>Đăng xuất</span>}
         </button>
       </div>
 
