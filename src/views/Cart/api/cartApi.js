@@ -215,7 +215,7 @@ export function mapApiItemToLocal(apiItem) {
 
         prescription,
 
-        // ⭐ _raw = dữ liệu gốc từ server
+        // _raw = dữ liệu gốc từ server
         // Dùng khi bấm +/- (PUT /api/cart/update) để gửi lại đúng data
         // Vì item trong giỏ không có productType → không dùng buildCartApiBody được
         _raw: {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import OrderFilter from '../ui/OrderFilter'
 import OrderRow from '../ui/OrderRow'
 import { api } from '../../../../lib/api'
+import Pagination from '../ui/Pagination'
 
 // Hàm kiểm tra: giá trị có chứa từ khóa không
 // Nếu keyword rỗng "" → includes("") = true → tự bỏ qua tiêu chí đó
@@ -35,6 +36,13 @@ const OrderTable = () => {
 
     // Đang tải dữ liệu?
     const [loading, setLoading] = useState(true)
+
+    //Phaan trang
+    const [currentPage, setCurrentPage] = useState(() => {
+        const savedPage = sessionStorage.getItem('orderCurrentPage');
+        return savedPage ? Number(savedPage) : 1;
+    });
+    const itemsPerPage = 12; // Số đơn hàng hiển thị mỗi trang
 
     // Giá trị 4 ô lọc (rỗng = chưa lọc)
     const [filters, setFilters] = useState(() => {
@@ -74,11 +82,17 @@ const OrderTable = () => {
         sessionStorage.setItem('orderFilters', JSON.stringify(filters));
     }, [filters]);
 
+
+    useEffect(() => {
+        sessionStorage.setItem('orderCurrentPage', currentPage);
+    }, [currentPage]);
+
     // Khi user thay đổi 1 ô lọc bất kỳ
     const handleFilterChange = (e) => {
         console.log("e la gi: ", e)
         const { name, value } = e.target
         setFilters((prev) => ({ ...prev, [name]: value }))
+        setCurrentPage(1) // Mỗi lần thay đổi bộ lọc thì quay về trang 1
     }
 
     // Khi user bấm "Xóa lọc" → đặt lại tất cả về rỗng
@@ -100,9 +114,15 @@ const OrderTable = () => {
         return matchId && matchDate && matchStatus && matchType
     })
 
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+
     if (loading) {
         return <div className="p-10 text-center text-lg text-gray-400">Đang tải dữ liệu...</div>
     }
+
 
     return (
         <div className="min-h-screen bg-gray-200 p-6">
@@ -135,8 +155,8 @@ const OrderTable = () => {
                             </tr>
                         </thead>
                         <tbody className="text-sm text-gray-600">
-                            {filteredOrders.length > 0 ? (
-                                filteredOrders.map((order, index) => (
+                            {currentOrders.length > 0 ? (
+                                currentOrders.map((order, index) => (
                                     <OrderRow key={order.orderId} order={order} index={index} />
                                 ))
                             ) : (
@@ -150,6 +170,14 @@ const OrderTable = () => {
                     </table>
                 </div>
             </div>
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                totalItems={filteredOrders.length}
+                itemsPerPage={itemsPerPage}
+                startIndex={indexOfFirstItem}
+            />
         </div>
     )
 }

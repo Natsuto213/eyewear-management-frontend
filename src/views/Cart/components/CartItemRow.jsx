@@ -1,27 +1,3 @@
-/**
- * CartItemRow.jsx
- * ────────────────
- * Component hiển thị MỘT DÒNG sản phẩm trong bảng giỏ hàng.
- *
- * Mỗi dòng gồm 7 cột:
- *   1. ✅ Checkbox tick/bỏ tick
- *   2. Ảnh sản phẩm (+ ảnh kèm nếu có)
- *   3. Tên sản phẩm (+ tên kèm + đơn thuốc)
- *   4. Đơn giá
- *   5. Nút tăng / giảm số lượng
- *   6. Thành tiền (= đơn giá × số lượng)
- *   7. Nút xóa
- *
- * Props:
- *   - item: object chứa thông tin 1 sản phẩm trong giỏ
- *   - isSelected: boolean — sản phẩm này đang được tick hay không
- *   - onToggle: hàm gọi khi click checkbox
- *   - onIncrease: hàm gọi khi nhấn nút "+"
- *   - onDecrease: hàm gọi khi nhấn nút "−"
- *   - onRemove: hàm gọi khi nhấn nút "Xoá"
- *   - formatCurrency: hàm format số tiền (VD: 1.200.000 đ)
- */
-
 import PrescriptionInfo from "./PrescriptionInfo";
 
 export default function CartItemRow({ item, isSelected, onToggle, onIncrease, onDecrease, onRemove, formatCurrency }) {

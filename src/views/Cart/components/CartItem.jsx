@@ -28,124 +28,59 @@ const CartItem = ({
     pricePairedProduct,
 }) => {
     const { increaseQty, decreaseQty, removeCartItem } = useShoppingContext();
-
     const hasPaired = pairedProductId != null;
     const lineTotal = (priceProduct + (pricePairedProduct ?? 0)) * quantity;
 
     return (
-        <tr className="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors">
-
-            {/* ── CỘT 1: Ảnh ── */}
-            <td className="py-3 pl-4 pr-2 align-middle w-24">
-                <div className="flex flex-col items-center gap-2">
-
-                    {/* Ảnh sản phẩm chính */}
+        <div className="flex items-center gap-4 py-3 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors">
+            {/* Ảnh sản phẩm chính */}
+            <img
+                src={imgProduct}
+                alt={nameProduct}
+                className="w-16 h-16 object-cover rounded-xl bg-gray-100 shadow-sm"
+            />
+            {/* Ảnh sản phẩm kèm */}
+            {hasPaired && imgPairedProduct && (
+                <div className="relative">
                     <img
-                        src={imgProduct}
-                        alt={nameProduct}
-                        className="w-20 h-20 object-cover rounded-xl bg-gray-100 shadow-sm"
+                        src={imgPairedProduct}
+                        alt={namePairedProduct}
+                        className="w-10 h-10 object-cover rounded-lg bg-gray-100 border-2 border-teal-200"
                     />
-
-                    {/* Ảnh sản phẩm kèm (chỉ hiện khi có) */}
-                    {hasPaired && imgPairedProduct && (
-                        <div className="relative">
-                            <img
-                                src={imgPairedProduct}
-                                alt={namePairedProduct}
-                                className="w-14 h-14 object-cover rounded-lg bg-gray-100 border-2 border-teal-200"
-                            />
-                            <span className="absolute -top-1 -right-1 bg-teal-500 text-white text-[9px] font-bold px-1 rounded-full">
-                                Kèm
-                            </span>
-                        </div>
-                    )}
-                </div>
-            </td>
-
-            {/* ── CỘT 2: Tên sản phẩm ── */}
-            <td className="py-3 px-3 align-middle">
-
-                {/* Tên sản phẩm chính */}
-                <p className="font-semibold text-gray-800 text-sm leading-snug">
-                    {nameProduct}
-                </p>
-
-                {/* Tên sản phẩm kèm (chỉ hiện khi có) */}
-                {hasPaired && namePairedProduct && (
-                    <p className="text-xs text-gray-500 mt-1">
-                        <span className="bg-teal-50 text-teal-600 font-medium rounded px-1.5 py-0.5 mr-1">
-                            Kèm
-                        </span>
-                        {namePairedProduct}
-                    </p>
-                )}
-            </td>
-
-            {/* ── CỘT 3: Đơn giá ── */}
-            <td className="py-3 px-3 align-middle text-right whitespace-nowrap">
-
-                {/* Giá sản phẩm chính */}
-                <p className="text-sm text-gray-700 font-medium">
-                    {formatCurrency(priceProduct)}
-                </p>
-
-                {/* Giá sản phẩm kèm (chỉ hiện khi có) */}
-                {hasPaired && pricePairedProduct != null && (
-                    <p className="text-xs text-teal-600 mt-1">
-                        + {formatCurrency(pricePairedProduct)}
-                    </p>
-                )}
-            </td>
-
-            {/* ── CỘT 4: Số lượng ── */}
-            <td className="py-3 px-3 align-middle">
-                <div className="flex items-center gap-1.5 justify-center">
-
-                    {/* Nút giảm */}
-                    <button
-                        type="button"
-                        onClick={() => decreaseQty(cartItemId)}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-teal-100 text-gray-600 hover:text-teal-700 transition-colors active:scale-90"
-                    >
-                        <Minus size={13} strokeWidth={2.5} />
-                    </button>
-
-                    {/* Số lượng */}
-                    <span className="min-w-8 text-center text-sm font-bold text-gray-800 select-none">
-                        {quantity}
+                    <span className="absolute -top-1 -right-1 bg-teal-500 text-white text-[9px] font-bold px-1 rounded-full">
+                        Kèm
                     </span>
-
-                    {/* Nút tăng */}
-                    <button
-                        type="button"
-                        onClick={() => increaseQty(cartItemId)}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-teal-100 text-gray-600 hover:text-teal-700 transition-colors active:scale-90"
-                    >
-                        <Plus size={13} strokeWidth={2.5} />
+                </div>
+            )}
+            {/* Thông tin sản phẩm */}
+            <div className="flex-1 min-w-0">
+                <div className="font-semibold text-gray-800 truncate">{nameProduct}</div>
+                {hasPaired && namePairedProduct && (
+                    <div className="text-xs text-gray-500 truncate">+ {namePairedProduct}</div>
+                )}
+                <div className="text-xs text-gray-400 mt-1">Đơn giá: {formatCurrency(priceProduct)}</div>
+                {hasPaired && pricePairedProduct && (
+                    <div className="text-xs text-gray-400">Kèm: {formatCurrency(pricePairedProduct)}</div>
+                )}
+            </div>
+            {/* Số lượng và tổng */}
+            <div className="flex flex-col items-end gap-1">
+                <div className="flex items-center gap-2">
+                    <button onClick={() => decreaseQty(cartItemId)} className="p-1 rounded bg-gray-200 hover:bg-gray-300">
+                        <Minus className="w-4 h-4 text-gray-600" />
+                    </button>
+                    <span className="font-bold text-gray-700 text-sm">{quantity}</span>
+                    <button onClick={() => increaseQty(cartItemId)} className="p-1 rounded bg-gray-200 hover:bg-gray-300">
+                        <Plus className="w-4 h-4 text-gray-600" />
                     </button>
                 </div>
-            </td>
-
-            {/* ── CỘT 5: Thành tiền ── */}
-            <td className="py-3 px-3 align-middle text-right whitespace-nowrap">
-                <span className="font-bold text-red-500 text-sm">
-                    {formatCurrency(lineTotal)}
-                </span>
-            </td>
-
-            {/* ── CỘT 6: Nút xóa ── */}
-            <td className="py-3 pl-2 pr-4 align-middle text-center">
-                <button
-                    type="button"
-                    onClick={() => removeCartItem(cartItemId)}
-                    aria-label="Xóa sản phẩm"
-                    className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                >
-                    <Trash2 size={16} />
-                </button>
-            </td>
-
-        </tr>
+                <div className="text-xs text-gray-700 font-semibold">{formatCurrency(lineTotal)}</div>
+            </div>
+            {/* Xóa */}
+            <button onClick={() => removeCartItem(cartItemId)} className="ml-2 p-1 rounded bg-red-100 hover:bg-red-200">
+                <Trash2 className="w-4 h-4 text-red-500" />
+            </button>
+        </div>
     );
 };
 
