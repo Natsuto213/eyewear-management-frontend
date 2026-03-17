@@ -32,28 +32,19 @@ function getItemKey(item) {
 }
 
 export default function CartPage() {
-    // ═══════════════════════════════════════════════════════════
-    // BƯỚC 1: Lấy dữ liệu và hàm từ ShoppingContext
-    // ═══════════════════════════════════════════════════════════
     const {
-        cartItems,          // Mảng sản phẩm trong giỏ
-        clearCart,          // Hàm xóa toàn bộ giỏ
-        increaseQty,        // Hàm tăng số lượng (nhận cartItemId)
-        decreaseQty,        // Hàm giảm số lượng (nhận cartItemId)
-        removeCartItem,     // Hàm xóa 1 sản phẩm (nhận cartItemId)
-        loading,            // Đang tải dữ liệu từ API?
+        cartItems,
+        clearCart,
+        increaseQty,
+        decreaseQty,
+        removeCartItem,
+        loading,
     } = useShoppingContext();
 
-    // Hook điều hướng — dùng để chuyển trang khi nhấn "Đặt hàng"
     const navigate = useNavigate();
 
-    // ═══════════════════════════════════════════════════════════
-    // BƯỚC 2: State quản lý checkbox — lưu danh sách key được tick
-    // ═══════════════════════════════════════════════════════════
+    //  State quản lý checkbox — lưu danh sách key được tick
     // selectedKeys là MẢNG chứa key dạng "cart-7", "cart-8", ...
-    // Dùng cartItemId từ server → mỗi item có key duy nhất & ổn định
-    //
-    // Khi F5 (refresh trang) → đọc lại danh sách key đã tick từ sessionStorage
     const [selectedKeys, setSelectedKeys] = useState(() => {
         const saved = sessionStorage.getItem("selected_keys");
         return saved ? JSON.parse(saved) : [];

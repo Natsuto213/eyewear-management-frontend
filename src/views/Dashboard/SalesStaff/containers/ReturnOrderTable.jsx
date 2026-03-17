@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import OrderFilter from '../ui/OrderFilter'
 import OrderRow from '../ui/OrderRow'
 import { api } from '../../../../lib/api'
+import Pagination from '../ui/Pagination'
 
 // Hàm kiểm tra: giá trị có chứa từ khóa không
 // Nếu keyword rỗng "" → includes("") = true → tự bỏ qua tiêu chí đó
@@ -36,6 +37,13 @@ const ReturnOrderTable = () => {
     // Đang tải dữ liệu?
     const [loading, setLoading] = useState(true)
 
+    //Phan trang
+    const [currentPage, setCurrentPage] = useState(() => {
+        const savedPage = sessionStorage.getItem('returnOrderCurrentPage');
+        return savedPage ? Number(savedPage) : 1;
+    });
+    const itemsPerPage = 12; // Số đơn hàng hiển thị mỗi trang
+
     // Giá trị 4 ô lọc (rỗng = chưa lọc)
     const [filters, setFilters] = useState(() => {
         const saved = sessionStorage.getItem('returnOrderFilters');
@@ -46,7 +54,7 @@ const ReturnOrderTable = () => {
             orderId: "",
             orderDate: "",
             status: "",
-            orderType: "",
+            returnExchangeStatus: "",
         };
     });
 
@@ -74,21 +82,27 @@ const ReturnOrderTable = () => {
         sessionStorage.setItem('returnOrderFilters', JSON.stringify(filters));
     }, [filters]);
 
+    useEffect(() => {
+        sessionStorage.setItem('returnOrderCurrentPage', currentPage);
+    }, [currentPage]);
+
     // Khi user thay đổi 1 ô lọc bất kỳ
     const handleFilterChange = (e) => {
         console.log("e la gi: ", e)
         const { name, value } = e.target
         setFilters((prev) => ({ ...prev, [name]: value }))
+        setCurrentPage(1) // Mỗi lần thay đổi bộ lọc thì quay về trang 1
     }
 
     // Khi user bấm "Xóa lọc" → đặt lại tất cả về rỗng
     const handleResetFilter = () => {
-        setFilters({ orderId: "", orderDate: "", status: "", orderType: "" })
+        setFilters({ orderId: "", orderDate: "", status: "", returnExchangeStatus: "" })
     }
 
     // Tạo danh sách không trùng cho 2 dropdown
     const statusList = getUniqueList(orders, "orderStatus")
     const orderTypeList = getUniqueList(orders, "orderType")
+    const returnExchangeStatusList = getUniqueList(orders, "returnExchangeStatus")
 
     // Lọc đơn hàng: kiểm tra từng đơn có khớp 4 tiêu chí không
     const filteredOrders = orders.filter((order) => {
@@ -96,9 +110,15 @@ const ReturnOrderTable = () => {
         const matchDate = isMatch(order.orderDate.slice(0, 10).split('-').join('-'), filters.orderDate);
         const matchStatus = isExactMatch(order.orderStatus, filters.status);
         const matchType = isExactMatch(order.orderType, filters.orderType);
+        const matchReturnStatus = isMatch(order.returnExchangeStatus, filters.returnExchangeStatus);
         // Phải khớp tất cả (ô nào rỗng thì tự bỏ qua)
-        return matchId && matchDate && matchStatus && matchType
+        return matchId && matchDate && matchStatus && matchType && matchReturnStatus;
     })
+
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentReturnOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
 
     if (loading) {
         return <div className="p-10 text-center text-lg text-gray-400">Đang tải dữ liệu...</div>
@@ -114,6 +134,7 @@ const ReturnOrderTable = () => {
                 onResetFilter={handleResetFilter}
                 statusList={statusList}
                 orderTypeList={orderTypeList}
+                returnExchangeStatusList={returnExchangeStatusList}
             />
 
             <div className="overflow-hidden rounded-xl bg-white shadow">
@@ -130,13 +151,14 @@ const ReturnOrderTable = () => {
                                 <th className="px-4 py-3 text-left font-semibold">Ngày đặt</th>
                                 <th className="px-4 py-3 text-center font-semibold">Loại đơn</th>
                                 <th className="px-4 py-3 text-center font-semibold">Tổng tiền</th>
-                                <th className="px-4 py-3 text-center font-semibold">Trạng thái</th>
+                                <th className="px-4 py-3 text-center font-semibold">Trạng thái ORDER</th>
+                                <th className="px-4 py-3 text-center font-semibold">Trạng thái RETURN</th>
                                 <th className="px-4 py-3 text-center font-semibold">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody className="text-sm text-gray-600">
-                            {filteredOrders.length > 0 ? (
-                                filteredOrders.map((order, index) => (
+                            {currentReturnOrders.length > 0 ? (
+                                currentReturnOrders.map((order, index) => (
                                     <OrderRow key={order.orderId} order={order} index={index} />
                                 ))
                             ) : (
@@ -150,6 +172,15 @@ const ReturnOrderTable = () => {
                     </table>
                 </div>
             </div>
+            {/* Phân trang */}
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                totalItems={filteredOrders.length}
+                itemsPerPage={itemsPerPage}
+                startIndex={indexOfFirstItem}
+            />
         </div>
     )
 }

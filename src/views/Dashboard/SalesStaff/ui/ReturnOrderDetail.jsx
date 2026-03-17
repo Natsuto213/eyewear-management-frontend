@@ -5,6 +5,7 @@ import {
     Image as ImageIcon,
     ClipboardList,
     XCircle,
+    ArrowLeft
 } from "lucide-react";
 import NormalProducts from "./common/NormalProducts";
 import PrescriptionProducts from "./common/PrescriptionProducts";
@@ -91,6 +92,15 @@ export default function ReturnOrderDetail() {
             <HeaderDetail totalAmount={formatCurrency(orderData.totalAmount)} orderData={orderData} />
 
             <main className="max-w-7xl mx-auto px-8 py-8">
+                {/* --- NÚT QUAY LẠI MỚI THÊM --- */}
+                <button
+                    onClick={() => navigate("/sales/containers/return-orders")}
+                    className="flex items-center gap-2 mb-6 px-4 py-2 bg-white text-gray-700 font-semibold rounded-lg shadow-sm border border-gray-100 hover:bg-gray-50 hover:text-blue-600 transition-all group"
+                >
+                    <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
+                    Quay lại danh sách yêu cầu trả hàng
+                </button>
+                {/* ---------------------------- */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 space-y-8">
                         <CustomerAndOrderInfo orderData={orderData} mapOrderStatus={mapOrderStatus} mapOrderType={mapOrderType} formatDateTime={formatDateTime} formatCurrency={formatCurrency} />

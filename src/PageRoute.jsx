@@ -37,6 +37,7 @@ import ManagerStaffView from './views/Dashboard/Manager/ManagerStaffView';
 import ManagerStatisticView from './views/Dashboard/Manager/ManagerStatisticView';
 import ManagerSalesView from './views/Dashboard/Manager/ManagerSalesView';
 import ManagerPoliciesView from './views/Dashboard/Manager/ManagerPoliciesView';
+import PurchaseCard from "./views/Dashboard/OperationStaff/Inventory/PurchaseCard";
 
 export default function PageRoute() {
   return (
@@ -64,11 +65,10 @@ export default function PageRoute() {
 
         <Route path="/profile" element={<ProfilePage />}>
           <Route path="account" element={<Account />} />
-          
         </Route>
+
         <Route path="/profile/orders/:orderId" element={<OrderDetailCustomer />} />
 
-       
         <Route path="/sales" element={<SalesStaffLayout />}>
           <Route index element={<OrderTable />} />
           <Route path="containers/orders" element={<OrderTable />} />
@@ -76,12 +76,14 @@ export default function PageRoute() {
           <Route path="ui/orderdetail/:orderId" element={<OrderDetail />} />
           <Route path="ui/returnorderdetail/:returnExchangeId" element={<ReturnOrderDetail />} />
         </Route>
-        
+
         <Route path="/operation-staff" element={<OperationStaffLayout />} >
           <Route index element={<OrderPage />} />
           <Route path="orders" element={<OrderPage />} />
           <Route path="orders/:orderId" element={<OrderDetailOps />} />
           <Route path="inventory" element={<InventoryPage />} />
+
+          <Route path="purchase-card" element={<PurchaseCard />} />
         </Route>
 
         <Route path="/manager" element={<ManagerLayout />}>

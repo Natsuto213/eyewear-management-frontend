@@ -70,20 +70,20 @@ export const roleTabsConfig: RoleTabs[] = [
                 path: '/'
             }, {
                 id: 'order-list',
-                label: 'Order List',
+                label: 'Danh sách đơn hàng',
                 icon: ClipboardList,
                 path: '/operation-staff/orders'
             }, {
                 id: 'inventory',
-                label: 'Inventory Management',
+                label: 'Quản lý kho',
                 icon: Package,
                 path: '/operation-staff/inventory'
             }, {
-                id: 'stock-report',
-                label: 'Stock Report',
+                id: 'purchase-card',
+                label: 'Phiếu đặt hàng',
                 icon: BarChart3,
-                path: '/operation-staff/stock-report'
-            },  
+                path: '/operation-staff/purchase-card'
+            }
         ]
     },
     {

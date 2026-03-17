@@ -16,14 +16,25 @@ const orderStatusVN = {
     CANCELED: 'Đã hủy',
     COMPLETED: 'Hoàn thành',
     CONFIRMED: 'Đã xác nhận',
-    READY: "Sẵn sàng giao",
-    PROCESSING: "Đang xử lý",
+    READY: 'Sẵn sàng giao',
+    PROCESSING: 'Đang xử lý',
+};
+
+const returnExchangeStatusVN = {
+    RETURN: 'Yêu cầu trả hàng',
+    EXCHANGE: 'Yêu cầu đổi hàng',
+    PENDING: 'Chờ xử lý',
+    APPROVED: 'Đã duyệt',
+    REJECTED: 'Từ chối',
+    COMPLETED: 'Hoàn tất',
 };
 
 const OrderRow = ({ order, index }) => {
-    const formatted = order.orderDate.slice(0, 10).split('-').join('-');
-    const typeVN = orderTypeVN[order.orderType] || order.orderType;
-    const statusVN = orderStatusVN[order.orderStatus] || order.orderStatus;
+    const formattedDate = order.orderDate ? order.orderDate.slice(0, 10).split('-').join('-') : '';
+    const typeVN = orderTypeVN[order.orderType] || order.orderType || '';
+    const statusVN = orderStatusVN[order.orderStatus] || order.orderStatus || '';
+    const returnStatusVN = order.returnExchangeStatus ? (returnExchangeStatusVN[order.returnExchangeStatus] || order.returnExchangeStatus) : null;
+
     return (
         <tr className="border-b border-gray-100 hover:bg-gray-50">
             <td className="px-4 py-3">{index + 1}</td>
@@ -32,7 +43,7 @@ const OrderRow = ({ order, index }) => {
                 {order.orderCode}
             </td>
 
-            <td className="px-4 py-3">{formatted}</td>
+            <td className="px-4 py-3">{formattedDate}</td>
 
             <td className="px-4 py-3 text-center">
                 <span className="rounded-full bg-gray-200 px-3 py-1 text-xs text-gray-700">
@@ -45,15 +56,33 @@ const OrderRow = ({ order, index }) => {
             </td>
 
             <td className="px-4 py-3 text-center">
-                <span className={`rounded-full px-3 py-1 text-xs font-semibold
-                    ${statusVN === "Hoàn thành"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-yellow-100 text-yellow-700"
-                    }`}
+                <span className={`rounded-full px-3 py-1 text-xs font-semibold mr-1
+                    ${statusVN === 'Hoàn thành' ? 'bg-green-100 text-green-700' :
+                        statusVN === 'Đã hủy' ? 'bg-red-100 text-red-700' :
+                            statusVN === 'Đã xác nhận' ? 'bg-blue-100 text-blue-700' :
+                                'bg-yellow-100 text-yellow-700'}
+                `}
                 >
                     {statusVN}
                 </span>
             </td>
+
+            {/* Thêm cột trạng thái đổi/trả riêng biệt */}
+
+            {returnStatusVN && <td className="px-4 py-3 text-center">
+                <span className={`rounded-full px-3 py-1 text-xs font-semibold
+                        ${returnStatusVN === 'Yêu cầu trả hàng' ? 'bg-purple-100 text-purple-700' :
+                        returnStatusVN === 'Yêu cầu đổi hàng' ? 'bg-pink-100 text-pink-700' :
+                            returnStatusVN === 'Đã duyệt' ? 'bg-green-100 text-green-700' :
+                                returnStatusVN === 'Từ chối' ? 'bg-red-100 text-red-700' :
+                                    returnStatusVN === 'Hoàn tất' ? 'bg-blue-100 text-blue-700' :
+                                        'bg-gray-100 text-gray-700'}
+                    `}
+                >
+                    {returnStatusVN}
+                </span>
+            </td>}
+
 
             <td className="px-4 py-3 text-center">
                 {order?.returnExchangeId ? (
@@ -73,7 +102,6 @@ const OrderRow = ({ order, index }) => {
                         Xem chi tiết
                     </Link>
                 )}
-
             </td>
         </tr>
     )

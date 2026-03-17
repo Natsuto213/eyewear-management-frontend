@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { Search, Filter, Package, Eye, Layers } from "lucide-react";
+import React, { useState, useEffect, useMemo } from "react";
+import { Search, Filter, Package, Eye, Layers, ChevronLeft, ChevronRight, RefreshCcw, AlertCircle } from "lucide-react";
+import { motion } from "framer-motion";
 
 // --- Types ---
 interface BaseProduct {
@@ -50,7 +51,6 @@ async function fetchProducts(token: string): Promise<Product[]> {
   });
 
   if (!res.ok) throw new Error("Không thể tải sản phẩm");
-
   const data = await res.json();
   if (data.code !== 1000) throw new Error(data.message || "Lỗi không xác định");
   return data.result as Product[];
@@ -97,7 +97,6 @@ function BoolBadge({ value, trueLabel = "Có", falseLabel = "Không" }: { value:
   );
 }
 
-// --- Extra info per product type ---
 function ProductDetails({ product }: { product: Product }) {
   if (product.productTypeName === "Gọng kính") {
     return (
@@ -134,13 +133,15 @@ function ProductDetails({ product }: { product: Product }) {
   return null;
 }
 
-// --- Quantity cell ---
 function QuantityCell({ product }: { product: Product }) {
   const available = product.availableQuantity ?? 0;
   const onHand = product.onHandQuantity ?? 0;
   const reserved = product.reservedQuantity ?? 0;
   const pct = onHand > 0 ? Math.min(100, Math.round((available / onHand) * 100)) : 0;
-  const color = available > 50 ? "bg-green-500" : available > 10 ? "bg-amber-400" : available > 0 ? "bg-red-400" : "bg-gray-300";
+  const color =
+    available > 50 ? "bg-green-500" :
+    available > 10 ? "bg-amber-400" :
+    available > 0  ? "bg-red-400"   : "bg-gray-300";
 
   return (
     <div className="text-right space-y-1">
@@ -151,51 +152,51 @@ function QuantityCell({ product }: { product: Product }) {
         <div className={`h-full rounded-full ${color} transition-all`} style={{ width: `${pct}%` }} />
       </div>
       <p className="text-[10px] text-gray-400">
-        {available === 0 ? <span className="text-red-400 font-medium">Hết hàng</span> : <>Đặt trước: {reserved} / Thực tế: {onHand}</>}
+        {available === 0
+          ? <span className="text-red-400 font-medium">Hết hàng</span>
+          : <>Đặt trước: {reserved} / Thực tế: {onHand}</>
+        }
       </p>
     </div>
   );
 }
 
-// --- Main page ---
+// --- Constants ---
+const PAGE_SIZE = 10;
 const PRODUCT_TYPES = ["Gọng kính", "Tròng kính", "Kính áp tròng"];
 
+// --- Main page ---
 export default function InventoryPage() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [selectedType, setSelectedType] = useState<string>("");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(0);
 
-  const token = localStorage.getItem("access_token");
+  const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
 
-  useEffect(() => {
-    if (!token) {
-      setError("Token không hợp lệ, vui lòng đăng nhập lại.");
-      return;
+  const loadData = async () => {
+    if (!token) { setError("Token không hợp lệ, vui lòng đăng nhập lại."); return; }
+    setLoading(true);
+    setError(null);
+    try {
+      setProducts(await fetchProducts(token));
+    } catch {
+      setError("Không thể tải sản phẩm. Vui lòng thử lại.");
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const load = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await fetchProducts(token);
-        setProducts(data);
-        setFilteredProducts(data);
-      } catch {
-        setError("Không thể tải sản phẩm. Vui lòng thử lại.");
-      } finally {
-        setLoading(false);
-      }
-    };
+  useEffect(() => { loadData(); }, [token]);
 
-    load();
-  }, [token]);
+  // Reset trang về 0 khi filter thay đổi
+  useEffect(() => { setCurrentPage(0); }, [selectedType, search]);
 
-  useEffect(() => {
+  const filteredProducts = useMemo(() => {
     const q = search.toLowerCase();
-    const filtered = products.filter((p) => {
+    return products.filter((p) => {
       const matchType = selectedType ? p.productTypeName === selectedType : true;
       const matchSearch =
         p.productName?.toLowerCase().includes(q) ||
@@ -203,52 +204,96 @@ export default function InventoryPage() {
         p.brandName?.toLowerCase().includes(q);
       return matchType && matchSearch;
     });
-    setFilteredProducts(filtered);
   }, [selectedType, search, products]);
 
-  // Counts per type
+  const totalPages = Math.ceil(filteredProducts.length / PAGE_SIZE);
+  const pagedProducts = filteredProducts.slice(
+    currentPage * PAGE_SIZE,
+    (currentPage + 1) * PAGE_SIZE
+  );
+
   const counts = PRODUCT_TYPES.reduce<Record<string, number>>((acc, t) => {
     acc[t] = products.filter((p) => p.productTypeName === t).length;
     return acc;
   }, {});
+
+  const pageNumbers = () => {
+    const pages: (number | "...")[] = [];
+    if (totalPages <= 7) {
+      for (let i = 0; i < totalPages; i++) pages.push(i);
+    } else {
+      pages.push(0);
+      if (currentPage > 2) pages.push("...");
+      for (
+        let i = Math.max(1, currentPage - 1);
+        i <= Math.min(totalPages - 2, currentPage + 1);
+        i++
+      ) {
+        pages.push(i);
+      }
+      if (currentPage < totalPages - 3) pages.push("...");
+      pages.push(totalPages - 1);
+    }
+    return pages;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-screen-xl mx-auto px-6 py-8">
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-wrap items-center justify-between gap-4 mb-8"
+        >
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Hàng trong kho</h1>
-            <p className="text-sm text-gray-500 mt-0.5">
-              {products.length} sản phẩm tổng cộng
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
+              Hàng trong kho
+            </h1>
+            <p className="text-sm text-gray-500">
+              Tổng cộng <span className="font-bold text-indigo-600">{products.length}</span> sản phẩm
             </p>
           </div>
 
-          {/* Quick stats */}
-          <div className="hidden md:flex items-center gap-3">
-            {PRODUCT_TYPES.map((t) => {
-              const cfg = TYPE_CONFIG[t];
-              return (
-                <button
-                  key={t}
-                  onClick={() => setSelectedType(selectedType === t ? "" : t)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-all
-                    ${selectedType === t
-                      ? `${cfg.bg} ${cfg.color} border-current shadow-sm`
-                      : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
-                    }`}
-                >
-                  {cfg.icon}
-                  {t}
-                  <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full ${selectedType === t ? "bg-white/60" : "bg-gray-100"}`}>
-                    {counts[t] ?? 0}
-                  </span>
-                </button>
-              );
-            })}
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Quick type filter buttons */}
+            <div className="hidden md:flex items-center gap-2">
+              {PRODUCT_TYPES.map((t) => {
+                const cfg = TYPE_CONFIG[t];
+                return (
+                  <button
+                    key={t}
+                    onClick={() => setSelectedType(selectedType === t ? "" : t)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-all
+                      ${selectedType === t
+                        ? `${cfg.bg} ${cfg.color} border-current shadow-sm`
+                        : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+                      }`}
+                  >
+                    {cfg.icon}
+                    {t}
+                    <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full ${selectedType === t ? "bg-white/60" : "bg-gray-100"}`}>
+                      {counts[t] ?? 0}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Refresh button */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={loadData}
+              disabled={loading}
+              className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl font-semibold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RefreshCcw className={`w-5 h-5 ${loading ? "animate-spin" : ""}`} />
+              Làm mới
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Loading */}
         {loading && (
@@ -260,13 +305,29 @@ export default function InventoryPage() {
 
         {/* Error */}
         {error && (
-          <div className="mb-6 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
-            {error}
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 bg-gradient-to-r from-red-100 to-rose-100 border-2 border-red-300 rounded-2xl p-5 shadow-lg"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-red-200 rounded-xl flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-red-700" />
+              </div>
+              <div>
+                <p className="text-red-700 font-bold text-lg">Lỗi tải dữ liệu</p>
+                <p className="text-red-600 text-sm">{error}</p>
+              </div>
+            </div>
+          </motion.div>
         )}
 
         {!loading && !error && (
-          <>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
             {/* Search & Filter */}
             <div className="flex flex-wrap items-center gap-3 mb-5">
               <div className="relative">
@@ -280,6 +341,7 @@ export default function InventoryPage() {
                 />
               </div>
 
+              {/* Mobile filter */}
               <div className="relative md:hidden">
                 <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <select
@@ -324,8 +386,8 @@ export default function InventoryPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {filteredProducts.length > 0 ? (
-                      filteredProducts.map((product) => (
+                    {pagedProducts.length > 0 ? (
+                      pagedProducts.map((product) => (
                         <tr
                           key={product.productId}
                           className="hover:bg-indigo-50/40 transition-colors"
@@ -365,12 +427,80 @@ export default function InventoryPage() {
               {/* Footer */}
               {filteredProducts.length > 0 && (
                 <div className="px-5 py-3 border-t border-gray-100 bg-gray-50 text-xs text-gray-400 flex justify-between">
-                  <span>Hiển thị {filteredProducts.length} / {products.length} sản phẩm</span>
+                  <span>Hiển thị {pagedProducts.length} / {filteredProducts.length} sản phẩm</span>
                   <span>Số lượng hiển thị: khả dụng (onHand − reserved)</span>
                 </div>
               )}
             </div>
-          </>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-6 flex items-center justify-between flex-wrap gap-4"
+              >
+                {/* Info */}
+                <p className="text-sm text-gray-500">
+                  Trang{" "}
+                  <span className="font-bold text-indigo-600">{currentPage + 1}</span>{" "}
+                  / {totalPages} · Hiển thị{" "}
+                  <span className="font-bold">{pagedProducts.length}</span> /{" "}
+                  <span className="font-bold">{filteredProducts.length}</span> sản phẩm
+                </p>
+
+                {/* Buttons */}
+                <div className="flex items-center gap-2">
+                  {/* Nút Trước */}
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
+                    disabled={currentPage === 0}
+                    className="flex items-center gap-1 px-4 py-2 rounded-xl bg-white border-2 border-indigo-100 text-indigo-600 font-semibold text-sm hover:bg-indigo-50 transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft className="w-4 h-4" /> Trước
+                  </motion.button>
+
+                  {/* Số trang */}
+                  <div className="flex items-center gap-1">
+                    {pageNumbers().map((page, idx) =>
+                      page === "..." ? (
+                        <span key={`ellipsis-${idx}`} className="px-2 text-gray-400 font-bold">
+                          ...
+                        </span>
+                      ) : (
+                        <motion.button
+                          key={page}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => setCurrentPage(page as number)}
+                          className={`w-9 h-9 rounded-xl font-bold text-sm transition-all shadow-sm
+                            ${currentPage === page
+                              ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg"
+                              : "bg-white border-2 border-indigo-100 text-gray-600 hover:bg-indigo-50"
+                            }`}
+                        >
+                          {(page as number) + 1}
+                        </motion.button>
+                      )
+                    )}
+                  </div>
+
+                  {/* Nút Tiếp */}
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages - 1, p + 1))}
+                    disabled={currentPage >= totalPages - 1}
+                    className="flex items-center gap-1 px-4 py-2 rounded-xl bg-white border-2 border-indigo-100 text-indigo-600 font-semibold text-sm hover:bg-indigo-50 transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Tiếp <ChevronRight className="w-4 h-4" />
+                  </motion.button>
+                </div>
+              </motion.div>
+            )}
+          </motion.div>
         )}
       </div>
     </div>

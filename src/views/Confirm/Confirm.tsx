@@ -30,6 +30,9 @@ const ConfirmPage: React.FC = () => {
 
   const [form, setForm] = useState({ fullName: "", phone: "", email: "", address: "" });
 
+  // ✅ THÊM state isDepositOnly ở đây
+  const [isDepositOnly, setIsDepositOnly] = useState(false);
+
   // --- LOGIC KIỂM TRA CỌC (PRESCRIPTION HOẶC > 5TR) ---
   const isPrescriptionOrder = cartItems.some(item => item.isPrescription === true);
   const needsDeposit = previewData?.depositRequired || isPrescriptionOrder;
@@ -128,9 +131,15 @@ const ConfirmPage: React.FC = () => {
         }
       };
 
-      // Tự động gán VNPAY làm phương thức cọc nếu đơn hàng yêu cầu cọc và đang chọn COD
-      if (needsDeposit && payment === "COD") {
-        payload.depositPaymentMethod = "VNPAY";
+      if (needsDeposit) {
+        if (isDepositOnly) {
+          // Thanh toán cọc 30%
+          payload.payStrategy = "DEPOSIT";
+          payload.depositPaymentMethod = payment === "COD" ? "VNPAY" : payment;
+        } else {
+          // Thanh toán toàn bộ 100%
+          payload.payStrategy = "FULL";
+        }
       }
 
       const res = await axios.post("https://api-eyewear.purintech.id.vn/orders", payload, {
@@ -161,9 +170,11 @@ const ConfirmPage: React.FC = () => {
             <PaymentMethods 
               payment={payment} 
               setPayment={setPayment} 
-              total={previewData?.totalAmount || 0} 
-              // Thay vì truyền isPrescription, hãy truyền needsDeposit để đồng bộ với OrderSummary
-              needsDeposit={needsDeposit} 
+              total={previewData?.totalAmount || 0}
+              depositAmount={previewData?.depositAmount || 0}
+              needsDeposit={needsDeposit}
+              isDepositOnly={isDepositOnly}
+              setIsDepositOnly={setIsDepositOnly}
             />
           </div>
           <OrderSummary
@@ -172,6 +183,7 @@ const ConfirmPage: React.FC = () => {
             onApplyPromotion={handleApplyPromotion}
             note={orderNote} setNote={setOrderNote}
             needsDeposit={needsDeposit}
+            isDepositOnly={isDepositOnly}  // ✅ THÊM
           />
         </div>
       </div>

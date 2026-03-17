@@ -1,11 +1,4 @@
-/**
- * constants.js
- * =============
- * Tập trung tất cả các hằng số (constants) dùng chung trong ProductDetail.
- * Mục đích: tránh hard-code string rải rác → dễ thay đổi sau này chỉ cần sửa 1 chỗ.
- */
 
-// ─── Loại sản phẩm ───────────────────────────────────────────────────────────
 // Phải khớp chính xác với giá trị "Product_Type" trả về từ API
 export const PRODUCT_TYPES = {
     FRAME: "Gọng kính",           // Gọng kính

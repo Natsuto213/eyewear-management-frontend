@@ -32,8 +32,6 @@ export default function LoginPopup({ onClose }) {
                 className="bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full mx-4 text-center"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Icon khóa */}
-                <div className="text-5xl mb-4">🔒</div>
 
                 {/* Tiêu đề */}
                 <h2 className="text-xl font-bold text-gray-800 mb-2">

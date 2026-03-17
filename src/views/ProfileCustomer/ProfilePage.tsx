@@ -3,6 +3,7 @@ import { NavLink, Outlet, useMatch, useNavigate } from "react-router-dom";
 import { apiLogout } from "../../lib/userApi";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
+import { ChevronLeft, ChevronRight } from "lucide-react"; // Thêm icon để chuyên nghiệp hơn
 
 const BASE_URL = "https://api-eyewear.purintech.id.vn";
 
@@ -17,21 +18,21 @@ interface OrderRow {
 }
 
 const orderStatusConfig: Record<string, { label: string; color: string }> = {
-  PENDING:    { label: "Chờ xác nhận",    color: "bg-yellow-50 text-yellow-700" },
-  PARTIALLY_PAID: { label: "Đã đặt cọc",       color: "bg-amber-50 text-amber-700" },
-  CONFIRMED:  { label: "Đã xác nhận",     color: "bg-blue-50 text-blue-700" },
-  PROCESSING: { label: "Đang gia công",   color: "bg-amber-50 text-amber-700" },
-  READY:      { label: "Chờ vận chuyển",  color: "bg-purple-50 text-purple-700" },
-  COMPLETED:  { label: "Hoàn thành",      color: "bg-green-50 text-green-700" },
-  CANCELED:   { label: "Đã hủy",          color: "bg-red-50 text-red-700" },
+  PENDING: { label: "Chờ xác nhận", color: "bg-yellow-50 text-yellow-700" },
+  PARTIALLY_PAID: { label: "Đã đặt cọc", color: "bg-amber-50 text-amber-700" },
+  CONFIRMED: { label: "Đã xác nhận", color: "bg-blue-50 text-blue-700" },
+  PROCESSING: { label: "Đang gia công", color: "bg-amber-50 text-amber-700" },
+  READY: { label: "Chờ vận chuyển", color: "bg-purple-50 text-purple-700" },
+  COMPLETED: { label: "Hoàn thành", color: "bg-green-50 text-green-700" },
+  CANCELED: { label: "Đã hủy", color: "bg-red-50 text-red-700" },
 };
 
 const shippingOverride: Record<string, { label: string; color: string }> = {
-  PACKING:   { label: "Đang đóng gói",   color: "bg-blue-50 text-blue-700" },
-  SHIPPING:  { label: "Đang giao hàng",  color: "bg-indigo-50 text-indigo-700" },
-  DELIVERED: { label: "Đã giao",         color: "bg-green-50 text-green-700" },
-  FAILED:    { label: "Giao thất bại",   color: "bg-red-50 text-red-700" },
-  RETURNED:  { label: "Hoàn hàng",       color: "bg-orange-50 text-orange-700" },
+  PACKING: { label: "Đang đóng gói", color: "bg-blue-50 text-blue-700" },
+  SHIPPING: { label: "Đang giao hàng", color: "bg-indigo-50 text-indigo-700" },
+  DELIVERED: { label: "Đã giao", color: "bg-green-50 text-green-700" },
+  FAILED: { label: "Giao thất bại", color: "bg-red-50 text-red-700" },
+  RETURNED: { label: "Hoàn hàng", color: "bg-orange-50 text-orange-700" },
 };
 
 const formatDate = (str: string) => {
@@ -49,6 +50,10 @@ const Profilepage: React.FC = () => {
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // --- Logic Phân Trang ---
+  const [currentPage, setCurrentPage] = useState(1);
+  const ordersPerPage = 10;
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -75,6 +80,17 @@ const Profilepage: React.FC = () => {
 
     fetchOrders();
   }, [navigate]);
+
+  // Tính toán các đơn hàng hiển thị trên trang hiện tại
+  const indexOfLastOrder = currentPage * ordersPerPage;
+  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+  const currentOrders = orders.slice(indexOfFirstOrder, indexOfLastOrder);
+  const totalPages = Math.ceil(orders.length / ordersPerPage);
+
+  const paginate = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: 'smooth' }); // Cuộn lên đầu khi sang trang
+  };
 
   const navBase = "group flex items-center justify-between rounded-xl px-3 py-2 text-sm font-medium transition";
   const navInactive = "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900";
@@ -108,12 +124,12 @@ const Profilepage: React.FC = () => {
 
           <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
             {/* SIDEBAR */}
-            <aside className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
+            <aside className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm h-fit">
               <div className="flex items-center gap-4">
-                <div className="h-14 w-14 rounded-2xl bg-zinc-200" />
+                <div className="h-14 w-14 rounded-2xl bg-teal-100 flex items-center justify-center text-teal-600 font-bold">K</div>
                 <div className="min-w-0">
-                  <div className="truncate text-sm font-semibold text-zinc-900">Xin chào 👋</div>
-                  <div className="truncate text-xs text-zinc-500">Quản lý tài khoản của bạn</div>
+                  <div className="truncate text-sm font-semibold text-zinc-900">Xin chào, Kiên 👋</div>
+                  <div className="truncate text-xs text-zinc-500">Thành viên FPT University</div>
                 </div>
               </div>
 
@@ -140,11 +156,6 @@ const Profilepage: React.FC = () => {
                   <span className="text-zinc-400 group-hover:text-red-500">⎋</span>
                 </a>
               </nav>
-
-              <div className="mt-5 rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
-                <div className="text-sm font-semibold text-zinc-900">Gợi ý</div>
-                <div className="mt-1 text-xs text-zinc-600">Cập nhật thông tin tài khoản để nhận ưu đãi nhanh hơn.</div>
-              </div>
             </aside>
 
             {/* CONTENT */}
@@ -154,32 +165,21 @@ const Profilepage: React.FC = () => {
                   <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <h2 className="text-xl font-semibold text-zinc-900">Đơn hàng của tôi</h2>
-                      <p className="mt-1 text-sm text-zinc-500">Theo dõi đơn hàng và trạng thái giao hàng</p>
+                      <p className="mt-1 text-sm text-zinc-500">Trang {currentPage} trên {totalPages || 1}</p>
                     </div>
                     <div className="flex gap-2">
-                      <button
-                        onClick={() => navigate("/all-product")}
-                        className="rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 transition hover:-translate-y-0.5 hover:border-zinc-300 hover:bg-zinc-50 hover:shadow-sm active:translate-y-0"
-                      >
-                        Mua thêm
-                      </button>
-                      <button
-                        onClick={() => navigate("/")}
-                        className="rounded-xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-teal-700 hover:shadow-lg active:translate-y-0"
-                      >
-                        Khám phá ưu đãi
-                      </button>
+                      <button onClick={() => navigate("/all-product")} className="rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 transition">Mua thêm</button>
                     </div>
                   </div>
 
                   {/* Summary cards */}
-                  <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="grid gap-3 grid-cols-3 mb-6">
                     {[
                       { label: "Tổng đơn", value: totalOrders },
                       { label: "Đang giao", value: shippingOrders },
                       { label: "Hoàn thành", value: deliveredOrders },
                     ].map(card => (
-                      <div key={card.label} className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 transition hover:border-zinc-300 hover:bg-white hover:shadow-sm">
+                      <div key={card.label} className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                         <div className="text-xs text-zinc-500">{card.label}</div>
                         <div className="mt-1 text-lg font-bold text-zinc-900">{card.value}</div>
                       </div>
@@ -187,61 +187,73 @@ const Profilepage: React.FC = () => {
                   </div>
 
                   {/* Orders list */}
-                  <div className="mt-6 space-y-4">
+                  <div className="space-y-4">
                     {loading ? (
-                      <div className="flex items-center justify-center py-12">
-                        <div className="animate-spin rounded-full h-10 w-10 border-4 border-teal-200 border-t-teal-600" />
-                      </div>
+                      <div className="flex items-center justify-center py-12"><div className="animate-spin rounded-full h-10 w-10 border-4 border-teal-200 border-t-teal-600" /></div>
                     ) : error ? (
                       <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-sm text-red-600">{error}</div>
                     ) : orders.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-10 text-center">
-                        <div className="text-sm font-semibold text-zinc-900">Chưa có đơn hàng nào</div>
-                        <div className="text-sm text-zinc-500">Khi bạn mua hàng, đơn sẽ hiển thị ở đây.</div>
-                        <button
-                          onClick={() => navigate("/all-product")}
-                          className="mt-2 rounded-2xl bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-zinc-800 hover:shadow-lg active:translate-y-0"
-                        >
-                          Xem sản phẩm
-                        </button>
-                      </div>
+                      <div className="text-center py-10 text-zinc-500">Chưa có đơn hàng nào.</div>
                     ) : (
-                      orders.map((order) => {
-                        const display =
-                          shippingOverride[order.shippingStatus] ||
-                          orderStatusConfig[order.orderStatus] ||
-                          { label: order.orderStatus, color: "bg-zinc-100 text-zinc-700" };
-
-                        return (
-                          <div
-                            key={order.orderId}
-                            onClick={() => navigate(`/profile/orders/${order.orderId}`)}
-                            className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm transition hover:shadow-md hover:border-teal-200 cursor-pointer"
-                          >
-                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                              <div>
-                                <div className="text-sm font-semibold text-zinc-900">
-                                  {order.orderCode}
+                      <>
+                        {currentOrders.map((order) => {
+                          const display = shippingOverride[order.shippingStatus] || orderStatusConfig[order.orderStatus] || { label: order.orderStatus, color: "bg-zinc-100 text-zinc-700" };
+                          return (
+                            <div
+                              key={order.orderId}
+                              onClick={() => navigate(`/profile/orders/${order.orderId}`)}
+                              className="rounded-2xl border border-zinc-200 p-4 hover:border-teal-300 transition cursor-pointer hover:shadow-sm"
+                            >
+                              <div className="flex justify-between items-center">
+                                <div>
+                                  <div className="font-bold text-zinc-900">{order.orderCode}</div>
+                                  <div className="text-xs text-zinc-500">{formatDate(order.orderDate)} · {formatCurrency(order.totalAmount)}</div>
                                 </div>
-                                <div className="mt-1 text-xs text-zinc-500">
-                                  {formatDate(order.orderDate)} · {formatCurrency(order.totalAmount)}
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ${display.color}`}>
-                                  {display.label}
-                                </span>
-                                <span className="text-xs text-zinc-400">›</span>
+                                <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase ${display.color}`}>{display.label}</span>
                               </div>
                             </div>
+                          );
+                        })}
+
+                        {/* Pagination UI */}
+                        {totalPages > 1 && (
+                          <div className="mt-8 flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => paginate(currentPage - 1)}
+                              disabled={currentPage === 1}
+                              className="p-2 rounded-lg border border-zinc-200 hover:bg-zinc-50 disabled:opacity-30 transition"
+                            >
+                              <ChevronLeft className="w-5 h-5" />
+                            </button>
+                            
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
+                              <button
+                                key={num}
+                                onClick={() => paginate(num)}
+                                className={`w-10 h-10 rounded-lg border text-sm font-semibold transition ${
+                                  currentPage === num 
+                                  ? "bg-teal-600 border-teal-600 text-white shadow-md shadow-teal-100" 
+                                  : "border-zinc-200 text-zinc-600 hover:bg-zinc-50"
+                                }`}
+                              >
+                                {num}
+                              </button>
+                            ))}
+
+                            <button
+                              onClick={() => paginate(currentPage + 1)}
+                              disabled={currentPage === totalPages}
+                              className="p-2 rounded-lg border border-zinc-200 hover:bg-zinc-50 disabled:opacity-30 transition"
+                            >
+                              <ChevronRight className="w-5 h-5" />
+                            </button>
                           </div>
-                        );
-                      })
+                        )}
+                      </>
                     )}
                   </div>
                 </>
               )}
-
               {isAccountPage && <Outlet />}
             </main>
           </div>

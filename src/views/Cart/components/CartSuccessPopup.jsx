@@ -3,7 +3,7 @@ import React from "react";
 export default function CartSuccessPopup({ show, onClose }) {
     if (!show) return null;
     return (
-        <div className="fixed top-6 right-6 z-[9999] animate-in slide-in-from-right duration-300">
+        <div className="fixed top-20 right-6 z-[9999] animate-in slide-in-from-right duration-300">
             <div className="bg-white border-l-4 border-green-500 rounded-xl shadow-2xl p-4 flex items-center gap-4 min-w-[300px]">
                 {/* Icon với vòng tròn nền */}
                 <div className="bg-green-100 p-2 rounded-full">
