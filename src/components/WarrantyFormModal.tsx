@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { ShieldAlert, X, Upload, Plus, Minus, Image as ImageIcon } from 'lucide-react';
+import { ShieldAlert, X, Upload, Plus, Minus, Image as ImageIcon, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { api } from "@/lib/api";
@@ -17,6 +17,9 @@ interface WarrantyFormModalProps {
 export default function WarrantyFormModal({ isOpen, onClose, order }: WarrantyFormModalProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [popup, setPopup] = useState({ isOpen: false, title: '', message: '', type: 'success' as 'success' | 'error' });
+    
+    // STATE LƯU LỖI ĐỂ HIỂN THỊ TRÊN FORM
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     // FORM STATE
     const [form, setForm] = useState({
@@ -77,20 +80,24 @@ export default function WarrantyFormModal({ isOpen, onClose, order }: WarrantyFo
             });
             setSelectedItems(initialItems);
             setForm({ returnType: 'WARRANTY', requestScope: 'ITEM', returnReason: '', refundMethod: '', refundAccountNumber: '', refundAccountName: '', requestNote: '' });
+            setErrorMsg(null); // Xóa lỗi cũ khi mở lại modal
         }
     }, [isOpen, unifiedProducts]);
 
     const handleFormChange = (field: string, value: string) => {
+        setErrorMsg(null); // Khách đang sửa form thì ẩn thông báo lỗi đi
         setForm(prev => ({ ...prev, [field]: value }));
     };
 
     const handleItemToggle = (id: number) => {
+        setErrorMsg(null); // Khách đang click chọn lại item thì ẩn thông báo lỗi
         setSelectedItems(prev => ({
             ...prev, [id]: { ...prev[id], selected: !prev[id].selected }
         }));
     };
 
     const handleItemDataChange = (id: number, field: string, value: any) => {
+        setErrorMsg(null);
         setSelectedItems(prev => ({
             ...prev, [id]: { ...prev[id], [field]: value }
         }));
@@ -100,6 +107,7 @@ export default function WarrantyFormModal({ isOpen, onClose, order }: WarrantyFo
         const file = e.target.files?.[0];
         if (!file) return;
 
+        setErrorMsg(null);
         if (selectedItems[id].preview) URL.revokeObjectURL(selectedItems[id].preview);
         const preview = URL.createObjectURL(file);
         handleItemDataChange(id, 'file', file);
@@ -109,18 +117,24 @@ export default function WarrantyFormModal({ isOpen, onClose, order }: WarrantyFo
     // ── GỌI API TRỰC TIẾP KHI BẤM NÚT GỬI ──
     const submitWarrantyRequest = async (e: React.FormEvent) => {
         e.preventDefault();
+        setErrorMsg(null); // Reset lỗi trước khi check lại
         
-        // Validate
-        if (!form.returnReason.trim()) { toast.error("Vui lòng nhập lý do chung!"); return; }
+        // Validate và set lỗi hiển thị lên form thay vì dùng toast
+        if (!form.returnReason.trim()) { 
+            setErrorMsg("Vui lòng nhập lý do chung!"); 
+            return; 
+        }
         if (form.returnType === 'RETURN' || form.returnType === 'REFUND') {
             if (!form.refundMethod || !form.refundAccountNumber || !form.refundAccountName) {
-                toast.error("Vui lòng điền đầy đủ thông tin ngân hàng nhận tiền!"); return;
+                setErrorMsg("Vui lòng điền đầy đủ thông tin ngân hàng nhận tiền hoàn!"); 
+                return;
             }
         }
 
         const selectedArray = Object.entries(selectedItems).filter(([_, data]) => data.selected);
         if (form.requestScope === 'ITEM' && selectedArray.length === 0) {
-            toast.error("Vui lòng chọn ít nhất 1 sản phẩm để đổi trả!"); return;
+            setErrorMsg("Vui lòng chọn ít nhất 1 sản phẩm cần đổi trả!"); 
+            return;
         }
 
         setIsSubmitting(true);
@@ -199,7 +213,16 @@ export default function WarrantyFormModal({ isOpen, onClose, order }: WarrantyFo
                     </div>
 
                     {/* Body Modal (Cuộn được) */}
-                    <div className="p-6 overflow-y-auto space-y-8 flex-1 bg-gray-50">
+                    <div className="p-6 overflow-y-auto space-y-6 flex-1 bg-gray-50">
+                        
+                        {/* THÔNG BÁO LỖI (CHỈ HIỆN KHI CÓ LỖI) */}
+                        {errorMsg && (
+                            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl shadow-sm flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                                <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
+                                <p className="text-sm font-bold text-red-700">{errorMsg}</p>
+                            </div>
+                        )}
+
                         {/* NHÓM 1: THÔNG TIN CHUNG */}
                         <section className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
                             <h3 className="font-bold text-gray-800 border-b border-gray-100 pb-2">1. Thông tin yêu cầu</h3>
