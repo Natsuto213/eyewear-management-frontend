@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft, MapPin, Phone, Mail, Package,
-  Clock, CheckCircle2, XCircle, Truck, Eye,
+  Clock, CheckCircle2, XCircle, Truck, Eye, Trash2
 } from "lucide-react";
 
 const BASE_URL = "https://api-eyewear.purintech.id.vn";
@@ -20,18 +20,18 @@ const formatDate = (str: string) => {
 const prescriptionTimeline = [
   { key: "CONFIRMED",  label: "Đã xác nhận",      orderStatus: "CONFIRMED" },
   { key: "PROCESSING", label: "Đang gia công",     orderStatus: "PROCESSING" },
-  { key: "PACKING",    label: "Đóng gói",          shippingStatus: "PACKING" },
-  { key: "SHIPPING",   label: "Đang vận chuyển",   shippingStatus: "SHIPPING" },
-  { key: "DELIVERED",  label: "Đã giao",           shippingStatus: "DELIVERED" },
-  { key: "COMPLETED",  label: "Hoàn thành",        orderStatus: "COMPLETED" },
+  { key: "PACKING",    label: "Đóng gói",           shippingStatus: "PACKING" },
+  { key: "SHIPPING",   label: "Đang vận chuyển",    shippingStatus: "SHIPPING" },
+  { key: "DELIVERED",  label: "Đã giao",            shippingStatus: "DELIVERED" },
+  { key: "COMPLETED",  label: "Hoàn thành",         orderStatus: "COMPLETED" },
 ];
 
 const normalTimeline = [
   { key: "CONFIRMED",  label: "Đã xác nhận",      orderStatus: "CONFIRMED" },
-  { key: "PACKING",    label: "Đóng gói",          shippingStatus: "PACKING" },
-  { key: "SHIPPING",   label: "Đang vận chuyển",   shippingStatus: "SHIPPING" },
-  { key: "DELIVERED",  label: "Đã giao",           shippingStatus: "DELIVERED" },
-  { key: "COMPLETED",  label: "Hoàn thành",        orderStatus: "COMPLETED" },
+  { key: "PACKING",    label: "Đóng gói",           shippingStatus: "PACKING" },
+  { key: "SHIPPING",   label: "Đang vận chuyển",    shippingStatus: "SHIPPING" },
+  { key: "DELIVERED",  label: "Đã giao",            shippingStatus: "DELIVERED" },
+  { key: "COMPLETED",  label: "Hoàn thành",         orderStatus: "COMPLETED" },
 ];
 
 function getTimelineStatus(
@@ -77,10 +77,10 @@ const shippingConfig: Record<string, { label: string; bg: string; text: string; 
   PENDING:   { label: "Chờ xử lý",      bg: "bg-zinc-100",   text: "text-zinc-700",   icon: Clock },
   PACKING:   { label: "Đang đóng gói",  bg: "bg-blue-100",   text: "text-blue-800",   icon: Package },
   SHIPPING:  { label: "Đang giao hàng", bg: "bg-indigo-100", text: "text-indigo-800", icon: Truck },
-  DELIVERED: { label: "Đã giao",        bg: "bg-green-100",  text: "text-green-800",  icon: CheckCircle2 },
-  FAILED:    { label: "Giao thất bại",  bg: "bg-red-100",    text: "text-red-800",    icon: XCircle },
-  RETURNED:  { label: "Hoàn hàng",      bg: "bg-orange-100", text: "text-orange-800", icon: XCircle },
-  CANCELED:  { label: "Đã hủy",         bg: "bg-red-100",    text: "text-red-800",    icon: XCircle },
+  DELIVERED: { label: "Đã giao",         bg: "bg-green-100",  text: "text-green-800",  icon: CheckCircle2 },
+  FAILED:    { label: "Giao thất bại",   bg: "bg-red-100",    text: "text-red-800",    icon: XCircle },
+  RETURNED:  { label: "Hoàn hàng",       bg: "bg-orange-100", text: "text-orange-800", icon: XCircle },
+  CANCELED:  { label: "Đã hủy",          bg: "bg-red-100",    text: "text-red-800",    icon: XCircle },
 };
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -91,29 +91,53 @@ export default function OrderDetailCustomer() {
   const [order, setOrder]   = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError]   = useState<string | null>(null);
+  const [canceling, setCanceling] = useState(false);
 
-  useEffect(() => {
+  const fetchDetail = async () => {
     const token = localStorage.getItem("access_token");
     if (!token) { navigate("/login", { replace: true }); return; }
+    try {
+      setLoading(true);
+      const res  = await fetch(`${BASE_URL}/orders/${orderId}/detail`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.code === 1000) setOrder(data.result);
+      else setError("Không tìm thấy đơn hàng");
+    } catch {
+      setError("Lỗi kết nối server");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const fetchDetail = async () => {
-      try {
-        setLoading(true);
-        const res  = await fetch(`${BASE_URL}/orders/${orderId}/detail`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        if (data.code === 1000) setOrder(data.result);
-        else setError("Không tìm thấy đơn hàng");
-      } catch {
-        setError("Lỗi kết nối server");
-      } finally {
-        setLoading(false);
-      }
-    };
-
+  useEffect(() => {
     fetchDetail();
   }, [orderId, navigate]);
+
+  const handleCancelOrder = async () => {
+    if (!window.confirm("Bạn có chắc chắn muốn hủy đơn hàng này không?")) return;
+    
+    const token = localStorage.getItem("access_token");
+    try {
+      setCanceling(true);
+      const res = await fetch(`${BASE_URL}/orders/${orderId}/cancel`, {
+        method: "POST", // Hoặc PUT tùy API của bạn
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.code === 1000) {
+        alert("Hủy đơn hàng thành công");
+        fetchDetail(); // Load lại dữ liệu
+      } else {
+        alert(data.message || "Không thể hủy đơn hàng");
+      }
+    } catch {
+      alert("Lỗi kết nối khi hủy đơn");
+    } finally {
+      setCanceling(false);
+    }
+  };
 
   // ── Loading ────────────────────────────────────────────────────────────────
   if (loading) return (
@@ -156,17 +180,35 @@ export default function OrderDetailCustomer() {
       <div className="mx-auto w-full max-w-3xl space-y-6">
 
         {/* Header */}
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate("/profile")}
-            className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 hover:shadow-sm transition"
-          >
-            <ArrowLeft className="w-4 h-4" /> Quay lại
-          </button>
-          <div>
-            <h1 className="text-xl font-bold text-zinc-900">{order.orderCode}</h1>
-            <p className="text-xs text-zinc-500">{formatDate(order.orderDate)}</p>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate("/profile")}
+              className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 hover:shadow-sm transition"
+            >
+              <ArrowLeft className="w-4 h-4" /> Quay lại
+            </button>
+            <div>
+              <h1 className="text-xl font-bold text-zinc-900">{order.orderCode}</h1>
+              <p className="text-xs text-zinc-500">{formatDate(order.orderDate)}</p>
+            </div>
           </div>
+
+          {/* Nút Hủy Đơn Hàng (Chỉ hiện khi PENDING) */}
+          {order.orderStatus === "PENDING" && (
+            <button
+              onClick={handleCancelOrder}
+              disabled={canceling}
+              className="flex items-center gap-2 rounded-xl bg-red-50 px-4 py-2 text-sm font-bold text-red-600 border border-red-100 hover:bg-red-100 transition disabled:opacity-50"
+            >
+              {canceling ? (
+                <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Trash2 className="w-4 h-4" />
+              )}
+              Hủy đơn
+            </button>
+          )}
         </div>
 
         {/* Trạng thái badges */}
@@ -216,7 +258,6 @@ export default function OrderDetailCustomer() {
                 const status = getTimelineStatus(step, order);
                 return (
                   <div key={step.key} className="flex flex-col items-center flex-1 min-w-[72px]">
-                    {/* Connector + dot row */}
                     <div className="relative w-full flex items-center justify-center mb-3">
                       {index > 0 && (
                         <div
@@ -245,8 +286,6 @@ export default function OrderDetailCustomer() {
                         )}
                       </div>
                     </div>
-
-                    {/* Label */}
                     <p
                       className={`text-xs font-semibold text-center leading-tight ${
                         status === "done"
@@ -337,7 +376,6 @@ export default function OrderDetailCustomer() {
             </h2>
             {order.prescriptionOrderDetail.map((item: any, idx: number) => (
               <div key={idx} className="rounded-2xl border border-zinc-100 p-4 space-y-3">
-                {/* Gọng */}
                 <div className="flex items-center gap-3">
                   <img
                     src={item.frameImg}
@@ -351,7 +389,6 @@ export default function OrderDetailCustomer() {
                   </div>
                 </div>
 
-                {/* Tròng */}
                 {item.lensId && (
                   <div className="flex items-center gap-3">
                     <img
@@ -367,7 +404,6 @@ export default function OrderDetailCustomer() {
                   </div>
                 )}
 
-                {/* Thông số mắt */}
                 <div className="rounded-xl bg-zinc-50 border border-zinc-200 p-3">
                   <div className="text-xs font-bold text-zinc-700 mb-2">Thông số mắt</div>
                   <div className="overflow-x-auto">
