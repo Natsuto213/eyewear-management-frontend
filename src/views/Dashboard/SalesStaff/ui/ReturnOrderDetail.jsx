@@ -36,7 +36,6 @@ export default function ReturnOrderDetail() {
 
             const response = await api.get(`api/staff/return-exchange/${returnExchangeId}`);
             console.log("API response:", response.data);
-
             setOrderData(response.data.result);
         } catch (err) {
             console.error(err);
@@ -289,6 +288,23 @@ export default function ReturnOrderDetail() {
                                         </div>
                                     )}
 
+                                    {isApproved && (
+                                        <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                                            <p className="text-xs text-gray-500 mb-1">Thông tin tài khoảng khách hàng:</p>
+                                            <p className="text-sm font-bold text-gray-800">
+                                                {(orderData.refundAccountNumber && orderData.refundAccountName) ? (
+                                                    <>
+                                                        Số tài khoản: {orderData.refundAccountNumber}
+                                                        <br />
+                                                        Tên tài khoản: {orderData.refundAccountName}
+                                                    </>
+                                                ) : "null"}
+                                            </p>
+                                        </div>
+                                    )}
+
+
+
                                     {orderData.returnExchangeStatus === "PENDING" && (
                                         <div className="flex flex-col gap-3">
                                             <p className="text-sm font-bold text-gray-800">Xử lý yêu cầu</p>
@@ -351,7 +367,7 @@ export default function ReturnOrderDetail() {
                                                 disabled={!evidenceFile} // Vô hiệu hóa nút nếu chưa có evidenceFile
                                                 onClick={() => handleComplete(
                                                     orderData.returnExchangeId,
-                                                    orderData.totalAmount, // Chỉ truyền tổng tiền xuống
+                                                    orderData.refundAmount, // Chỉ truyền tổng tiền xuống
                                                     evidenceFile,          // Truyền file vật lý
                                                     fetchOrderDetail
                                                 )}

@@ -52,10 +52,10 @@ export const roleTabsConfig: RoleTabs[] = [
                 icon: ClipboardList,
                 path: '/sales/ui/inventoryorder'
             }, {
-                id: 'form-detail',
-                label: 'Form Detail',
+                id: 'cancelled-orders',
+                label: 'Danh sách đơn huỷ',
                 icon: FileText,
-                path: '/sales/form-detail'
+                path: '/sales/containers/cancelled-orders'
             }
         ]
     },
