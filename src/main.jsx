@@ -11,9 +11,9 @@ if (!sessionActive) {
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-    <React.StrictMode>
-        <BrowserRouter>
-            <PageRoute />
-        </BrowserRouter>
-    </React.StrictMode>
+
+    <BrowserRouter>
+        <PageRoute />
+    </BrowserRouter>
+
 );

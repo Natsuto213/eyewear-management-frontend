@@ -8,11 +8,8 @@ const HeaderDetail = ({ totalAmount, orderData }) => {
                     {orderData.returnExchangeId ? (
                         <div>
                             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                Chi tiết trả hàng / đổi hàng
+                                Chi tiết đơn
                             </h1>
-                            <p className="text-sm text-gray-500 mt-1">
-                                Quản lý và xử lý yêu cầu hậu mãi
-                            </p>
                         </div>
                     ) : (
                         <div>

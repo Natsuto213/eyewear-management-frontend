@@ -1,7 +1,7 @@
 import { api } from "@/lib/api";
 export const handleReject = async (returnExchangeId, reason, fetchOrderDetail) => {
     try {
-        const res = await api.put(`api/staff/return-exchange/${returnExchangeId}/status`, {
+        const res = await api.put(`/api/staff/return-exchange/cancel-refund-requests/${returnExchangeId}/status`, {
             action: "REJECT",
             rejectReason: reason
         });
@@ -21,7 +21,7 @@ export const handleReject = async (returnExchangeId, reason, fetchOrderDetail) =
 
 export const handleApprove = async (returnExchangeId, fetchOrderDetail) => {
     try {
-        const res = await api.put(`api/staff/return-exchange/${returnExchangeId}/status`, {
+        const res = await api.put(`/api/staff/return-exchange/cancel-refund-requests/${returnExchangeId}/status`, {
             action: "APPROVE"
         });
         console.log("API response COMPLETE:", res.data);
@@ -63,7 +63,7 @@ export const handleComplete = async (returnExchangeId, refundAmount, evidenceFil
         }
 
         // 4. Gọi API - Lưu ý: bỏ dấu "/" ở đầu nếu baseURL của bạn đã có /api
-        const res = await api.put(`api/staff/return-exchange/${returnExchangeId}/complete-refund`, formData, {
+        const res = await api.put(`/api/staff/return-exchange/cancel-refund-requests/${returnExchangeId}/complete-refund`, formData, {
             headers: {
                 "Content-Type": "multipart/form-data"
             }

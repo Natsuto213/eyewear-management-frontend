@@ -59,21 +59,23 @@ const OrderFilter = ({ filters, onFilterChange, onResetFilter, statusList, order
                     />
                 </div>
 
-                <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-600">Loại đơn</label>
-                    <select
-                        name="orderType"
-                        value={filters.orderType}
-                        onChange={onFilterChange}
-                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm
+                {!returnExchangeStatusList && (
+                    <div>
+                        <label className="mb-1 block text-sm font-medium text-gray-600">Loại đơn</label>
+                        <select
+                            name="orderType"
+                            value={filters.orderType}
+                            onChange={onFilterChange}
+                            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm
                                    focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"
-                    >
-                        <option value="">-- Tất cả --</option>
-                        {orderTypeList.map((type) => (
-                            <option key={type} value={type}>{orderTypeVN[type] || type}</option>
-                        ))}
-                    </select>
-                </div>
+                        >
+                            <option value="">-- Tất cả --</option>
+                            {orderTypeList.map((type) => (
+                                <option key={type} value={type}>{orderTypeVN[type] || type}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
 
                 <div>
                     <label className="mb-1 block text-sm font-medium text-gray-600">Trạng thái</label>

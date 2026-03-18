@@ -1,3 +1,4 @@
+import React from 'react'
 import { useEffect, useState } from "react";
 import {
     CheckCircle,
@@ -15,10 +16,11 @@ import CustomerAndOrderInfo from "./common/CustomerAndOrderInfo";
 import { mapOrderStatus, mapOrderType, formatCurrency, formatDateTime, mapReturnExchangeStatus, mapActionLabel } from "./utils/orderMaps.js";
 import { useParams } from "react-router-dom";
 import { api } from "@/lib/api";
-import { handleApprove, handleComplete, handleReject } from "./utils/apiReturn.js";
+import { handleApprove, handleComplete, handleReject } from "./utils/apiCancel.js";
 import { useNavigate } from "react-router-dom";
 import ImageCustom from "./common/ImageCustom.jsx";
-export default function ReturnOrderDetail() {
+
+function CancelledDetail() {
     const navigate = useNavigate();
     const { returnExchangeId } = useParams();
     const [orderData, setOrderData] = useState(null);
@@ -34,8 +36,9 @@ export default function ReturnOrderDetail() {
             setLoading(true);
             setError("");
 
-            const response = await api.get(`api/staff/return-exchange/${returnExchangeId}`);
-            console.log("API response:", response.data);
+            const response = await api.get(`api/staff/return-exchange/cancel-refund-requests/${returnExchangeId}`);
+            console.log("đơn huỷ:", response.data.result.returnExchangeId);
+            console.log("anhr minh chung:", response.data.result.customerAccountQr);
             setOrderData(response.data.result);
         } catch (err) {
             console.error(err);
@@ -98,11 +101,11 @@ export default function ReturnOrderDetail() {
             <main className="max-w-7xl mx-auto px-8 py-8">
                 {/* --- NÚT QUAY LẠI MỚI THÊM --- */}
                 <button
-                    onClick={() => navigate("/sales/containers/return-orders")}
+                    onClick={() => navigate("/sales/containers/cancelled-orders")}
                     className="flex items-center gap-2 mb-6 px-4 py-2 bg-white text-gray-700 font-semibold rounded-lg shadow-sm border border-gray-100 hover:bg-gray-50 hover:text-blue-600 transition-all group"
                 >
                     <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
-                    Quay lại danh sách yêu cầu trả hàng
+                    Quay lại danh sách huỷ đơn hàng
                 </button>
                 {/* ---------------------------- */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -293,7 +296,8 @@ export default function ReturnOrderDetail() {
                                             <p className="text-xs text-gray-500 mb-1">Thông tin tài khoảng khách hàng:</p>
                                             <p className="text-sm font-bold text-gray-800">
                                                 {(orderData.refundAccountNumber && orderData.refundAccountName) ? (
-                                                    <>Ngân hàng/MOMO: {orderData.refundMethod}
+                                                    <>
+                                                        Ngân hàng/MOMO: {orderData.refundMethod}
                                                         <br />
                                                         Số tài khoản: {orderData.refundAccountNumber}
                                                         <br />
@@ -303,6 +307,7 @@ export default function ReturnOrderDetail() {
                                             </p>
                                         </div>
                                     )}
+
 
                                     {isApproved && (
                                         <div className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
@@ -328,14 +333,13 @@ export default function ReturnOrderDetail() {
                                             </div>
                                         </div>
                                     )}
-
                                     {orderData.returnExchangeStatus === "PENDING" && (
                                         <div className="flex flex-col gap-3">
                                             <p className="text-sm font-bold text-gray-800">Xử lý yêu cầu</p>
                                             <button
                                                 className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-3 px-4 rounded-xl transition-all font-bold shadow"
                                                 type="button"
-                                                disabled={orderData.remainingTimeValid <= 0}
+
                                                 onClick={() => handleApprove(orderData.returnExchangeId, fetchOrderDetail)}
                                             >
                                                 <CheckCircle className="w-5 h-5" />
@@ -410,3 +414,5 @@ export default function ReturnOrderDetail() {
         </div>
     );
 }
+
+export default CancelledDetail
