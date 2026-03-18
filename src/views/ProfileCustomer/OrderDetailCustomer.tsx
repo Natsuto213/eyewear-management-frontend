@@ -1,154 +1,99 @@
-import React, { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft, MapPin, Phone, Mail, Package,
-  Clock, CheckCircle2, XCircle, Truck, Eye, Trash2
+  Clock, CheckCircle2, XCircle, Truck, Eye, Trash2, AlertTriangle,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 
-const BASE_URL = "https://api-eyewear.purintech.id.vn";
-
-const formatCurrency = (v: number) =>
-  v?.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
-
-const formatDate = (str: string) => {
-  if (!str) return "";
-  return new Date(str).toLocaleString("vi-VN");
-};
-
-// ─── Timeline definitions ────────────────────────────────────────────────────
-const prescriptionTimeline = [
-  { key: "CONFIRMED", label: "Đã xác nhận", orderStatus: "CONFIRMED" },
-  { key: "PROCESSING", label: "Đang gia công", orderStatus: "PROCESSING" },
-  { key: "PACKING", label: "Đóng gói", shippingStatus: "PACKING" },
-  { key: "SHIPPING", label: "Đang vận chuyển", shippingStatus: "SHIPPING" },
-  { key: "DELIVERED", label: "Đã giao", shippingStatus: "DELIVERED" },
-  { key: "COMPLETED", label: "Hoàn thành", orderStatus: "COMPLETED" },
-];
-
-const normalTimeline = [
-  { key: "CONFIRMED", label: "Đã xác nhận", orderStatus: "CONFIRMED" },
-  { key: "PACKING", label: "Đóng gói", shippingStatus: "PACKING" },
-  { key: "SHIPPING", label: "Đang vận chuyển", shippingStatus: "SHIPPING" },
-  { key: "DELIVERED", label: "Đã giao", shippingStatus: "DELIVERED" },
-  { key: "COMPLETED", label: "Hoàn thành", orderStatus: "COMPLETED" },
-];
-
-function getTimelineStatus(
-  step: { orderStatus?: string; shippingStatus?: string },
-  order: any
-): "done" | "active" | "pending" {
-  const orderStatusOrder = ["CONFIRMED", "PROCESSING", "READY", "COMPLETED"];
-  const shippingStatusOrder = ["PENDING", "PACKING", "SHIPPING", "DELIVERED"];
-
-  const currentOrderIdx = orderStatusOrder.indexOf(order.orderStatus);
-  const currentShippingIdx = shippingStatusOrder.indexOf(order.shippingStatus);
-
-  if (step.orderStatus) {
-    const stepIdx = orderStatusOrder.indexOf(step.orderStatus);
-    if (step.orderStatus === "COMPLETED" && order.orderStatus === "COMPLETED") return "done";
-    if (step.orderStatus === order.orderStatus) return "active";
-    if (stepIdx < currentOrderIdx) return "done";
-    return "pending";
-  }
-
-  if (step.shippingStatus) {
-    const stepIdx = shippingStatusOrder.indexOf(step.shippingStatus);
-    if (step.shippingStatus === order.shippingStatus) return "active";
-    if (stepIdx < currentShippingIdx) return "done";
-    return "pending";
-  }
-  return "pending";
-}
-
-const orderStatusConfig: Record<string, { label: string; bg: string; text: string; icon: any }> = {
-  PENDING: { label: "Chờ xác nhận", bg: "bg-yellow-100", text: "text-yellow-800", icon: Clock },
-  CONFIRMED: { label: "Đã xác nhận", bg: "bg-blue-100", text: "text-blue-800", icon: CheckCircle2 },
-  PROCESSING: { label: "Đang gia công", bg: "bg-amber-100", text: "text-amber-800", icon: Package },
-  READY: { label: "Chờ vận chuyển", bg: "bg-purple-100", text: "text-purple-800", icon: Package },
-  COMPLETED: { label: "Hoàn thành", bg: "bg-green-100", text: "text-green-800", icon: CheckCircle2 },
-  CANCELED: { label: "Đã hủy", bg: "bg-red-100", text: "text-red-800", icon: XCircle },
-};
-
-const shippingConfig: Record<string, { label: string; bg: string; text: string; icon: any }> = {
-  PENDING:   { label: "Chờ xử lý",      bg: "bg-zinc-100",   text: "text-zinc-700",   icon: Clock },
-  PACKING:   { label: "Đang đóng gói",  bg: "bg-blue-100",   text: "text-blue-800",   icon: Package },
-  SHIPPING:  { label: "Đang giao hàng", bg: "bg-indigo-100", text: "text-indigo-800", icon: Truck },
-  DELIVERED: { label: "Đã giao",         bg: "bg-green-100",  text: "text-green-800",  icon: CheckCircle2 },
-  FAILED:    { label: "Giao thất bại",   bg: "bg-red-100",    text: "text-red-800",    icon: XCircle },
-  RETURNED:  { label: "Hoàn hàng",       bg: "bg-orange-100", text: "text-orange-800", icon: XCircle },
-  CANCELED:  { label: "Đã hủy",          bg: "bg-red-100",    text: "text-red-800",    icon: XCircle },
-};
+import {
+  BASE_URL, CANCELABLE_STATUSES,
+  orderStatusConfig, shippingConfig,
+  prescriptionTimeline, normalTimeline,
+  getTimelineStatus, formatCurrency, formatDate,
+} from "./orderDetailConfig";
+import CancelFormModal, { CancelFormData } from "./CancelFormModal";
+import ReturnExchangePanel from "./ReturnExchangePanel";
 
 export default function OrderDetailCustomer() {
   const { orderId } = useParams();
-  const navigate = useNavigate();
-  const [order, setOrder] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]   = useState<string | null>(null);
-  const [canceling, setCanceling] = useState(false);
+  const navigate    = useNavigate();
 
-  // Dùng useCallback để tránh re-render vô tận và có thể gọi lại sau khi cancel
+  const [order, setOrder]             = useState<any>(null);
+  const [loading, setLoading]         = useState(true);
+  const [error, setError]             = useState<string | null>(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [canceling, setCanceling]     = useState(false);
+
+  // ── Fetch order detail ───────────────────────────────────────────────────
   const fetchDetail = useCallback(async () => {
     const token = localStorage.getItem("access_token");
-    if (!token) {
-      setError("Vui lòng đăng nhập để xem đơn hàng");
-      setLoading(false);
-      return;
-    }
-
+    if (!token) { setError("Vui lòng đăng nhập để xem đơn hàng"); setLoading(false); return; }
     try {
       setLoading(true);
-      const res = await fetch(`${BASE_URL}/orders/${orderId}/detail`, {
+      const res  = await fetch(`${BASE_URL}/orders/${orderId}/detail`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      if (data.code === 1000) {
-        setOrder(data.result);
-        setError(null);
-      } else {
-        setError(data.message || "Không tìm thấy đơn hàng");
-      }
-    } catch (err) {
-      setError("Lỗi kết nối server");
-    } finally {
-      setLoading(false);
-    }
+      if (data.code === 1000) { setOrder(data.result); setError(null); }
+      else setError(data.message || "Không tìm thấy đơn hàng");
+    } catch { setError("Lỗi kết nối server"); }
+    finally   { setLoading(false); }
   }, [orderId]);
 
-  useEffect(() => {
-    fetchDetail();
-  }, [fetchDetail]);
+  useEffect(() => { fetchDetail(); }, [fetchDetail]);
 
-  const handleCancelOrder = async () => {
-    if (!window.confirm("Bạn có chắc chắn muốn hủy đơn hàng này không?")) return;
-    
+  // ── Cancel handler ───────────────────────────────────────────────────────
+  /**
+   * POST /orders/{orderId}/cancel
+   * - Không có file QR  → Content-Type: application/json
+   * - Có file QR        → multipart/form-data (browser tự set boundary)
+   */
+  const handleCancelSubmit = async (formData: CancelFormData) => {
     const token = localStorage.getItem("access_token");
+    if (!token) { alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."); return; }
+
     try {
       setCanceling(true);
-      const res = await fetch(`${BASE_URL}/orders/${orderId}/cancel`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (data.code === 1000) {
-        alert("Hủy đơn hàng thành công");
-        fetchDetail(); 
+
+      const payload: Record<string, string> = {
+        cancelReason: formData.cancelReason,
+      };
+      if (formData.requestNote.trim())         payload.requestNote         = formData.requestNote.trim();
+      if (formData.refundMethod)               payload.refundMethod        = formData.refundMethod;
+      if (formData.refundAccountNumber.trim()) payload.refundAccountNumber = formData.refundAccountNumber.trim();
+      if (formData.refundAccountName.trim())   payload.refundAccountName   = formData.refundAccountName.trim();
+
+      let body: BodyInit;
+      // Dùng Headers object — đảm bảo Authorization luôn được gửi đúng
+      const headers = new Headers();
+      headers.set("Authorization", `Bearer ${token}`);
+
+      if (formData.customerAccountQrFile) {
+        // multipart/form-data — KHÔNG set Content-Type, browser tự thêm boundary
+        const fd = new FormData();
+        fd.append("request", new Blob([JSON.stringify(payload)], { type: "application/json" }));
+        fd.append("customerAccountQrFile", formData.customerAccountQrFile);
+        body = fd;
       } else {
-        alert(data.message || "Không thể hủy đơn hàng");
+        // JSON thuần
+        headers.set("Content-Type", "application/json");
+        body = JSON.stringify(payload);
       }
-    } catch {
-      alert("Lỗi kết nối khi hủy đơn");
-    } finally {
-      setCanceling(false);
-    }
+
+      const res  = await fetch(`${BASE_URL}/orders/${orderId}/cancel`, { method: "POST", headers, body });
+      const data = await res.json();
+      if (data.code === 1000) { setShowCancelModal(false); fetchDetail(); }
+      else alert(data.message || "Không thể hủy đơn hàng");
+    } catch { alert("Lỗi kết nối khi gửi yêu cầu hủy"); }
+    finally { setCanceling(false); }
   };
 
-  // ── Render States ──────────────────────────────────────────────────────────
+  // ── Loading / Error states ───────────────────────────────────────────────
   if (loading) return (
     <div className="min-h-screen bg-white">
       <Navbar />
-      <div className="flex items-center justify-center h-[calc(100-80px)] mt-20">
+      <div className="flex items-center justify-center h-[calc(100vh-80px)]">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-teal-200 border-t-teal-600" />
       </div>
     </div>
@@ -161,10 +106,7 @@ export default function OrderDetailCustomer() {
         <div className="text-center bg-white rounded-3xl shadow-lg p-10 border border-zinc-100">
           <XCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />
           <p className="text-red-600 font-semibold mb-4">{error || "Không tìm thấy đơn hàng"}</p>
-          <button
-            onClick={() => navigate("/profile")}
-            className="rounded-xl bg-teal-600 px-5 py-2 text-sm font-semibold text-white hover:bg-teal-700"
-          >
+          <button onClick={() => navigate("/profile")} className="rounded-xl bg-teal-600 px-5 py-2 text-sm font-semibold text-white hover:bg-teal-700">
             Quay lại trang cá nhân
           </button>
         </div>
@@ -172,49 +114,56 @@ export default function OrderDetailCustomer() {
     </div>
   );
 
-  const orderStatus = orderStatusConfig[order.orderStatus] || { label: order.orderStatus, bg: "bg-zinc-100", text: "text-zinc-800", icon: Package };
-  const shippingStatus = shippingConfig[order.shippingStatus] || { label: order.shippingStatus, bg: "bg-zinc-100", text: "text-zinc-800", icon: Truck };
-  const OrderStatusIcon = orderStatus.icon;
+  // ── Derived values ───────────────────────────────────────────────────────
+  const orderStatus    = orderStatusConfig[order.orderStatus]   || { label: order.orderStatus,   bg: "bg-zinc-100", text: "text-zinc-800", icon: Package };
+  const shippingStatus = shippingConfig[order.shippingStatus]   || { label: order.shippingStatus, bg: "bg-zinc-100", text: "text-zinc-800", icon: Truck };
+  const OrderStatusIcon    = orderStatus.icon;
   const ShippingStatusIcon = shippingStatus.icon;
 
   const isCanceled = order.orderStatus === "CANCELED" || order.shippingStatus === "CANCELED";
-  const isFailed = order.shippingStatus === "FAILED";
+  const isFailed   = order.shippingStatus === "FAILED";
   const isReturned = order.shippingStatus === "RETURNED";
-  const timeline = order.hasPrescriptionItem ? prescriptionTimeline : normalTimeline;
+  const timeline   = order.hasPrescriptionItem ? prescriptionTimeline : normalTimeline;
 
+  // Backend trả về canCancelOrder, requiresRefundInfoOnCancel, refundableAmount trực tiếp
+  const requiresRefund: boolean  = order.requiresRefundInfoOnCancel === true || (order.refundableAmount ?? 0) > 0;
+  const refundableAmount: number = order.refundableAmount ?? 0;
+  const canCancel: boolean       =
+    order.canCancelOrder === true ||
+    (CANCELABLE_STATUSES.includes(order.orderStatus) && !order.hasOpenRefundRequest && order.latestReturnExchangeStatus == null);
+
+  // ── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gradient-to-b from-teal-50 to-white pb-20">
       <Navbar />
-      
-      <div className="mx-auto w-full max-w-3xl space-y-6 px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate("/profile")}
-              className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 transition"
-            >
-              <ArrowLeft className="w-4 h-4" /> Quay lại
-            </button>
-            <div>
-              <h1 className="text-xl font-bold text-zinc-900">{order.orderCode}</h1>
-              <p className="text-xs text-zinc-500">{formatDate(order.orderDate)}</p>
-            </div>
-          </div>
 
-          {order.orderStatus === "PENDING" && (
-            <button
-              onClick={handleCancelOrder}
-              disabled={canceling}
-              className="flex items-center gap-2 rounded-xl bg-red-50 px-4 py-2 text-sm font-bold text-red-600 border border-red-100 hover:bg-red-100 transition disabled:opacity-50"
-            >
-              {canceling ? <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" /> : <Trash2 className="w-4 h-4" />}
-              Hủy đơn
-            </button>
-          )}
+      {showCancelModal && (
+        <CancelFormModal
+          requiresRefund={requiresRefund}
+          refundableAmount={refundableAmount}
+          onSubmit={handleCancelSubmit}
+          onCancel={() => setShowCancelModal(false)}
+          submitting={canceling}
+        />
+      )}
+
+      <div className="mx-auto w-full max-w-3xl space-y-6 px-4 py-8">
+
+        {/* ── Header ── */}
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate("/profile")}
+            className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 transition"
+          >
+            <ArrowLeft className="w-4 h-4" /> Quay lại
+          </button>
+          <div>
+            <h1 className="text-xl font-bold text-zinc-900">{order.orderCode}</h1>
+            <p className="text-xs text-zinc-500">{formatDate(order.orderDate)}</p>
+          </div>
         </div>
 
-        {/* Status Badges */}
+        {/* ── Status badges ── */}
         <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm flex flex-wrap gap-3 items-center">
           <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl ${orderStatus.bg}`}>
             <OrderStatusIcon className={`w-4 h-4 ${orderStatus.text}`} />
@@ -226,16 +175,15 @@ export default function OrderDetailCustomer() {
           </div>
         </div>
 
-        {/* Timeline */}
+        {/* ── Order timeline ── */}
         <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
           <h2 className="font-bold text-zinc-900 mb-5 flex items-center gap-2">
             <Clock className="w-5 h-5 text-teal-600" /> Tiến trình đơn hàng
           </h2>
-
           {isCanceled || isFailed || isReturned ? (
-            <div className={`flex items-center gap-3 ${isCanceled ? 'bg-red-50 border-red-200' : 'bg-orange-50 border-orange-200'} border rounded-xl p-4`}>
-              <XCircle className={`w-5 h-5 ${isCanceled ? 'text-red-500' : 'text-orange-500'}`} />
-              <p className={`font-semibold ${isCanceled ? 'text-red-700' : 'text-orange-700'}`}>
+            <div className={`flex items-center gap-3 border rounded-xl p-4 ${isCanceled ? "bg-red-50 border-red-200" : "bg-orange-50 border-orange-200"}`}>
+              <XCircle className={`w-5 h-5 ${isCanceled ? "text-red-500" : "text-orange-500"}`} />
+              <p className={`font-semibold ${isCanceled ? "text-red-700" : "text-orange-700"}`}>
                 {isCanceled ? "Đơn hàng đã bị hủy" : isFailed ? "Giao hàng thất bại" : "Đơn hàng đã hoàn trả"}
               </p>
             </div>
@@ -249,11 +197,23 @@ export default function OrderDetailCustomer() {
                       {index > 0 && (
                         <div className={`absolute right-1/2 top-4 w-full h-0.5 -z-0 ${status === "done" || status === "active" ? "bg-teal-400" : "bg-zinc-200"}`} />
                       )}
-                      <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${status === "done" ? "bg-teal-500 border-teal-500 text-white" : status === "active" ? "bg-white border-teal-500 shadow-md" : "bg-white border-zinc-200"}`}>
-                        {status === "done" ? <CheckCircle2 className="w-4 h-4" /> : status === "active" ? <div className="w-3 h-3 rounded-full bg-teal-500 animate-pulse" /> : <div className="w-2 h-2 rounded-full bg-zinc-300" />}
+                      <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all
+                        ${status === "done"   ? "bg-teal-500 border-teal-500 text-white"
+                        : status === "active" ? "bg-white border-teal-500 shadow-md"
+                        :                       "bg-white border-zinc-200"}`}>
+                        {status === "done"
+                          ? <CheckCircle2 className="w-4 h-4" />
+                          : status === "active"
+                            ? <div className="w-3 h-3 rounded-full bg-teal-500 animate-pulse" />
+                            : <div className="w-2 h-2 rounded-full bg-zinc-300" />}
                       </div>
                     </div>
-                    <p className={`text-[10px] font-bold text-center leading-tight uppercase ${status === "done" ? "text-teal-600" : status === "active" ? "text-teal-700" : "text-zinc-400"}`}>{step.label}</p>
+                    <p className={`text-[10px] font-bold text-center leading-tight uppercase
+                      ${status === "done"   ? "text-teal-600"
+                      : status === "active" ? "text-teal-700"
+                      :                       "text-zinc-400"}`}>
+                      {step.label}
+                    </p>
                   </div>
                 );
               })}
@@ -261,16 +221,21 @@ export default function OrderDetailCustomer() {
           )}
         </div>
 
-        {/* Shipping Info */}
+        {/* ── Return/Exchange status panel ── */}
+        {order.latestReturnExchangeStatus && (
+          <ReturnExchangePanel order={order} />
+        )}
+
+        {/* ── Shipping info ── */}
         <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm space-y-4">
           <h2 className="font-bold text-zinc-900 flex items-center gap-2">
-             <MapPin className="w-5 h-5 text-teal-600" /> Địa chỉ nhận hàng
+            <MapPin className="w-5 h-5 text-teal-600" /> Địa chỉ nhận hàng
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div className="space-y-2">
-              <p className="flex items-center gap-2 font-semibold text-zinc-800"><Package className="w-4 h-4 text-zinc-400"/> {order.recipientName}</p>
-              <p className="flex items-center gap-2 text-zinc-600"><Phone className="w-4 h-4 text-zinc-400"/> {order.recipientPhone}</p>
-              <p className="flex items-center gap-2 text-zinc-600"><Mail className="w-4 h-4 text-zinc-400"/> {order.recipientEmail}</p>
+              <p className="flex items-center gap-2 font-semibold text-zinc-800"><Package className="w-4 h-4 text-zinc-400" /> {order.recipientName}</p>
+              <p className="flex items-center gap-2 text-zinc-600"><Phone className="w-4 h-4 text-zinc-400" /> {order.recipientPhone}</p>
+              <p className="flex items-center gap-2 text-zinc-600"><Mail className="w-4 h-4 text-zinc-400" /> {order.recipientEmail}</p>
             </div>
             <div className="p-3 bg-zinc-50 rounded-2xl border border-zinc-100 text-zinc-600 italic">
               {order.recipientAddress}
@@ -278,7 +243,7 @@ export default function OrderDetailCustomer() {
           </div>
         </div>
 
-        {/* Prescription Items (Kính thuốc) */}
+        {/* ── Prescription items ── */}
         {order.prescriptionOrderDetail?.length > 0 && (
           <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm space-y-4">
             <h2 className="font-bold text-zinc-900 flex items-center gap-2">
@@ -302,7 +267,6 @@ export default function OrderDetailCustomer() {
                     </div>
                   </div>
                 </div>
-                
                 <div className="bg-white border border-zinc-200 rounded-xl overflow-hidden mb-3">
                   <table className="w-full text-[11px]">
                     <thead className="bg-zinc-100 text-zinc-600">
@@ -337,7 +301,7 @@ export default function OrderDetailCustomer() {
           </div>
         )}
 
-        {/* Normal Items */}
+        {/* ── Normal items ── */}
         {order.orderDetail?.length > 0 && (
           <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm space-y-3">
             <h2 className="font-bold text-zinc-900">Sản phẩm khác</h2>
@@ -354,7 +318,7 @@ export default function OrderDetailCustomer() {
           </div>
         )}
 
-        {/* Total Price */}
+        {/* ── Total price ── */}
         <div className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm space-y-3">
           <div className="flex justify-between text-sm text-zinc-500">
             <span>Tạm tính</span>
@@ -370,6 +334,45 @@ export default function OrderDetailCustomer() {
             <span className="text-2xl font-black text-teal-600">{formatCurrency(order.totalAmount)}</span>
           </div>
         </div>
+
+        {/* ── Cancel button ── */}
+        {canCancel && (
+          <div className={`rounded-3xl border p-5 shadow-sm space-y-3 ${requiresRefund ? "border-orange-100 bg-orange-50/60" : "border-red-100 bg-red-50/60"}`}>
+            <div className="flex items-start gap-3">
+              <AlertTriangle className={`w-5 h-5 mt-0.5 shrink-0 ${requiresRefund ? "text-orange-500" : "text-red-500"}`} />
+              <div>
+                <p className={`text-sm font-bold ${requiresRefund ? "text-orange-800" : "text-red-800"}`}>Hủy đơn hàng</p>
+                <p className={`text-xs mt-0.5 ${requiresRefund ? "text-orange-700" : "text-red-600"}`}>
+                  {requiresRefund
+                    ? `Đơn hàng đã thanh toán ${formatCurrency(refundableAmount)}. Khi hủy, bạn cần cung cấp thông tin tài khoản để nhận hoàn tiền thủ công từ nhân viên.`
+                    : "Bạn có thể hủy đơn hàng trước khi nhân viên xác nhận. Hành động này không thể hoàn tác."}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowCancelModal(true)}
+              disabled={canceling}
+              className={`w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white transition disabled:opacity-50
+                ${requiresRefund ? "bg-orange-600 hover:bg-orange-700" : "bg-red-600 hover:bg-red-700"}`}
+            >
+              {canceling
+                ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                : <Trash2 className="w-4 h-4" />}
+              {requiresRefund ? "Hủy đơn & Yêu cầu hoàn tiền" : "Hủy đơn hàng"}
+            </button>
+          </div>
+        )}
+
+        {/* ── Notice sau khi đã gửi yêu cầu hủy ── */}
+        {order.latestReturnExchangeStatus && CANCELABLE_STATUSES.includes(order.orderStatus) && (
+          <div className="rounded-3xl border border-zinc-200 bg-zinc-50 p-5 flex items-center gap-3">
+            <Clock className="w-5 h-5 text-zinc-400 shrink-0" />
+            <p className="text-sm text-zinc-600">
+              Yêu cầu hủy đơn đã được gửi. Vui lòng theo dõi trạng thái hoàn tiền bên trên.
+            </p>
+          </div>
+        )}
+
       </div>
     </div>
   );
