@@ -17,6 +17,7 @@ import { useParams } from "react-router-dom";
 import { api } from "@/lib/api";
 import { handleApprove, handleComplete, handleReject } from "./utils/apiReturn.js";
 import { useNavigate } from "react-router-dom";
+import ImageCustom from "./common/ImageCustom.jsx";
 export default function ReturnOrderDetail() {
     const navigate = useNavigate();
     const { returnExchangeId } = useParams();
@@ -25,6 +26,8 @@ export default function ReturnOrderDetail() {
     const [error, setError] = useState("");
     const [openPrescriptionRows, setOpenPrescriptionRows] = useState({});
     const [rejectReason, setRejectReason] = useState("");
+    // Thêm 1 state để lưu trữ file ảnh nhận được từ ImageCustom
+    const [evidenceFile, setEvidenceFile] = useState(null);
 
     const fetchOrderDetail = async () => {
         try {
@@ -87,6 +90,8 @@ export default function ReturnOrderDetail() {
     const normalProducts = orderData.orderDetail || [];
     const prescriptionProducts = orderData.prescriptionOrderDetail || [];
 
+    const isApproved = orderData.returnExchangeStatus === "APPROVED";
+    const isPending = orderData.returnExchangeStatus === "PENDING";
     return (
         <div className="min-h-screen bg-gray-200">
             <HeaderDetail totalAmount={formatCurrency(orderData.totalAmount)} orderData={orderData} />
@@ -125,14 +130,6 @@ export default function ReturnOrderDetail() {
                                             </span>
                                         </div>
 
-                                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                                            <span className="text-sm font-semibold text-gray-500 w-40">
-                                                ReturnExchange ID:
-                                            </span>
-                                            <span className="text-sm text-gray-800 font-medium">
-                                                {orderData.returnExchangeId}
-                                            </span>
-                                        </div>
 
                                         <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
                                             <span className="text-sm font-semibold text-gray-500 w-40">
@@ -165,20 +162,15 @@ export default function ReturnOrderDetail() {
                                                 {orderData.hasPrescriptionItem ? "Có" : "Không"}
                                             </span>
                                         </div>
-
                                         <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
                                             <span className="text-sm font-semibold text-gray-500 w-40">
-                                                Cần thanh toán thêm:
+                                                Ngày khách nhận hàng:
                                             </span>
-                                            <span
-                                                className={`text-sm font-semibold ${orderData.requiresFinalPayment
-                                                    ? "text-amber-600"
-                                                    : "text-green-600"
-                                                    }`}
-                                            >
-                                                {orderData.requiresFinalPayment ? "Có" : "Không"}
+                                            <span className="text-sm font-bold text-gray-500">
+                                                {formatDateTime(orderData.deliveredAt)}
                                             </span>
                                         </div>
+
                                     </div>
 
                                     <div className="space-y-4">
@@ -238,7 +230,7 @@ export default function ReturnOrderDetail() {
 
                         <div className="mt-6 p-6 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl">
                             <div className="flex items-center justify-between text-white">
-                                <span className="text-xl font-bold">TỔNG CỘNG</span>
+                                <span className="text-xl font-bold">TỔNG TIỀN CẦN HOÀN TRẢ</span>
                                 <span className="text-3xl font-bold">
                                     {formatCurrency(orderData.totalAmount)}
                                 </span>
@@ -265,23 +257,45 @@ export default function ReturnOrderDetail() {
 
                                     <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
                                         <p className="text-xs text-gray-500 mb-1">Trạng thái trả hàng</p>
-                                        <p className="text-sm font-bold text-red-600">
+                                        <p className="text-sm font-bold text-gray-800">
                                             {mapReturnExchangeStatus(orderData.returnExchangeStatus)}
                                         </p>
                                     </div>
 
-                                    <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
-                                        <p className="text-xs text-gray-500 mb-1">Có đơn kính</p>
-                                        <p className="text-sm font-bold text-gray-800">
-                                            {orderData.hasPrescriptionItem ? "Có" : "Không"}
-                                        </p>
-                                    </div>
+                                    {isApproved && (
+                                        <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                                            <p className="text-xs text-gray-500 mb-1">Ngày duyệt yêu cầu:</p>
+                                            <p className="text-sm font-bold text-gray-800">
+                                                {orderData.approvedDate ? formatDateTime(orderData.approvedDate) : "null"}
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {isApproved && (
+                                        <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                                            <p className="text-xs text-gray-500 mb-1">Tên nhân viên đã duyệt:</p>
+                                            <p className="text-sm font-bold text-gray-800">
+                                                {orderData.approvedDate ? orderData.approvedByName : "null"}
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {isPending && (
+                                        <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                                            <p className="text-xs text-gray-500 mb-1">Thời gian còn hiệu lực đổi trả:</p>
+                                            <p className="text-sm font-bold text-gray-800">
+                                                {orderData.remainingTimeValid ? orderData.remainingTimeValid : "null"} ngày
+                                            </p>
+                                        </div>
+                                    )}
+
                                     {orderData.returnExchangeStatus === "PENDING" && (
                                         <div className="flex flex-col gap-3">
                                             <p className="text-sm font-bold text-gray-800">Xử lý yêu cầu</p>
                                             <button
                                                 className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-3 px-4 rounded-xl transition-all font-bold shadow"
                                                 type="button"
+                                                disabled={orderData.remainingTimeValid <= 0}
                                                 onClick={() => handleApprove(orderData.returnExchangeId, fetchOrderDetail)}
                                             >
                                                 <CheckCircle className="w-5 h-5" />
@@ -312,16 +326,38 @@ export default function ReturnOrderDetail() {
                                     )}
 
                                     {/* TRƯỜNG HỢP: APPROVED - Hiển thị nút Hoàn thành */}
-                                    {orderData.returnExchangeStatus === "APPROVED" && (
-                                        <div className="flex flex-col gap-3">
-                                            <p className="text-sm font-bold text-gray-800">Tiến trình xử lý</p>
+                                    {isApproved && (
+                                        <div className="flex flex-col gap-4">
+                                            <p className="text-sm font-bold text-gray-800">Tiến trình xử lý (Hoàn tiền & Nhập kho)</p>
+
+                                            {/* Component Upload Ảnh Minh Chứng */}
+                                            <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                                                <p className="text-xs font-semibold text-gray-700 mb-3">
+                                                    Ảnh minh chứng hoàn trả (*)
+                                                </p>
+                                                <ImageCustom
+                                                    onFileSelect={(file) => setEvidenceFile(file)} // Lưu file vào state khi chọn
+                                                    onRemove={() => setEvidenceFile(null)}         // Xóa file khỏi state
+                                                />
+                                            </div>
+
+                                            {/* Nút Hoàn Thành */}
                                             <button
-                                                className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white py-3 px-4 rounded-xl transition-all font-bold shadow"
+                                                className={`w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl transition-all font-bold shadow ${evidenceFile
+                                                    ? "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white"
+                                                    : "bg-gray-300 text-gray-500 cursor-not-allowed" // Đổi màu xám nếu chưa có ảnh
+                                                    }`}
                                                 type="button"
-                                                onClick={() => handleComplete(orderData.returnExchangeId, fetchOrderDetail)}
+                                                disabled={!evidenceFile} // Vô hiệu hóa nút nếu chưa có evidenceFile
+                                                onClick={() => handleComplete(
+                                                    orderData.returnExchangeId,
+                                                    orderData.totalAmount, // Chỉ truyền tổng tiền xuống
+                                                    evidenceFile,          // Truyền file vật lý
+                                                    fetchOrderDetail
+                                                )}
                                             >
                                                 <CheckCircle className="w-5 h-5" />
-                                                HOÀN THÀNH
+                                                XÁC NHẬN HOÀN THÀNH
                                             </button>
                                         </div>
                                     )}
