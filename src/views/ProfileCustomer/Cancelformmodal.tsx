@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { AlertTriangle, Banknote, Trash2, Upload, X } from "lucide-react";
-import { REFUND_METHODS, formatCurrency } from "./orderDetailConfig";
+import { formatCurrency } from "./orderDetailConfig";
 
 export interface CancelFormData {
   cancelReason: string;
@@ -51,7 +51,7 @@ export default function CancelFormModal({
     const errs: Record<string, string> = {};
     if (!form.cancelReason.trim()) errs.cancelReason = "Vui lòng nhập lý do hủy đơn";
     if (requiresRefund) {
-      if (!form.refundMethod) errs.refundMethod = "Vui lòng chọn phương thức nhận hoàn tiền";
+      if (!form.refundMethod.trim()) errs.refundMethod = "Vui lòng nhập phương thức nhận hoàn tiền";
       if (!form.refundAccountNumber.trim()) errs.refundAccountNumber = "Vui lòng nhập số tài khoản / số điện thoại";
     }
     return errs;
@@ -135,26 +135,19 @@ export default function CancelFormModal({
               <div className="h-px bg-zinc-100" />
               <p className="text-xs font-bold text-zinc-500 uppercase tracking-wide">Thông tin nhận hoàn tiền</p>
 
-              {/* Refund method */}
+              {/* Refund method — free text */}
               <div className="space-y-2">
                 <label className="text-sm font-bold text-zinc-800 flex items-center gap-1">
                   Phương thức hoàn tiền <span className="text-red-500">*</span>
                 </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {REFUND_METHODS.map(method => (
-                    <button
-                      key={method.value}
-                      type="button"
-                      onClick={() => { setForm(p => ({ ...p, refundMethod: method.value })); setErrors(p => ({ ...p, refundMethod: "" })); }}
-                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-semibold transition
-                        ${form.refundMethod === method.value
-                          ? "border-teal-500 bg-teal-50 text-teal-700"
-                          : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300"}`}
-                    >
-                      <span>{method.icon}</span> {method.label}
-                    </button>
-                  ))}
-                </div>
+                <input
+                  type="text"
+                  placeholder="VD: Chuyển khoản ngân hàng, MoMo, ZaloPay..."
+                  value={form.refundMethod}
+                  onChange={e => { setForm(p => ({ ...p, refundMethod: e.target.value })); setErrors(p => ({ ...p, refundMethod: "" })); }}
+                  className={`w-full rounded-xl border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400
+                    ${errors.refundMethod ? "border-red-400 bg-red-50" : "border-zinc-200"}`}
+                />
                 {errors.refundMethod && <p className="text-xs text-red-500">{errors.refundMethod}</p>}
               </div>
 
