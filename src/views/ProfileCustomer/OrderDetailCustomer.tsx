@@ -58,32 +58,37 @@ export default function OrderDetailCustomer() {
     try {
       setCanceling(true);
 
-      const payload: Record<string, string> = {
+      // Build request object cho @RequestPart("request")
+      const requestData: Record<string, any> = {
         cancelReason: formData.cancelReason,
       };
-      if (formData.requestNote.trim())         payload.requestNote         = formData.requestNote.trim();
-      if (formData.refundMethod)               payload.refundMethod        = formData.refundMethod;
-      if (formData.refundAccountNumber.trim()) payload.refundAccountNumber = formData.refundAccountNumber.trim();
-      if (formData.refundAccountName.trim())   payload.refundAccountName   = formData.refundAccountName.trim();
+      if (formData.requestNote.trim())         requestData.requestNote         = formData.requestNote.trim();
+      if (formData.refundMethod)               requestData.refundMethod        = formData.refundMethod;
+      if (formData.refundAccountNumber.trim()) requestData.refundAccountNumber = formData.refundAccountNumber.trim();
+      if (formData.refundAccountName.trim())   requestData.refundAccountName   = formData.refundAccountName.trim();
 
-      let body: BodyInit;
-      // Dùng Headers object — đảm bảo Authorization luôn được gửi đúng
-      const headers = new Headers();
-      headers.set("Authorization", `Bearer ${token}`);
+      // Backend dùng @RequestPart → phải gửi multipart/form-data
+      // Dùng Blob với type application/json để Spring đọc được @RequestPart("request")
+      const form = new FormData();
+      form.append(
+        "request",
+        new Blob([JSON.stringify(requestData)], { type: "application/json" })
+      );
 
+      // Append file QR nếu có (key phải đúng với @RequestPart("customerAccountQrFile"))
       if (formData.customerAccountQrFile) {
-        // multipart/form-data — KHÔNG set Content-Type, browser tự thêm boundary
-        const fd = new FormData();
-        fd.append("request", new Blob([JSON.stringify(payload)], { type: "application/json" }));
-        fd.append("customerAccountQrFile", formData.customerAccountQrFile);
-        body = fd;
-      } else {
-        // JSON thuần
-        headers.set("Content-Type", "application/json");
-        body = JSON.stringify(payload);
+        form.append("customerAccountQrFile", formData.customerAccountQrFile);
       }
 
-      const res  = await fetch(`${BASE_URL}/orders/${orderId}/cancel`, { method: "POST", headers, body });
+      // KHÔNG set Content-Type thủ công — browser tự set multipart/form-data + boundary
+      const res = await fetch(`${BASE_URL}/orders/${orderId}/cancel`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: form,
+      });
+
       const data = await res.json();
       if (data.code === 1000) { setShowCancelModal(false); fetchDetail(); }
       else alert(data.message || "Không thể hủy đơn hàng");
