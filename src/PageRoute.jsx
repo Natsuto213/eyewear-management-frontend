@@ -40,6 +40,7 @@ import ManagerPoliciesView from './views/Dashboard/Manager/ManagerPoliciesView';
 import PurchaseCard from "./views/Dashboard/OperationStaff/Inventory/PurchaseCard";
 import InventoryOrder from "./views/Dashboard/SalesStaff/ui/InventoryOrder";
 import CancelledTable from "./views/Dashboard/SalesStaff/containers/CancelledTable";
+import CancelledDetail from "./views/Dashboard/SalesStaff/ui/CancelledDetail";
 export default function PageRoute() {
     return (
         <ShoppingContextProvider>
@@ -78,7 +79,7 @@ export default function PageRoute() {
                     <Route path="ui/returnorderdetail/:returnExchangeId" element={<ReturnOrderDetail />} />
                     <Route path="ui/inventoryorder" element={<InventoryOrder />} />
                     <Route path="containers/cancelled-orders" element={<CancelledTable />} />
-                    <Route path="ui/cancelleddetail:returnExchangeId" element={<CancelledTable />} />
+                    <Route path="ui/cancelleddetail/:returnExchangeId" element={<CancelledDetail />} />
                 </Route>
 
                 <Route path="/operation-staff" element={<OperationStaffLayout />} >
