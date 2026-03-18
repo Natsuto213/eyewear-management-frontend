@@ -188,8 +188,8 @@ export default function OrderDetailCustomer() {
             )}
           </div>
 
-          {/* Nút bảo hành — chỉ hiện khi COMPLETED */}
-          {order.orderStatus === "COMPLETED" && (
+          {/* Nút bảo hành — chỉ hiện khi COMPLETED VÀ chưa có ảnh bill hoàn tiền */}
+          {order.orderStatus === "COMPLETED" && !order.latestStaffRefundEvidenceUrl && (
             <button
               onClick={() => setIsWarrantyModalOpen(true)}
               className="flex items-center gap-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-bold py-2.5 px-5 rounded-xl shadow-md transition-all transform hover:scale-[1.02] active:scale-95"
