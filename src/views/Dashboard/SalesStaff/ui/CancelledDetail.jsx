@@ -16,7 +16,7 @@ import CustomerAndOrderInfo from "./common/CustomerAndOrderInfo";
 import { mapOrderStatus, mapOrderType, formatCurrency, formatDateTime, mapReturnExchangeStatus, mapActionLabel } from "./utils/orderMaps.js";
 import { useParams } from "react-router-dom";
 import { api } from "@/lib/api";
-import { handleApprove, handleComplete, handleReject } from "./utils/apiReturn.js";
+import { handleApprove, handleComplete, handleReject } from "./utils/apiCancel.js";
 import { useNavigate } from "react-router-dom";
 import ImageCustom from "./common/ImageCustom.jsx";
 
@@ -37,7 +37,8 @@ function CancelledDetail() {
             setError("");
 
             const response = await api.get(`api/staff/return-exchange/cancel-refund-requests/${returnExchangeId}`);
-            console.log("đơn huỷ:", response.data);
+            console.log("đơn huỷ:", response.data.result.returnExchangeId);
+            console.log("anhr minh chung:", response.data.result.customerAccountQr);
             setOrderData(response.data.result);
         } catch (err) {
             console.error(err);
@@ -296,6 +297,8 @@ function CancelledDetail() {
                                             <p className="text-sm font-bold text-gray-800">
                                                 {(orderData.refundAccountNumber && orderData.refundAccountName) ? (
                                                     <>
+                                                        Ngân hàng/MOMO: {orderData.refundMethod}
+                                                        <br />
                                                         Số tài khoản: {orderData.refundAccountNumber}
                                                         <br />
                                                         Tên tài khoản: {orderData.refundAccountName}
@@ -306,14 +309,37 @@ function CancelledDetail() {
                                     )}
 
 
+                                    {isApproved && (
+                                        <div className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
+                                            <div className="flex items-start gap-3">
+                                                <ImageIcon className="w-5 h-5 text-gray-400 mt-1 flex-shrink-0" />
+                                                <div className="w-full">
+                                                    <p className="text-xs text-gray-500 mb-3 font-semibold">
+                                                        Ảnh QR
+                                                    </p>
 
+                                                    {orderData.customerAccountQr ? (
+                                                        <img
+                                                            src={orderData.customerAccountQr}
+                                                            alt="Ảnh QR"
+                                                            className="w-full h-64 object-contain rounded-xl border border-gray-200 shadow-sm"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-40 rounded-xl border border-dashed border-gray-300 bg-white flex items-center justify-center text-sm text-gray-400">
+                                                            Không có ảnh minh chứng
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                     {orderData.returnExchangeStatus === "PENDING" && (
                                         <div className="flex flex-col gap-3">
                                             <p className="text-sm font-bold text-gray-800">Xử lý yêu cầu</p>
                                             <button
                                                 className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-3 px-4 rounded-xl transition-all font-bold shadow"
                                                 type="button"
-                                                disabled={orderData.remainingTimeValid <= 0}
+
                                                 onClick={() => handleApprove(orderData.returnExchangeId, fetchOrderDetail)}
                                             >
                                                 <CheckCircle className="w-5 h-5" />
