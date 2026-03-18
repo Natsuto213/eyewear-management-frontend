@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Search, Filter, Package, Eye, Layers, ChevronLeft, ChevronRight, RefreshCcw, AlertCircle } from "lucide-react";
+import { Search, Filter, Package, Eye, Layers, ChevronLeft, ChevronRight, RefreshCcw, AlertCircle, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 
 // --- Types ---
@@ -169,6 +169,7 @@ const PRODUCT_TYPES = ["Gọng kính", "Tròng kính", "Kính áp tròng"];
 export default function InventoryPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedType, setSelectedType] = useState<string>("");
+  const [showOutOfStock, setShowOutOfStock] = useState(false);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -192,19 +193,25 @@ export default function InventoryPage() {
   useEffect(() => { loadData(); }, [token]);
 
   // Reset trang về 0 khi filter thay đổi
-  useEffect(() => { setCurrentPage(0); }, [selectedType, search]);
+  useEffect(() => { setCurrentPage(0); }, [selectedType, search, showOutOfStock]);
+
+  const outOfStockCount = useMemo(
+    () => products.filter((p) => (p.availableQuantity ?? 0) === 0).length,
+    [products]
+  );
 
   const filteredProducts = useMemo(() => {
     const q = search.toLowerCase();
     return products.filter((p) => {
       const matchType = selectedType ? p.productTypeName === selectedType : true;
+      const matchOutOfStock = showOutOfStock ? (p.availableQuantity ?? 0) === 0 : true;
       const matchSearch =
         p.productName?.toLowerCase().includes(q) ||
         p.SKU?.toLowerCase().includes(q) ||
         p.brandName?.toLowerCase().includes(q);
-      return matchType && matchSearch;
+      return matchType && matchOutOfStock && matchSearch;
     });
-  }, [selectedType, search, products]);
+  }, [selectedType, showOutOfStock, search, products]);
 
   const totalPages = Math.ceil(filteredProducts.length / PAGE_SIZE);
   const pagedProducts = filteredProducts.slice(
@@ -279,6 +286,22 @@ export default function InventoryPage() {
                   </button>
                 );
               })}
+
+              {/* Nút lọc Hết hàng */}
+              <button
+                onClick={() => setShowOutOfStock((v) => !v)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-all
+                  ${showOutOfStock
+                    ? "bg-red-50 border-red-300 text-red-700 shadow-sm"
+                    : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+                  }`}
+              >
+                <AlertTriangle className="w-3.5 h-3.5" />
+                Hết hàng
+                <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full ${showOutOfStock ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-500"}`}>
+                  {outOfStockCount}
+                </span>
+              </button>
             </div>
 
             {/* Refresh button */}
@@ -354,16 +377,30 @@ export default function InventoryPage() {
                 </select>
               </div>
 
-              {(search || selectedType) && (
+              {/* Mobile: nút hết hàng */}
+              <button
+                onClick={() => setShowOutOfStock((v) => !v)}
+                className={`md:hidden flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-medium transition-all
+                  ${showOutOfStock
+                    ? "bg-red-50 border-red-300 text-red-700"
+                    : "bg-white text-gray-600 border-gray-200"
+                  }`}
+              >
+                <AlertTriangle className="w-4 h-4" />
+                Hết hàng ({outOfStockCount})
+              </button>
+
+              {(search || selectedType || showOutOfStock) && (
                 <span className="text-sm text-gray-500">
                   {filteredProducts.length} kết quả
                   {selectedType && <span className="ml-1 text-indigo-600 font-medium">trong {selectedType}</span>}
+                  {showOutOfStock && <span className="ml-1 text-red-500 font-medium">· hết hàng</span>}
                 </span>
               )}
 
-              {(search || selectedType) && (
+              {(search || selectedType || showOutOfStock) && (
                 <button
-                  onClick={() => { setSearch(""); setSelectedType(""); }}
+                  onClick={() => { setSearch(""); setSelectedType(""); setShowOutOfStock(false); }}
                   className="text-xs text-gray-400 hover:text-gray-600 underline"
                 >
                   Xoá bộ lọc
@@ -390,7 +427,9 @@ export default function InventoryPage() {
                       pagedProducts.map((product) => (
                         <tr
                           key={product.productId}
-                          className="hover:bg-indigo-50/40 transition-colors"
+                          className={`hover:bg-indigo-50/40 transition-colors ${
+                            (product.availableQuantity ?? 0) === 0 ? "bg-red-50/30" : ""
+                          }`}
                         >
                           <td className="px-5 py-4">
                             <p className="font-medium text-gray-900 leading-snug">{product.productName}</p>
@@ -451,7 +490,6 @@ export default function InventoryPage() {
 
                 {/* Buttons */}
                 <div className="flex items-center gap-2">
-                  {/* Nút Trước */}
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -462,7 +500,6 @@ export default function InventoryPage() {
                     <ChevronLeft className="w-4 h-4" /> Trước
                   </motion.button>
 
-                  {/* Số trang */}
                   <div className="flex items-center gap-1">
                     {pageNumbers().map((page, idx) =>
                       page === "..." ? (
@@ -487,7 +524,6 @@ export default function InventoryPage() {
                     )}
                   </div>
 
-                  {/* Nút Tiếp */}
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
