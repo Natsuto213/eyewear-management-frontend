@@ -2,9 +2,10 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft, MapPin, Phone, Mail, Package,
-  Clock, CheckCircle2, XCircle, Truck, Eye, Trash2, AlertTriangle,
+  Clock, CheckCircle2, XCircle, Truck, Eye, Trash2, AlertTriangle, ShieldAlert,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import WarrantyFormModal from "@/components/WarrantyFormModal";
 
 import {
   BASE_URL, CANCELABLE_STATUSES,
@@ -24,6 +25,7 @@ export default function OrderDetailCustomer() {
   const [error, setError]             = useState<string | null>(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [canceling, setCanceling]     = useState(false);
+  const [isWarrantyModalOpen, setIsWarrantyModalOpen] = useState(false);
 
   // ── Fetch order detail ───────────────────────────────────────────────────
   const fetchDetail = useCallback(async () => {
@@ -164,15 +166,33 @@ export default function OrderDetailCustomer() {
         </div>
 
         {/* ── Status badges ── */}
-        <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm flex flex-wrap gap-3 items-center">
-          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl ${orderStatus.bg}`}>
-            <OrderStatusIcon className={`w-4 h-4 ${orderStatus.text}`} />
-            <span className={`text-sm font-bold ${orderStatus.text}`}>{orderStatus.label}</span>
+        <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm flex flex-wrap gap-3 items-center justify-between">
+          <div className="flex flex-wrap gap-3 items-center">
+            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl ${orderStatus.bg}`}>
+              <OrderStatusIcon className={`w-4 h-4 ${orderStatus.text}`} />
+              <span className={`text-sm font-bold ${orderStatus.text}`}>{orderStatus.label}</span>
+            </div>
+            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl ${shippingStatus.bg}`}>
+              <ShippingStatusIcon className={`w-4 h-4 ${shippingStatus.text}`} />
+              <span className={`text-sm font-bold ${shippingStatus.text}`}>{shippingStatus.label}</span>
+            </div>
+            {order.requiresFinalPayment && (
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-100">
+                <span className="text-sm font-bold text-orange-800">⚠️ Cần thanh toán thêm</span>
+              </div>
+            )}
           </div>
-          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl ${shippingStatus.bg}`}>
-            <ShippingStatusIcon className={`w-4 h-4 ${shippingStatus.text}`} />
-            <span className={`text-sm font-bold ${shippingStatus.text}`}>{shippingStatus.label}</span>
-          </div>
+
+          {/* Nút bảo hành — chỉ hiện khi COMPLETED */}
+          {order.orderStatus === "COMPLETED" && (
+            <button
+              onClick={() => setIsWarrantyModalOpen(true)}
+              className="flex items-center gap-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-bold py-2.5 px-5 rounded-xl shadow-md transition-all transform hover:scale-[1.02] active:scale-95"
+            >
+              <ShieldAlert className="w-4 h-4" />
+              Bảo hành - Đổi trả
+            </button>
+          )}
         </div>
 
         {/* ── Order timeline ── */}
@@ -236,9 +256,25 @@ export default function OrderDetailCustomer() {
               <p className="flex items-center gap-2 font-semibold text-zinc-800"><Package className="w-4 h-4 text-zinc-400" /> {order.recipientName}</p>
               <p className="flex items-center gap-2 text-zinc-600"><Phone className="w-4 h-4 text-zinc-400" /> {order.recipientPhone}</p>
               <p className="flex items-center gap-2 text-zinc-600"><Mail className="w-4 h-4 text-zinc-400" /> {order.recipientEmail}</p>
+              {order.expectedDeliveryAt && (
+                <p className="flex items-center gap-2 text-zinc-600">
+                  <Clock className="w-4 h-4 text-zinc-400" />
+                  Dự kiến: {formatDate(order.expectedDeliveryAt)}
+                  {order.isPastExpectedDeliveryAt && (
+                    <span className="text-xs font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">Quá hạn</span>
+                  )}
+                </p>
+              )}
             </div>
-            <div className="p-3 bg-zinc-50 rounded-2xl border border-zinc-100 text-zinc-600 italic">
-              {order.recipientAddress}
+            <div className="space-y-2">
+              <div className="p-3 bg-zinc-50 rounded-2xl border border-zinc-100 text-zinc-600 italic">
+                {order.recipientAddress}
+              </div>
+              {order.note && (
+                <div className="rounded-xl bg-zinc-50 border border-zinc-200 px-3 py-2 text-xs text-zinc-600">
+                  📝 {order.note}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -275,22 +311,26 @@ export default function OrderDetailCustomer() {
                         <th className="py-2 text-center">SPH</th>
                         <th className="py-2 text-center">CYL</th>
                         <th className="py-2 text-center">AXIS</th>
+                        <th className="py-2 text-center">ADD</th>
                         <th className="py-2 text-center">PD</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="border-t border-zinc-100">
-                        <td className="py-2 px-2 font-bold text-zinc-700">Phải (R)</td>
-                        <td className="text-center">{item.rightEyeSph ?? "0.00"}</td>
-                        <td className="text-center">{item.rightEyeCyl ?? "0.00"}</td>
-                        <td className="text-center">{item.rightEyeAxis ?? "0"}</td>
-                        <td className="text-center" rowSpan={2}>{item.rightPD || item.leftPD}</td>
+                      <tr className="border-t border-zinc-100 bg-blue-50/50">
+                        <td className="py-2 px-2 font-bold text-zinc-700">👁️ Phải</td>
+                        <td className="text-center">{item.rightEyeSph ?? "—"}</td>
+                        <td className="text-center">{item.rightEyeCyl ?? "—"}</td>
+                        <td className="text-center">{item.rightEyeAxis ?? "—"}</td>
+                        <td className="text-center">{item.rightEyeAdd ?? "—"}</td>
+                        <td className="text-center">{item.rightPD ?? "—"}</td>
                       </tr>
-                      <tr className="border-t border-zinc-100">
-                        <td className="py-2 px-2 font-bold text-zinc-700">Trái (L)</td>
-                        <td className="text-center">{item.leftEyeSph ?? "0.00"}</td>
-                        <td className="text-center">{item.leftEyeCyl ?? "0.00"}</td>
-                        <td className="text-center">{item.leftEyeAxis ?? "0"}</td>
+                      <tr className="border-t border-zinc-100 bg-purple-50/50">
+                        <td className="py-2 px-2 font-bold text-zinc-700">👁️ Trái</td>
+                        <td className="text-center">{item.leftEyeSph ?? "—"}</td>
+                        <td className="text-center">{item.leftEyeCyl ?? "—"}</td>
+                        <td className="text-center">{item.leftEyeAxis ?? "—"}</td>
+                        <td className="text-center">{item.leftEyeAdd ?? "—"}</td>
+                        <td className="text-center">{item.leftPD ?? "—"}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -374,6 +414,14 @@ export default function OrderDetailCustomer() {
         )}
 
       </div>
+
+      {/* ── Warranty Modal ── */}
+      <WarrantyFormModal
+        isOpen={isWarrantyModalOpen}
+        onClose={() => setIsWarrantyModalOpen(false)}
+        order={order}
+      />
+
     </div>
   );
 }

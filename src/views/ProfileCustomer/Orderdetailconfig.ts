@@ -98,18 +98,22 @@ export function getTimelineStatus(
   const currentOrderIdx     = orderStatusOrder.indexOf(order.orderStatus);
   const currentShippingIdx  = shippingStatusOrder.indexOf(order.shippingStatus);
 
+  // Nếu đơn đã COMPLETED → tất cả các bước đều done
+  if (order.orderStatus === "COMPLETED") return "done";
+
   if (step.orderStatus) {
     const stepIdx = orderStatusOrder.indexOf(step.orderStatus);
-    if (step.orderStatus === "COMPLETED" && order.orderStatus === "COMPLETED") return "done";
     if (step.orderStatus === order.orderStatus) return "active";
     if (stepIdx < currentOrderIdx) return "done";
     return "pending";
   }
+
   if (step.shippingStatus) {
     const stepIdx = shippingStatusOrder.indexOf(step.shippingStatus);
     if (step.shippingStatus === order.shippingStatus) return "active";
     if (stepIdx < currentShippingIdx) return "done";
     return "pending";
   }
+
   return "pending";
 }
