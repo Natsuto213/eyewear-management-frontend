@@ -13,7 +13,7 @@ export default function OrderPage() {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
-  const PAGE_SIZE = 50;
+  const PAGE_SIZE = 10;
 
   const location = useLocation();
 
