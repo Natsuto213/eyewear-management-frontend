@@ -293,7 +293,8 @@ export default function ReturnOrderDetail() {
                                             <p className="text-xs text-gray-500 mb-1">Thông tin tài khoảng khách hàng:</p>
                                             <p className="text-sm font-bold text-gray-800">
                                                 {(orderData.refundAccountNumber && orderData.refundAccountName) ? (
-                                                    <>Ngân hàng/MOMO: {orderData.refundMethod}
+                                                    <>
+                                                        Phương thức thanh toán: {orderData.refundMethod}
                                                         <br />
                                                         Số tài khoản: {orderData.refundAccountNumber}
                                                         <br />

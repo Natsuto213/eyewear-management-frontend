@@ -48,7 +48,7 @@ export const roleTabsConfig: RoleTabs[] = [
                 path: '/sales/containers/return-orders'
             }, {
                 id: 'inventoryorder',
-                label: 'Quan ly kho',
+                label: 'Quản lý kho',
                 icon: ClipboardList,
                 path: '/sales/ui/inventoryorder'
             }, {
