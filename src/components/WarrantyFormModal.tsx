@@ -222,23 +222,18 @@ export default function WarrantyFormModal({ isOpen, onClose, order }: WarrantyFo
                 }
             });
 
-            // TRICK CHỐT HẠ CHO ÔNG BE: Biến cục JSON thành 1 file ảo tên "request.json" 
-            // để trình duyệt bắt buộc đính kèm Content-Type: application/json
-            const jsonString = JSON.stringify(requestPayload);
-            const jsonFile = new File([jsonString], 'request.json', { type: 'application/json' });
-            formData.append('request', jsonFile);
+            // Ép thành application/json để Spring Boot đọc @RequestPart
+            formData.append('request', new Blob([JSON.stringify(requestPayload)], {
+                type: "application/json"
+            }));
 
             // Gửi thêm QR Code (nếu có)
             if (qrFile && (form.returnType === 'RETURN' || form.returnType === 'REFUND')) {
                 formData.append('customerImageQr', qrFile as Blob);
             }
 
-            // Gọi API
-            await api.post('/api/return-exchanges', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
+            // Gọi API (Axios sẽ tự cấu hình multipart boundary)
+            await api.post('/api/return-exchanges', formData);
 
             showCustomPopup("Yêu cầu của bạn đã được gửi và đang chờ xử lý.", "success", "Gửi đơn thành công!");
 
@@ -275,6 +270,14 @@ export default function WarrantyFormModal({ isOpen, onClose, order }: WarrantyFo
 
                     {/* Body Modal (Cuộn được) */}
                     <div className="p-6 overflow-y-auto space-y-6 flex-1 bg-gray-50">
+
+                        {/* THÔNG BÁO LỖI (CHỈ HIỆN KHI CÓ LỖI) */}
+                        {errorMsg && (
+                            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl shadow-sm flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                                <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
+                                <p className="text-sm font-bold text-red-700">{errorMsg}</p>
+                            </div>
+                        )}
 
                         {/* NHÓM 1: THÔNG TIN CHUNG */}
                         <section className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
@@ -441,21 +444,12 @@ export default function WarrantyFormModal({ isOpen, onClose, order }: WarrantyFo
                             </div>
                         </section>
 
-                        {/* THÔNG BÁO LỖI (CHỈ HIỆN KHI CÓ LỖI) */}
-                        {errorMsg && (
-                            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl shadow-sm flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
-                                <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
-                                <p className="text-sm font-bold text-red-700">{errorMsg}</p>
-                            </div>
-                        )}
-
                         {/* NHÓM 4: GHI CHÚ CHUNG */}
                         <section className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-2">
                             <label className="block font-bold text-gray-800">Ghi chú cho cửa hàng (Tùy chọn)</label>
                             <textarea value={form.requestNote} onChange={(e) => handleFormChange('requestNote', e.target.value)} placeholder="Lời nhắn nhủ thêm của bạn..." rows={2} className="w-full border border-gray-300 rounded-lg text-sm py-2 px-3 focus:ring-teal-500 focus:border-teal-500 resize-none" />
                         </section>
                     </div>
-
 
                     {/* Footer Modal */}
                     <div className="bg-white border-t border-gray-200 p-4 shrink-0 flex justify-end gap-3">
@@ -470,6 +464,7 @@ export default function WarrantyFormModal({ isOpen, onClose, order }: WarrantyFo
                 </div>
             </div>
 
+            {/* Gọi Component Popup ra để dùng */}
             <Popup
                 isOpen={popup.isOpen}
                 title={popup.title}
