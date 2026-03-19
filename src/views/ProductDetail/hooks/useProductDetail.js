@@ -1,52 +1,32 @@
-/**
- * useProductDetail.js
- * Chức năng:
- * - Fetch sản phẩm theo id
- * - Quản lý loading/error/product
- * - Tách khỏi index.jsx để page gọn
- */
+import { useState, useEffect } from "react";
+import { api } from "@/lib/api"; // axios instance đã cấu hình sẵn baseURL
 
-import { useEffect, useState } from "react";
-
-/**
- * useProductDetail
- * @param {string|number} id - id sản phẩm từ router params
- * @returns {{product: any, loading: boolean, error: string|null}}
- */
 export function useProductDetail(id) {
-  const [product, setProduct] = useState(null); // dữ liệu sản phẩm
-  const [loading, setLoading] = useState(true); // trạng thái loading
-  const [error, setError] = useState(null); // lỗi khi fetch
+    const [product, setProduct] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-  useEffect(() => {
-    let ignore = false; // tránh setState khi component unmount / id đổi quá nhanh
+    useEffect(() => {
+        // Nếu không có id → không fetch
+        if (!id) return;
 
-    async function fetchProduct() {
-      try {
-        setError(null);
-        setLoading(true);
-
-        const res = await fetch(`https://api-eyewear.purintech.id.vn/api/products/${id}`);
-        if (!res.ok) throw new Error("Không tìm thấy sản phẩm!");
-
-        const data = await res.json();
-        if (!ignore) setProduct(data);
-      } catch (err) {
-        if (!ignore) {
-          setProduct(null);
-          setError(err?.message || "Có lỗi xảy ra");
+        async function fetchProduct() {
+            try {
+                setLoading(true);
+                setError(null);
+                setProduct(null);
+                const response = await api.get(`/api/products/${id}`);
+                setProduct(response.data);
+            } catch (err) {
+                const message = err?.response?.data?.message || "Không thể tải sản phẩm";
+                setError(message);
+            } finally {
+                setLoading(false);
+            }
         }
-      } finally {
-        if (!ignore) setLoading(false);
-      }
-    }
 
-    if (id) fetchProduct();
+        fetchProduct();
+    }, [id]);
 
-    return () => { //Khi component unmount hoặc id đổi (effect cũ bị dọn dẹp), React sẽ chạy cleanup
-      ignore = true;
-    };
-  }, [id]);
-
-  return { product, loading, error };
+    return { product, loading, error };
 }

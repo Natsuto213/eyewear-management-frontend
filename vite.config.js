@@ -1,16 +1,25 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
-import path from "path"
+
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+// Vì bạn dùng ESM (import/export), cần định nghĩa lại __dirname nếu cần
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 
 export default defineConfig({
   plugins: [
     react(),
-    tailwindcss()
+    tailwindcss(),
   ],
   resolve: {
     alias: {
-      "@": path.resolve("src"),
+
+      // @ trỏ thẳng vào thư mục src
+      '@': path.resolve(__dirname, './src'),
     },
   },
 })
