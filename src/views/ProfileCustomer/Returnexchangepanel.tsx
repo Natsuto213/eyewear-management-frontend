@@ -1,5 +1,5 @@
 import { CheckCircle2, ImageIcon, RotateCcw } from "lucide-react";
-import { REFUND_METHODS, refundStatusConfig, formatCurrency } from "./orderDetailConfig";
+import { REFUND_METHODS, refundStatusConfig, formatCurrency } from "./OrderDetailConfig";
 
 interface Props {
   order: {

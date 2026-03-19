@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { AlertTriangle, Banknote, Trash2, Upload, X } from "lucide-react";
-import { formatCurrency } from "./orderDetailConfig";
+import { formatCurrency } from "./OrderDetailConfig";
 
 export interface CancelFormData {
   cancelReason: string;
