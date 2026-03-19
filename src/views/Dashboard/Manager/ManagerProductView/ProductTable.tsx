@@ -1,6 +1,7 @@
 // ManagerProductView/ProductTable.tsx
 import { Pencil, Trash2, RotateCcw } from 'lucide-react';
-import { Product } from './ProductConfig';
+import { Product, productTypeConfig } from './ProductConfig';
+
 
 interface Props {
   loading: boolean;
