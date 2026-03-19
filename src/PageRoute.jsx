@@ -16,6 +16,7 @@ import ProductDetail from "./views/ProductDetail";
 import Cart from "./views/Cart/components/CartPage";
 import Confirm from "./views/Confirm/Confirm";
 import WarrantyPage from "./views/Policies/WarrantyPage";
+import AboutPage from "./views/Policies/AUs";
 import SuccessPage from "./views/SuccessPage";
 import CancelPage from "./views/CancelPage";
 import { ShoppingContextProvider } from "./views/Cart/contexts/ShoppingContext";
@@ -62,6 +63,7 @@ export default function PageRoute() {
         <Route path="/warranty" element={<WarrantyPage />} />
         <Route path="/success" element={<SuccessPage />} />
         <Route path="/cancel" element={<CancelPage />} />
+        <Route path="/about-us" element={<AboutPage />} />
 
         <Route path="/profile" element={<ProfilePage />}>
           <Route path="account" element={<Account />} />

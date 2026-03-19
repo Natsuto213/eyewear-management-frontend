@@ -8,10 +8,7 @@ export const BASE_URL = "https://api-eyewear.purintech.id.vn";
 export const CANCELABLE_STATUSES = ["PENDING", "PARTIALLY_PAID", "PAID"];
 
 export const REFUND_METHODS = [
-  { value: "BANK_TRANSFER", label: "Chuyển khoản ngân hàng", icon: "🏦" },
-  { value: "MOMO",          label: "Ví MoMo",                icon: "💳" },
-  { value: "ZALOPAY",       label: "ZaloPay",                icon: "💰" },
-  { value: "VNPAY",         label: "VNPay",                  icon: "🔵" },
+  
 ];
 
 export const orderStatusConfig: Record<string, { label: string; bg: string; text: string; icon: any }> = {

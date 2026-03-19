@@ -206,21 +206,24 @@ export default function OrderDetail() {
   };
 
   const statusConfig: Record<string, { bg: string; text: string; icon: any; label: string }> = {
-    PROCESSING: { bg: "bg-gradient-to-r from-amber-100 to-yellow-100", text: "text-amber-800", icon: Clock, label: "Đang gia công" },
-    CONFIRMED: { bg: "bg-gradient-to-r from-blue-100 to-cyan-100", text: "text-blue-800", icon: CheckCircle2, label: "Đã xác nhận" },
-    COMPLETED: { bg: "bg-gradient-to-r from-emerald-100 to-green-100", text: "text-emerald-800", icon: CheckCircle2, label: "Hoàn thành" },
-    CANCELED: { bg: "bg-gradient-to-r from-red-100 to-rose-100", text: "text-red-800", icon: XCircle, label: "Đã hủy" },
-    READY: { bg: "bg-gradient-to-r from-violet-100 to-purple-100", text: "text-violet-800", icon: CheckCircle2, label: "Đã bàn giao GHN" },
+    PROCESSING:     { bg: "bg-gradient-to-r from-amber-100 to-yellow-100",   text: "text-amber-800",   icon: Clock,        label: "Đang gia công" },
+    CONFIRMED:      { bg: "bg-gradient-to-r from-blue-100 to-cyan-100",      text: "text-blue-800",    icon: CheckCircle2, label: "Đã xác nhận" },
+    COMPLETED:      { bg: "bg-gradient-to-r from-emerald-100 to-green-100",  text: "text-emerald-800", icon: CheckCircle2, label: "Hoàn thành" },
+    CANCELED:       { bg: "bg-gradient-to-r from-red-100 to-rose-100",       text: "text-red-800",     icon: XCircle,      label: "Đã hủy" },
+    READY:          { bg: "bg-gradient-to-r from-violet-100 to-purple-100",  text: "text-violet-800",  icon: CheckCircle2, label: "Đã bàn giao GHN" },
+    PARTIALLY_PAID: { bg: "bg-gradient-to-r from-orange-100 to-amber-100",   text: "text-orange-800",  icon: Clock,        label: "Thanh toán 1 phần" },
+    PAID:           { bg: "bg-gradient-to-r from-teal-100 to-cyan-100",      text: "text-teal-800",    icon: CheckCircle2, label: "Đã thanh toán" },
   };
 
-  const shippingConfig: Record<string, { color: string; label: string }> = {
-    PENDING: { color: "text-gray-600", label: "Chờ xử lý" },
-    PACKING: { color: "text-blue-600", label: "Đang đóng gói" },
-    SHIPPING: { color: "text-indigo-600", label: "Đang vận chuyển" },
-    DELIVERED: { color: "text-green-600", label: "Đã giao" },
-    FAILED: { color: "text-red-600", label: "Giao thất bại" },
-    CANCELED: { color: "text-red-600", label: "Đã hủy" },
-    RETURNED: { color: "text-orange-600", label: "Hoàn hàng" },
+  // ── Shipping config đầy đủ với bg + text + icon để render badge màu ──
+  const shippingConfig: Record<string, { bg: string; text: string; icon: any; label: string }> = {
+    PENDING:   { bg: "bg-gradient-to-r from-gray-100 to-slate-100",      text: "text-gray-700",    icon: Clock,        label: "Chờ xử lý" },
+    PACKING:   { bg: "bg-gradient-to-r from-blue-100 to-cyan-100",       text: "text-blue-800",    icon: Package,      label: "Đang đóng gói" },
+    SHIPPING:  { bg: "bg-gradient-to-r from-indigo-100 to-violet-100",   text: "text-indigo-800",  icon: Truck,        label: "Đang vận chuyển" },
+    DELIVERED: { bg: "bg-gradient-to-r from-green-100 to-emerald-100",   text: "text-green-800",   icon: CheckCircle2, label: "Đã giao" },
+    FAILED:    { bg: "bg-gradient-to-r from-red-100 to-rose-100",        text: "text-red-800",     icon: XCircle,      label: "Giao thất bại" },
+    RETURNED:  { bg: "bg-gradient-to-r from-orange-100 to-amber-100",    text: "text-orange-800",  icon: XCircle,      label: "Hoàn hàng" },
+    CANCELED:  { bg: "bg-gradient-to-r from-red-100 to-rose-100",        text: "text-red-800",     icon: XCircle,      label: "Đã hủy" },
   };
 
   if (loading) {
@@ -260,14 +263,14 @@ export default function OrderDetail() {
   const hasPrescription = order.prescriptionOrderDetail && order.prescriptionOrderDetail.length > 0;
   const hasActions = order.availableActions && order.availableActions.length > 0;
 
-  // ← Sửa: chỉ CANCELED mới ẩn timeline, FAILED/RETURNED vẫn hiện timeline
   const isCanceled = order.orderStatus === "CANCELED" || order.shippingStatus === "CANCELED";
   const isFailed = order.shippingStatus === "FAILED";
   const isReturned = order.shippingStatus === "RETURNED";
 
-  const statusInfo = statusConfig[order.orderStatus] || { bg: "bg-gray-100", text: "text-gray-800", icon: Package, label: order.orderStatus };
-  const shippingInfo = shippingConfig[order.shippingStatus] || { color: "text-gray-600", label: order.shippingStatus };
-  const StatusIcon = statusInfo.icon;
+  const statusInfo   = statusConfig[order.orderStatus]     || { bg: "bg-gray-100", text: "text-gray-800", icon: Package,      label: order.orderStatus };
+  const shippingInfo = shippingConfig[order.shippingStatus] || { bg: "bg-gray-100", text: "text-gray-800", icon: Truck,        label: order.shippingStatus };
+  const StatusIcon   = statusInfo.icon;
+  const ShippingIcon = shippingInfo.icon;
   const timeline = order.hasPrescriptionItem ? prescriptionTimeline : normalTimeline;
 
   return (
@@ -314,13 +317,30 @@ export default function OrderDetail() {
                     <AlertTriangle className="w-4 h-4" /> Cần thu thêm tiền
                   </motion.div>
                 )}
+                {/* Order status badge */}
                 <div className={`px-4 py-2 rounded-xl ${statusInfo.bg} shadow-md flex items-center gap-2`}>
                   <StatusIcon className={`w-4 h-4 ${statusInfo.text}`} />
                   <span className={`text-sm font-bold ${statusInfo.text}`}>{statusInfo.label}</span>
                 </div>
-                <div className="px-4 py-2 rounded-xl bg-gradient-to-r from-pink-100 to-rose-100 text-pink-800 text-sm font-bold shadow-md">
-                  {order.orderType}
+                {/* Shipping status badge — đầy đủ màu */}
+                <div className={`px-4 py-2 rounded-xl ${shippingInfo.bg} shadow-md flex items-center gap-2`}>
+                  <ShippingIcon className={`w-4 h-4 ${shippingInfo.text}`} />
+                  <span className={`text-sm font-bold ${shippingInfo.text}`}>{shippingInfo.label}</span>
                 </div>
+                {(() => {
+                  const orderTypeConfig: Record<string, { bg: string; text: string; label: string; icon: string }> = {
+                    DIRECT_ORDER:       { bg: "bg-gradient-to-r from-pink-100 to-rose-100",     text: "text-pink-800",   label: "Đơn trực tiếp",  icon: "🛍️" },
+                    PRE_ORDER:          { bg: "bg-gradient-to-r from-violet-100 to-purple-100", text: "text-violet-800", label: "Đơn đặt trước",  icon: "🕐" },
+                    PRESCRIPTION_ORDER: { bg: "bg-gradient-to-r from-indigo-100 to-blue-100",  text: "text-indigo-800", label: "Kính thuốc",      icon: "👓" },
+                    MIX_ORDER:          { bg: "bg-gradient-to-r from-purple-100 to-pink-100",  text: "text-purple-800", label: "Đơn hỗn hợp",    icon: "📦" },
+                  };
+                  const t = orderTypeConfig[order.orderType] ?? { bg: "bg-gray-100", text: "text-gray-700", label: order.orderType, icon: "📋" };
+                  return (
+                    <div className={`px-4 py-2 rounded-xl ${t.bg} ${t.text} text-sm font-bold shadow-md flex items-center gap-1.5`}>
+                      <span>{t.icon}</span>{t.label}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </div>
@@ -328,16 +348,6 @@ export default function OrderDetail() {
           <div className="p-6">
             <div className="flex flex-wrap justify-between items-center gap-4">
               <div className="flex items-center gap-6 flex-wrap">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
-                    <Truck className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase font-semibold">Vận chuyển</p>
-                    {/* ← Sửa: dùng shippingInfo.label thay vì order.shippingStatus */}
-                    <p className={`font-bold ${shippingInfo.color}`}>{shippingInfo.label}</p>
-                  </div>
-                </div>
                 {order.expectedDeliveryAt && (
                   <div>
                     <p className="text-xs text-gray-500 uppercase font-semibold">Dự kiến giao</p>
@@ -377,7 +387,6 @@ export default function OrderDetail() {
             Tiến trình đơn hàng
           </h2>
 
-          {/* ← Sửa: tách riêng 3 case canceled / failed / returned */}
           {isCanceled ? (
             <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl p-4">
               <XCircle className="w-5 h-5 text-red-500 shrink-0" />
@@ -487,6 +496,21 @@ export default function OrderDetail() {
                   </motion.button>
                 ))}
               </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* PRE_ORDER warning — chỉ hiện khi là Pre-Order và không có action */}
+        {order.orderType === "PRE_ORDER" && order.orderStatus === "CONFIRMED" && (!order.availableActions || order.availableActions.length === 0) && (
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}
+            className="bg-violet-50 border border-violet-200 rounded-2xl p-5 mb-6 flex items-start gap-4"
+          >
+            <div className="w-10 h-10 bg-violet-100 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+              <span className="text-xl">📦</span>
+            </div>
+            <div>
+              <p className="font-bold text-violet-800 text-base mb-1">Đơn Pre-Order — Chờ nhập đủ  hàng</p>
+              
             </div>
           </motion.div>
         )}
@@ -646,7 +670,7 @@ export default function OrderDetail() {
                       </div>
                     </div>
 
-                    {/* Tròng — chỉ hiện khi có lensId */}
+                    {/* Tròng */}
                     {item.lensId && (
                       <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                         <div className="text-xs text-purple-600 uppercase font-bold mb-3 flex items-center gap-2">
