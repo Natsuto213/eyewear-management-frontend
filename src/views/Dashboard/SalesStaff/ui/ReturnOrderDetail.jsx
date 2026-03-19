@@ -197,7 +197,7 @@ export default function ReturnOrderDetail() {
 
                                                     {orderData.returnImgUrl ? (
                                                         <img
-                                                            src={orderData.returnImgUrl}
+                                                            src={orderData.returnExchangeItems.itemEvidenceUrl}
                                                             alt="Ảnh minh chứng trả hàng"
                                                             className="w-full h-64 object-cover rounded-xl border border-gray-200 shadow-sm"
                                                         />
