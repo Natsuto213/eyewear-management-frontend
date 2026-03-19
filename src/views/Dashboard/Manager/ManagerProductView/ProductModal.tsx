@@ -1,6 +1,6 @@
 // ManagerProductView/ProductModal.tsx
 import { useState, useEffect } from 'react';
-import { Product } from './productConfig';
+import { Product } from './ProductConfig';
 import { X, Upload, AlertCircle } from 'lucide-react';
 
 interface Props {
