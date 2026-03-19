@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Search, Plus, Filter, ChevronDown, Check, ArrowUpDown, Activity } from 'lucide-react';
-import { productTypeConfig } from './productConfig';
+import { productTypeConfig } from './ProductConfig';
 
 interface Props {
   search: string;
