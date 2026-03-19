@@ -128,7 +128,7 @@ export default function HomePage() {
 
                                 <div className="flex flex-wrap gap-4 justify-end">
                                     <Link to="/all-product" className="px-8 py-4 bg-red-600 hover:bg-red-700 rounded-lg text-lg font-bold transition-all duration-300 transform hover:scale-105 shadow-lg">
-                                        Mua Ngay
+                                        Test VERCEL
                                     </Link>
                                 </div>
 
