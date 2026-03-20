@@ -232,8 +232,12 @@ export default function WarrantyFormModal({ isOpen, onClose, order }: WarrantyFo
                 formData.append('customerImageQr', qrFile as Blob);
             }
 
-            // Gọi API (Axios sẽ tự cấu hình multipart boundary)
-            await api.post('/api/return-exchanges', formData);
+            // Gọi API (Ép header multipart/form-data để Axios không tự chèn application/json)
+            await api.post('/api/return-exchanges', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
 
             showCustomPopup("Yêu cầu của bạn đã được gửi và đang chờ xử lý.", "success", "Gửi đơn thành công!");
 
