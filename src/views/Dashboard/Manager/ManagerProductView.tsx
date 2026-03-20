@@ -61,12 +61,21 @@ export default function ManagerProductView() {
     const sortedAndFiltered = [...filtered].sort((a, b) => {
         const nameA = a.productName || a.name || '';
         const nameB = b.productName || b.name || '';
+
+        // Lấy ID ra để so sánh (hỗ trợ cả 2 kiểu tên field)
+        const idA = a.productID || a.id || 0;
+        const idB = b.productID || b.id || 0;
+
+        // Xử lý Mới nhất (ID lớn hơn nằm trên)
+        if (sortBy === 'newest') return idB - idA;
+
+        // Các sort khác
         if (sortBy === 'price_asc') return a.price - b.price;
         if (sortBy === 'price_desc') return b.price - a.price;
         if (sortBy === 'name_asc') return nameA.localeCompare(nameB);
+
         return 0;
     });
-
     // LOGIC PHÂN TRANG
     const totalPages = Math.ceil(sortedAndFiltered.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
