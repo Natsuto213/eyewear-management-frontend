@@ -2,6 +2,7 @@
 import { Pencil, Trash2, RotateCcw } from 'lucide-react';
 import { Product, productTypeConfig } from './ProductConfig';
 
+
 interface Props {
   loading: boolean;
   currentItems: Product[];

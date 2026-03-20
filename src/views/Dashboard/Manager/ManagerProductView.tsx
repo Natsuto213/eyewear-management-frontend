@@ -1,7 +1,7 @@
 // ManagerProductView.tsx
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
-import { Product } from './ManagerProductView/productConfig';
+import { Product } from './ManagerProductView/ProductConfig';
 import { ProductHeader } from './ManagerProductView/ProductHeader';
 import { ProductTable } from './ManagerProductView/ProductTable';
 import { DeleteConfirmModal } from './ManagerProductView/DeleteConfirmModal';
