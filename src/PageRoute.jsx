@@ -8,7 +8,6 @@ import ProfilePage from "./views/ProfileCustomer/ProfilePage";
 import Account from "./views/ProfileCustomer/AccountPage";
 import OrderDetailCustomer from "./views/ProfileCustomer/OrderDetailCustomer";
 
-
 import AllProductLayout from "./views/AllProduct/AllProductLayout";
 import AllProductFilter from "./views/AllProduct/AllProductFilter";
 
@@ -41,10 +40,10 @@ import PurchaseCard from "./views/Dashboard/OperationStaff/Inventory/PurchaseCar
 import InventoryOrder from "./views/Dashboard/SalesStaff/ui/InventoryOrder";
 import CancelledTable from "./views/Dashboard/SalesStaff/containers/CancelledTable";
 import CancelledDetail from "./views/Dashboard/SalesStaff/ui/CancelledDetail";
+
 export default function PageRoute() {
     return (
         <ShoppingContextProvider>
-
             <Routes>
                 <Route index element={<HomePage />} />
 

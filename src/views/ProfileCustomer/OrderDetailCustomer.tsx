@@ -12,7 +12,7 @@ import {
   orderStatusConfig, shippingConfig,
   prescriptionTimeline, normalTimeline,
   getTimelineStatus, formatCurrency, formatDate,
-} from "./orderDetailConfig";
+} from "./OrderDetailConfig";
 import CancelFormModal, { CancelFormData } from "./CancelFormModal";
 import ReturnExchangePanel from "./ReturnExchangePanel";
 

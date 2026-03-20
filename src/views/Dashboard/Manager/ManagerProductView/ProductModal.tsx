@@ -22,18 +22,18 @@ const InputField = ({ label, name, type = "text", placeholder = "", required = f
                 {label} {required && '*'}
             </label>
             <div className="relative">
-                <input 
-                    type={type} 
-                    name={name} 
-                    placeholder={placeholder} 
-                    value={displayValue} 
-                    onChange={onChange} 
+                <input
+                    type={type}
+                    name={name}
+                    placeholder={placeholder}
+                    value={displayValue}
+                    onChange={onChange}
                     step={step}
                     min={min}
                     className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-colors bg-white
-                        ${hasError 
-                            ? 'border-red-400 focus:ring-red-200 bg-red-50 text-red-900 placeholder-red-300' 
-                            : 'border-gray-300 focus:ring-purple-400'}`} 
+                        ${hasError
+                            ? 'border-red-400 focus:ring-red-200 bg-red-50 text-red-900 placeholder-red-300'
+                            : 'border-gray-300 focus:ring-purple-400'}`}
                 />
                 {hasError && <AlertCircle className="absolute right-2 top-2.5 w-4 h-4 text-red-500" />}
             </div>
@@ -66,29 +66,29 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
     const [imageFiles, setImageFiles] = useState<File[]>([]);
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    
+
     // STATE LƯU TRỮ LỖI CỦA TỪNG TRƯỜNG DỮ LIỆU
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     useEffect(() => {
         if (initialData && isOpen) {
             const p = initialData as any;
-            const firstImageUrl = p.images?.find((img: any) => img.isAvatar)?.imageUrl 
-                                  || p.images?.[0]?.imageUrl 
-                                  || p.Image_URL;
+            const firstImageUrl = p.images?.find((img: any) => img.isAvatar)?.imageUrl
+                || p.images?.[0]?.imageUrl
+                || p.Image_URL;
 
             setFormData(prev => ({
-                ...prev, 
+                ...prev,
                 id: p.productID || p.id || 0,
                 sku: p.sku || '',
                 name: p.productName || p.name || '',
                 price: p.price || 0,
                 costPrice: p.costPrice || p.price || 0,
                 description: p.description || p.Description || '',
-                
+
                 brandName: p.brand?.brandName || p.brandName || p.Brand || '',
                 typeName: p.productType?.typeName || p.typeName || p.Product_Type || 'Gọng kính',
-                
+
                 allowPreorder: p.allowPreorder ?? false,
                 isActive: p.isActive ?? true,
             }));
@@ -108,7 +108,7 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
             setImageFiles([]);
             setErrors({}); // Xóa lỗi khi mở modal
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialData, isOpen]);
 
     if (!isOpen) return null;
@@ -162,7 +162,7 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
 
         // Validate Gọng kính
         if (currentTypeName === 'Gọng kính') {
-             if (['frameColor', 'frameShapeName', 'frameMaterialName'].includes(name) && !value.toString().trim()) {
+            if (['frameColor', 'frameShapeName', 'frameMaterialName'].includes(name) && !value.toString().trim()) {
                 errorMsg = 'Bắt buộc nhập';
             }
             if (['frameTempleLength', 'frameLensWidth', 'frameBridgeWidth'].includes(name) && Number(value) <= 0) {
@@ -183,7 +183,7 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
         }
 
         const numberFields = ['price', 'costPrice', 'frameTempleLength', 'frameLensWidth', 'frameBridgeWidth', 'lensIndexValue', 'lensDiameter', 'contactLensBaseCurve', 'contactLensDiameter', 'contactLensWaterContent', 'contactLensQuantityPerBox'];
-        
+
         const finalValue = numberFields.includes(name) ? Number(value) : value;
 
         setFormData(prev => ({
@@ -217,17 +217,27 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (isImageEmpty) {
             showPopup("Vui lòng thêm ít nhất 1 hình ảnh cho sản phẩm!", "error");
-            return; 
+            return;
         }
 
         // KIỂM TRA LỖI TOÀN BỘ FORM TRƯỚC KHI SUBMIT
         let hasError = false;
         const newErrors: Record<string, string> = {};
 
-        Object.keys(formData).forEach(key => {
+        // Cho hàm biết là đang Edit
+        const isEditing = !!initialData;
+
+        const fieldsToValidate = Object.keys(formData).filter(key => {
+            if (isEditing) {
+                return ['sku', 'name', 'brandName', 'price', 'costPrice'].includes(key);
+            }
+            return true;
+        })
+
+        fieldsToValidate.forEach(key => {
             const errorMsg = validateField(key, (formData as any)[key], formData.typeName);
             if (errorMsg) {
                 newErrors[key] = errorMsg;
@@ -277,8 +287,8 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
                                 </label>
                                 <div className="flex flex-wrap gap-3 items-start">
                                     <label className={`w-20 h-20 shrink-0 border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition-colors
-                                        ${isImageEmpty 
-                                            ? 'border-red-400 bg-red-50 text-red-500 hover:border-red-500 hover:bg-red-100' 
+                                        ${isImageEmpty
+                                            ? 'border-red-400 bg-red-50 text-red-500 hover:border-red-500 hover:bg-red-100'
                                             : 'border-purple-300 text-purple-600 hover:bg-purple-50 hover:border-purple-500'
                                         }`}
                                     >
@@ -286,7 +296,7 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
                                         <span className="text-[10px] font-medium">Tải lên</span>
                                         <input type="file" multiple accept="image/*" onChange={handleImageChange} className="hidden" />
                                     </label>
-                                    
+
                                     {imagePreviews.map((preview, idx) => (
                                         <div key={idx} className="w-20 h-20 relative rounded-xl border border-gray-200 overflow-hidden bg-gray-50 group shadow-sm">
                                             <img src={preview} alt={`Preview ${idx}`} className="w-full h-full object-cover" />
