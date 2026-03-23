@@ -80,15 +80,15 @@ export const roleTabsConfig: RoleTabs[] = [
                 path: '/operation-staff/inventory'
             }, {
                 id: 'purchase-card',
-                label: 'Phiếu đặt hàng',
+                label: 'Phiếu nhập kho',
                 icon: BarChart3,
                 path: '/operation-staff/purchase-card'
             },
             {
-                id: 'receipt-list',
-                label: 'Danh sách đơn đặt hàng',
-                icon: FileText,
-                path: '/operation-staff/ReceiptList/receipt-list'
+                id: 'purchase-list',
+                label: 'Quản lí phiếu nhập kho',
+                icon: BarChart3,
+                path: '/operation-staff/purchase-list'
             }
 
         ]

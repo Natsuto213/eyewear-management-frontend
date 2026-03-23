@@ -7,6 +7,7 @@ import RegisterPage from "./views/RegisterPage";
 import ProfilePage from "./views/ProfileCustomer/ProfilePage";
 import Account from "./views/ProfileCustomer/AccountPage";
 import OrderDetailCustomer from "./views/ProfileCustomer/OrderDetailCustomer";
+import AboutPage from "./views/Policies/AboutUs";
 
 import AllProductLayout from "./views/AllProduct/AllProductLayout";
 import AllProductFilter from "./views/AllProduct/AllProductFilter";
@@ -29,6 +30,9 @@ import { OperationStaffLayout } from "./views/Dashboard/OperationStaff/Operation
 import OrderPage from "./views/Dashboard/OperationStaff/OrderPage";
 import InventoryPage from "./views/Dashboard/OperationStaff/InventoryPage";
 import OrderDetailOps from "./views/Dashboard/OperationStaff/OrderDetailOps";
+import PurchaseCard from "./views/Dashboard/OperationStaff/Inventory/PurchaseCard";
+import PurchaseList from "./views/Dashboard/OperationStaff/Inventory/PurchaseList";
+import PurchaseDetail from "./views/Dashboard/OperationStaff/Inventory/PurchaseDetail";
 
 import { ManagerLayout } from './views/Dashboard/Manager/ManagerLayout';
 import ManagerProductView from './views/Dashboard/Manager/ManagerProductView';
@@ -36,11 +40,11 @@ import ManagerStaffView from './views/Dashboard/Manager/ManagerStaffView';
 import ManagerStatisticView from './views/Dashboard/Manager/ManagerStatisticView';
 import ManagerSalesView from './views/Dashboard/Manager/ManagerSalesView';
 import ManagerPoliciesView from './views/Dashboard/Manager/ManagerPoliciesView';
-import PurchaseCard from "./views/Dashboard/OperationStaff/Inventory/PurchaseCard";
 import InventoryOrder from "./views/Dashboard/SalesStaff/ui/InventoryOrder";
 import CancelledTable from "./views/Dashboard/SalesStaff/containers/CancelledTable";
 import CancelledDetail from "./views/Dashboard/SalesStaff/ui/CancelledDetail";
-import ManageGoodsReceipts from "./views/Dashboard/OperationStaff/ReceiptList/ManageGoodsReceipts";
+
+
 
 export default function PageRoute() {
     return (
@@ -64,6 +68,7 @@ export default function PageRoute() {
                 <Route path="/warranty" element={<WarrantyPage />} />
                 <Route path="/success" element={<SuccessPage />} />
                 <Route path="/cancel" element={<CancelPage />} />
+                <Route path="/about-us" element={<AboutPage />} />
 
                 <Route path="/profile" element={<ProfilePage />}>
                     <Route path="account" element={<Account />} />
@@ -91,8 +96,8 @@ export default function PageRoute() {
 
                     <Route path="purchase-card" element={<PurchaseCard />} />
                     <Route path="purchase-card/:cardId" element={<PurchaseCard />} />
-                    <Route path="ReceiptList/receipt-list" element={<ManageGoodsReceipts />} />
-
+                    <Route path="purchase-list" element={<PurchaseList />} />
+                    <Route path="purchase-detail/:inventoryReceiptId" element={<PurchaseDetail />} />
                 </Route>
 
                 <Route path="/manager" element={<ManagerLayout />}>
