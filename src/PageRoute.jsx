@@ -7,6 +7,7 @@ import RegisterPage from "./views/RegisterPage";
 import ProfilePage from "./views/ProfileCustomer/ProfilePage";
 import Account from "./views/ProfileCustomer/AccountPage";
 import OrderDetailCustomer from "./views/ProfileCustomer/OrderDetailCustomer";
+import AboutPage from "./views/Policies/AboutUs";
 
 import AllProductLayout from "./views/AllProduct/AllProductLayout";
 import AllProductFilter from "./views/AllProduct/AllProductFilter";
@@ -64,6 +65,7 @@ export default function PageRoute() {
                 <Route path="/warranty" element={<WarrantyPage />} />
                 <Route path="/success" element={<SuccessPage />} />
                 <Route path="/cancel" element={<CancelPage />} />
+                <Route path="/about-us" element={<AboutPage />} />
 
                 <Route path="/profile" element={<ProfilePage />}>
                     <Route path="account" element={<Account />} />
