@@ -2,7 +2,7 @@ import axios from "axios";
 
 export const api = axios.create({
 
-    baseURL: "https://api-eyewear.purintech.id.vn",
+    baseURL: "https://api-eyewear.purintech.id.vn", // Thay bằng URL backend của bạn
     headers: {
         "Content-Type": "application/json",
         "Accept": "application/json",
