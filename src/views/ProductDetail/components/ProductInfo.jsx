@@ -1,20 +1,4 @@
-/**
- * ProductInfo.jsx
- * ================
- * Hiển thị thông tin cơ bản của sản phẩm ở đầu cột phải:
- *  - Tên sản phẩm, mã SKU
- *  - Thương hiệu (brand)
- *  - Giá bán (màu đỏ, nổi bật)
- *  - Thông tin đặc trưng: diameter, waterContent (cho Kính áp tròng)
- *
- * Nhận toàn bộ object product từ cha, chỉ hiển thị, không có logic.
- */
-
-/**
- * @param {object} product - Dữ liệu sản phẩm từ API
- * @param {boolean} isContact - True nếu là Kính áp tròng (để hiện thêm thông số đặc trưng)
- */
-export default function ProductInfo({ product, isContact }) {
+export default function ProductInfo({ product, isContact, isFrame, onTryOn, onView3D }) {
     return (
         <div className="mb-4">
             {/* Tên sản phẩm + Mã hàng */}
@@ -36,6 +20,30 @@ export default function ProductInfo({ product, isContact }) {
             <p className="text-3xl font-bold text-red-600 font-mono mb-4">
                 {product.price?.toLocaleString("vi-VN")}đ
             </p>
+
+            {/* ĐÃ SỬA CHỖ NÀY: Chỉ cần là Gọng kính (isFrame) là hiện luôn 2 nút để test UI */}
+            {isFrame && (
+                <div className="flex flex-wrap gap-3 mt-2 mb-4">
+                    <button
+                        type="button"
+                        onClick={onTryOn}
+                        className="rounded-lg border-2 border-teal-500 text-teal-600 hover:bg-teal-50 hover:shadow-md px-5 py-2 text-sm font-bold transition-all flex items-center gap-2"
+                    >
+                        {/* Thêm cái icon cho nó ngầu */}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinelinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        Thử kính ảo
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={onView3D}
+                        className="rounded-lg border-2 border-slate-300 text-slate-700 hover:bg-slate-50 hover:shadow-md px-5 py-2 text-sm font-bold transition-all flex items-center gap-2"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinelinejoin="round"><path d="m21 16-9 5-9-5V8l9-5 9 5v8z"/><path d="m3.27 6.96 8.73 4.88 8.73-4.88"/><path d="M12 22.76V11.84"/></svg>
+                        Xem ảnh 3D
+                    </button>
+                </div>
+            )}
 
             {/* Thông số đặc trưng cho Kính áp tròng */}
             {isContact && (

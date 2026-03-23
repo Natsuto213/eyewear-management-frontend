@@ -73,8 +73,8 @@ export default function ProductDetailPage() {
     // ─── Phân loại sản phẩm: Gọng / Tròng / Kính áp tròng ────────────────────
     const flags = getProductFlags(product);
     const { isFrame, isLenses, isContact } = flags;
-    const canTryOn = isFrame && product.virtualTryOn?.enabled;
-    const canView3D = isFrame && Boolean(product.virtualTryOn?.modelUrl);
+    const canTryOn = isFrame;
+    const canView3D = isFrame;
 
     // ─── Lấy danh sách sản phẩm liên quan ─────────────────────────────────────
     const {

@@ -5,12 +5,11 @@ import { api } from '@/lib/api'; // Import api từ config của bạn
 // HÀM RENDER NHÃN TRẠNG THÁI (BADGE) DỰA THEO DATA BACKEND
 const getStatusBadge = (status: string) => {
     switch (status) {
-        case 'RECEIVED':
+        case 'Fully Entered':
             return <span className="px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-md">Đã nhập</span>;
         case 'REJECTED':
-        case 'CANCELLED':
             return <span className="px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-md">Từ chối/Hủy</span>;
-        case 'ORDERED':
+        case 'Pending Verification':
             return <span className="px-3 py-1 bg-yellow-400 text-white text-xs font-bold rounded-md shadow-sm">Chờ xác thực</span>;
         default:
             return <span className="px-3 py-1 bg-gray-300 text-gray-700 text-xs font-bold rounded-md">{status || 'Không rõ'}</span>;
