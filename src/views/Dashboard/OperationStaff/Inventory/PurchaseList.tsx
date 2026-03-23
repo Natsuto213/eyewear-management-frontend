@@ -11,7 +11,6 @@ const getStatusBadge = (status: string) => {
         case 'CANCELLED':
             return <span className="px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-md">Từ chối/Hủy</span>;
         case 'ORDERED':
-        case 'PENDING':
             return <span className="px-3 py-1 bg-yellow-400 text-white text-xs font-bold rounded-md shadow-sm">Chờ xác thực</span>;
         default:
             return <span className="px-3 py-1 bg-gray-300 text-gray-700 text-xs font-bold rounded-md">{status || 'Không rõ'}</span>;
