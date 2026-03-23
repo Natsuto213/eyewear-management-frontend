@@ -29,6 +29,8 @@ import { OperationStaffLayout } from "./views/Dashboard/OperationStaff/Operation
 import OrderPage from "./views/Dashboard/OperationStaff/OrderPage";
 import InventoryPage from "./views/Dashboard/OperationStaff/InventoryPage";
 import OrderDetailOps from "./views/Dashboard/OperationStaff/OrderDetailOps";
+import PurchaseCard from "./views/Dashboard/OperationStaff/Inventory/PurchaseCard";
+import PurchaseList from "./views/Dashboard/OperationStaff/Inventory/PurchaseList";
 
 import { ManagerLayout } from './views/Dashboard/Manager/ManagerLayout';
 import ManagerProductView from './views/Dashboard/Manager/ManagerProductView';
@@ -36,7 +38,6 @@ import ManagerStaffView from './views/Dashboard/Manager/ManagerStaffView';
 import ManagerStatisticView from './views/Dashboard/Manager/ManagerStatisticView';
 import ManagerSalesView from './views/Dashboard/Manager/ManagerSalesView';
 import ManagerPoliciesView from './views/Dashboard/Manager/ManagerPoliciesView';
-import PurchaseCard from "./views/Dashboard/OperationStaff/Inventory/PurchaseCard";
 import InventoryOrder from "./views/Dashboard/SalesStaff/ui/InventoryOrder";
 import CancelledTable from "./views/Dashboard/SalesStaff/containers/CancelledTable";
 import CancelledDetail from "./views/Dashboard/SalesStaff/ui/CancelledDetail";
@@ -88,6 +89,7 @@ export default function PageRoute() {
                     <Route path="inventory" element={<InventoryPage />} />
 
                     <Route path="purchase-card" element={<PurchaseCard />} />
+                    <Route path="purchase-list" element={<PurchaseList />} />
                 </Route>
 
                 <Route path="/manager" element={<ManagerLayout />}>

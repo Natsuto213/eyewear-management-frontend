@@ -55,7 +55,7 @@ const PurchaseCard = () => {
         setSelectedProducts([]);
     }, [selectedSupplierId]);
 
-    // 🚀 ĐÃ SỬA: HÀM THÊM SẢN PHẨM TỪ BẢNG TÌM KIẾM
+    // HÀM THÊM SẢN PHẨM TỪ BẢNG TÌM KIẾM
     const handleAddProduct = (product: any) => {
         const existing = selectedProducts.find(p => p.id === product.id);
         
@@ -122,7 +122,7 @@ const PurchaseCard = () => {
         <main className="max-w-5xl mx-auto py-8 px-4 space-y-8 font-sans bg-gray-50 min-h-screen">
             <header className="text-center mb-8">
                 <h1 className="text-3xl font-extrabold text-blue-900 uppercase tracking-wide">
-                    PHIẾU ĐẶT HÀNG (PO)
+                    PHIẾU NHẬP KHO
                 </h1>
             </header>
 
