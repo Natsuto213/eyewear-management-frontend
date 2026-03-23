@@ -29,9 +29,9 @@ const returnExchangeStatusVN = {
 
 const returnTypeVN = {
     WARRANTY: 'Bảo hành',
-    REFUND: 'Trả hàng hoàn tiền',
-    RETURN: 'Trả hàng',
-    CANCEL_ORDER: 'Hủy đơn',
+    REFUND: 'Trả hàng hoàn tiền theo đơn',
+    RETURN: 'Trả hàng hoàn tiền theo sản phẩm',
+    CANCEL_ORDER: 'Đơn huỷ không cần hoàn tiền',
 };
 const OrderFilter = ({ filters, onFilterChange, onResetFilter, statusList, orderTypeList, returnExchangeStatusList, returnTypeList }) => {
     return (

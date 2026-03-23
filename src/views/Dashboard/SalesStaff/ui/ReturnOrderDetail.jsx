@@ -29,7 +29,6 @@ import {
     handleComplete,
     handleReject,
 } from "./utils/apiReturn.js";
-
 export default function ReturnOrderDetail() {
     const navigate = useNavigate();
     const { returnExchangeId } = useParams();
@@ -52,8 +51,8 @@ export default function ReturnOrderDetail() {
             console.error(err);
             setError(
                 err?.response?.data?.message ||
-                    err?.message ||
-                    "Không tải được chi tiết đơn hàng",
+                err?.message ||
+                "Không tải được chi tiết đơn hàng",
             );
         } finally {
             setLoading(false);

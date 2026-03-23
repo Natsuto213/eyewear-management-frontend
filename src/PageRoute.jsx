@@ -40,6 +40,7 @@ import PurchaseCard from "./views/Dashboard/OperationStaff/Inventory/PurchaseCar
 import InventoryOrder from "./views/Dashboard/SalesStaff/ui/InventoryOrder";
 import CancelledTable from "./views/Dashboard/SalesStaff/containers/CancelledTable";
 import CancelledDetail from "./views/Dashboard/SalesStaff/ui/CancelledDetail";
+import ManageGoodsReceipts from "./views/Dashboard/OperationStaff/ReceiptList/ManageGoodsReceipts";
 
 export default function PageRoute() {
     return (
@@ -79,6 +80,7 @@ export default function PageRoute() {
                     <Route path="ui/inventoryorder" element={<InventoryOrder />} />
                     <Route path="containers/cancelled-orders" element={<CancelledTable />} />
                     <Route path="ui/cancelleddetail/:returnExchangeId" element={<CancelledDetail />} />
+
                 </Route>
 
                 <Route path="/operation-staff" element={<OperationStaffLayout />} >
@@ -88,6 +90,9 @@ export default function PageRoute() {
                     <Route path="inventory" element={<InventoryPage />} />
 
                     <Route path="purchase-card" element={<PurchaseCard />} />
+                    <Route path="purchase-card/:cardId" element={<PurchaseCard />} />
+                    <Route path="ReceiptList/receipt-list" element={<ManageGoodsReceipts />} />
+
                 </Route>
 
                 <Route path="/manager" element={<ManagerLayout />}>
