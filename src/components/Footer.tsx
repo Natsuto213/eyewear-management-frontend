@@ -9,6 +9,8 @@ import {
     Clock,
     ShoppingBag,
     RefreshCw,
+
+    Truck,
     Shield,
     Eye,
 } from "lucide-react";
@@ -23,7 +25,9 @@ export default function Footer() {
                     <div>
                         <div className="flex items-center gap-2 mb-4">
                             <Eye className="size-8 text-blue-600" />
+
                             <h3 className="text-xl">Kính Mắt Sora</h3>
+
                         </div>
                         <p className="text-gray-600 mb-4 leading-relaxed">
                             Chuyên cung cấp gọng kính, tròng kính chính hãng với
@@ -70,7 +74,9 @@ export default function Footer() {
                                 </div>
                                 <div>
                                     <div className="text-xs text-gray-500">Địa chỉ</div>
+
                                     <div>xxx Đường abc, Q.1, TP.HCM</div>
+
                                 </div>
                             </div>
                         </div>
@@ -91,6 +97,7 @@ export default function Footer() {
                             </li>
                             <li>
                                 <Link
+
                                     to="/warranty"
                                     className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition group"
                                 >
@@ -142,7 +149,9 @@ export default function Footer() {
                         {/* Feedback */}
                         <div className="mt-6">
                             <p className="text-sm text-gray-600 mb-2">
+
                                 Hãy góp ý để chúng tôi làm tốt hơn !
+
                             </p>
                             <div className="flex gap-2">
                                 <input

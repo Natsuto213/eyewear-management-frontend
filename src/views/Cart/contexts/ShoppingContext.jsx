@@ -27,10 +27,10 @@ const ShoppingContext = createContext();
 export function ShoppingContextProvider({ children }) {
 
     // ── State chính ──
-    const [cartItems, setCartItems] = useState([]);         // Mảng sản phẩm trong giỏ
-    const [loading, setLoading] = useState(false);           // Đang gọi API?
-    const [showLoginPopup, setShowLoginPopup] = useState(false); // Hiện popup đăng nhập?
-
+    const [cartItems, setCartItems] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [showLoginPopup, setShowLoginPopup] = useState(false);
+    const [showSuccessPopup, setShowSuccessPopup] = useState(false);
     // ══════════════════════════════════════════════════════════════
     // fetchCart — Lấy toàn bộ giỏ hàng từ server
     // ──────────────────────────────────────────────────────────────
@@ -50,9 +50,9 @@ export function ShoppingContextProvider({ children }) {
 
         setLoading(true);
         try {
-            const apiItems = await getAllCartApi();              // Gọi API
+            const apiItems = await getAllCartApi();
             const localItems = apiItems.map(mapApiItemToLocal); // Chuyển đổi format
-            setCartItems(localItems);                           // Cập nhật state → UI tự render lại
+            setCartItems(localItems);
         } catch (err) {
             console.error("❌ Lỗi tải giỏ hàng:", err);
         } finally {
@@ -77,19 +77,17 @@ export function ShoppingContextProvider({ children }) {
     //   - Nếu mới → tạo dòng mới
     // ══════════════════════════════════════════════════════════════
     const addCartItem = async (newItem) => {
-        // Bước 1: Kiểm tra đăng nhập
         console.log("Theem vao gio hang", newItem)
         const token = localStorage.getItem("access_token");
         if (!token) {
-            setShowLoginPopup(true);  // Hiện popup "Hãy đăng nhập để mua hàng"
-            return;                    // Dừng — không thêm gì
+            setShowLoginPopup(true);
+            return;
         }
-
-        // Bước 2: Gọi API thêm sản phẩm
         try {
             await addCartItemApi(newItem, newItem.quantity);
-            await fetchCart();  // Bước 3: Tải lại giỏ hàng để UI cập nhật
-            console.log("✅ Thêm vào giỏ thành công:", newItem);
+            await fetchCart();  // Tải lại giỏ hàng để UI cập nhật
+            setShowSuccessPopup(true); // Hiện popup thành công
+            setTimeout(() => setShowSuccessPopup(false), 2000); // Tự tắt sau 2s
         } catch (err) {
             console.error("❌ Lỗi thêm vào giỏ:", err);
             console.error("❌ Response data:", err.response?.data);
@@ -97,12 +95,6 @@ export function ShoppingContextProvider({ children }) {
         }
     };
 
-    // ──────────────────────────────────────────────────────────
-    // increaseQty — Tăng số lượng 1 đơn vị
-    // ──────────────────────────────────────────────────────────
-    // Gọi từ: CartPage, Navbar dropdown (bấm nút +)
-    // Dùng: PUT /api/cart/update (không phải POST /add)
-    // ──────────────────────────────────────────────────────────
     const increaseQty = async (cartItemId) => {
         const item = cartItems.find((i) => i.cartItemId === cartItemId);
         if (!item) return;
@@ -115,12 +107,6 @@ export function ShoppingContextProvider({ children }) {
         }
     };
 
-    // ──────────────────────────────────────────────────────────
-    // decreaseQty — Giảm số lượng 1 đơn vị
-    // ──────────────────────────────────────────────────────────
-    // Nếu quantity = 1 → xóa luôn (DELETE)
-    // Nếu quantity > 1 → giảm 1 (PUT /api/cart/update)
-    // ──────────────────────────────────────────────────────────
     const decreaseQty = async (cartItemId) => {
         const item = cartItems.find((i) => i.cartItemId === cartItemId);
         if (!item) return;
@@ -137,11 +123,6 @@ export function ShoppingContextProvider({ children }) {
         }
     };
 
-    // ══════════════════════════════════════════════════════════════
-    // removeCartItem — Xóa 1 sản phẩm khỏi giỏ
-    // ──────────────────────────────────────────────────────────────
-    // Nhận vào: cartItemId → gọi API DELETE → tải lại giỏ
-    // ══════════════════════════════════════════════════════════════
     const removeCartItem = async (cartItemId) => {
         try {
             await deleteCartItemApi(cartItemId);
@@ -151,9 +132,6 @@ export function ShoppingContextProvider({ children }) {
         }
     };
 
-    // ══════════════════════════════════════════════════════════════
-    // clearCart — Xóa toàn bộ giỏ hàng
-    // ══════════════════════════════════════════════════════════════
     const clearCart = async () => {
         try {
             await deleteAllCartApi();
@@ -163,17 +141,12 @@ export function ShoppingContextProvider({ children }) {
         }
     };
 
-    // ── Tính tổng số lượng sản phẩm ──
     const cartQty = cartItems.reduce((total, item) => total + item.quantity, 0);
 
-    // ── Tính tổng tiền — dùng item.price từ server (đã tính sẵn) ──
     const totalPrice = cartItems.reduce((total, item) => {
         return total + item.price * item.quantity;
     }, 0);
 
-    // ══════════════════════════════════════════════════════════════
-    // Truyền tất cả giá trị & hàm xuống toàn bộ component con
-    // ══════════════════════════════════════════════════════════════
     return (
         <ShoppingContext.Provider
             value={{
@@ -191,20 +164,14 @@ export function ShoppingContextProvider({ children }) {
 
                 showLoginPopup,     // Trạng thái popup đăng nhập
                 setShowLoginPopup,  // Bật/tắt popup đăng nhập
+                showSuccessPopup,   // Trạng thái popup thành công
+                setShowSuccessPopup // Bật/tắt popup thành công
             }}
         >
             {children}
         </ShoppingContext.Provider>
     );
 }
-
-/**
- * useShoppingContext — Custom hook để dùng giỏ hàng ở bất kỳ component nào
- *
- * Cách dùng:
- *   const { addCartItem, cartItems } = useShoppingContext();
- */
-// eslint-disable-next-line react-refresh/only-export-components
 export function useShoppingContext() {
     return useContext(ShoppingContext);
 }

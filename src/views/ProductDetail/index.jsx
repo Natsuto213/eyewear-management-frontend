@@ -1,9 +1,4 @@
 /**
- * index.jsx - ProductDetail Page
- * ================================
- * Trang chi tiết sản phẩm. Đây là "bộ khung" lắp ráp các component lại với nhau.
- * Tất cả logic phức tạp đã được tách vào hooks/ và utils/ để file này gọn, dễ đọc.
- *
  * Luồng hoạt động:
  *  1. Lấy :id từ URL (useParams)
  *  2. Fetch dữ liệu sản phẩm qua useProductDetail hook
@@ -32,7 +27,6 @@ import RelatedSection from "./components/RelatedSection";
 import LoadingState from "./components/LoadingState";
 import ErrorState from "./components/ErrorState";
 
-// ── Custom Hooks ──
 import { useProductDetail } from "./hooks/useProductDetail";
 import { usePrescription } from "./hooks/usePrescription";
 
@@ -41,54 +35,29 @@ import { useShoppingContext } from "@/views/Cart/contexts/ShoppingContext";
 
 // ── Login Popup ──
 import LoginPopup from "@/views/Cart/components/LoginPopup";
+// ── Cart Success Popup ──
+import CartSuccessPopup from "@/views/Cart/components/CartSuccessPopup";
 
 // ── Utilities ──
 import { getProductFlags, getRelatedLists } from "./utils/productHelpers";
 
 export default function ProductDetailPage() {
-    // ─── Lấy id sản phẩm từ URL (/product/:id) ────────────────────────────────
     const { id } = useParams();
-
-    // ─── Lấy trạng thái popup đăng nhập từ ShoppingContext ────────────────────
-    const { showLoginPopup, setShowLoginPopup } = useShoppingContext();
-
-    // ─── Hook 1: Fetch dữ liệu sản phẩm từ API ────────────────────────────────
+    const { showLoginPopup, setShowLoginPopup, showSuccessPopup, setShowSuccessPopup } = useShoppingContext();
     const { product, loading, error } = useProductDetail(id);
 
     // ─── Hook 2: Quản lý state form đơn thuốc mắt ─────────────────────────────
-    const {
-        data: rxData,       // Dữ liệu 10 fields đơn thuốc
-        errors: rxErrors,     // Lỗi validate từng field
-        updateField: onUpdateRx,   // Hàm cập nhật 1 field
-        validateOnBlur: onBlurRx,     // Hàm validate khi rời ô input
-        validateAll: validateAllRx, // Hàm validate toàn bộ trước khi thêm vào giỏ
-        resetPrescription,             // Hàm reset form về mặc định (0 hết)
-    } = usePrescription();
+    const { formik, resetPrescription } = usePrescription();
 
-    // ─── Ref: đánh dấu đã mount lần đầu chưa ─────────────────────────────────
-    // Mục đích: phân biệt "lần đầu vào trang (F5)" vs "chuyển sang id khác"
-    // - Lần đầu mount: isMounted = false → KHÔNG reset (giữ data từ localStorage)
-    // - Đổi id sau đó:  isMounted = true  → reset form + scroll lên đầu
-    const isMounted = useRef(false);
-
-    /**
-     * useEffect: Khi id thay đổi (người dùng điều hướng sang sản phẩm khác)
-     *  → Reset form đơn thuốc về 0
-     *  → Scroll lên đầu trang
-     *
-     * Lần đầu mount (F5): bỏ qua reset để giữ dữ liệu đã lưu trong localStorage.
-     */
+    const prevIdRef = useRef(id);
     useEffect(() => {
-        // Lần đầu mount: chỉ đánh dấu đã mount, không reset
-        if (!isMounted.current) {
-            isMounted.current = true;
-            return;
+        if (prevIdRef.current !== id) {
+            console.log("ID sản phẩm thay đổi, reset form và scroll lên đầu", { id });
+            resetPrescription();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            prevIdRef.current = id; // Cập nhật ref với id mới
         }
-        // Từ lần thứ 2 trở đi (id thực sự thay đổi): reset form và scroll lên đầu
-        resetPrescription();
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [id]); // Chỉ chạy khi id thay đổi
+    }, [id, resetPrescription]);
 
     // ─── Hiển thị màn hình loading/lỗi ────────────────────────────────────────
     if (loading) return <LoadingState />;
@@ -116,11 +85,11 @@ export default function ProductDetailPage() {
                 <LoginPopup onClose={() => setShowLoginPopup(false)} />
             )}
 
-            {/* ── Vùng nội dung chính (max 1400px, có padding responsive) ── */}
-            <main className="max-w-350 mx-auto px-4 md:px-10 py-8">
+            {showSuccessPopup && (
+                <CartSuccessPopup show={showSuccessPopup} onClose={() => setShowSuccessPopup(false)} />
+            )}
 
-                {/* ── GRID 2 CỘT: 60% Gallery | 40% Thông tin ── */}
-                {/* Mobile: 1 cột dọc / Desktop: 2 cột ngang */}
+            <main className="max-w-350 mx-auto px-4 md:px-10 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-[60%_40%] gap-8 items-start">
 
                     {/* ── CỘT TRÁI: Gallery ảnh sản phẩm ── */}
@@ -141,14 +110,10 @@ export default function ProductDetailPage() {
                 - QuantitySelector + Nút "Thêm vào giỏ" */}
                         <AddToCartBar
                             product={product}
+                            formik={formik} // Truyền object formik xuống
                             isFrame={isFrame}
                             isLenses={isLenses}
                             isContact={isContact}
-                            rxData={rxData}
-                            rxErrors={rxErrors}
-                            onUpdateRx={onUpdateRx}
-                            onBlurRx={onBlurRx}
-                            validateAllRx={validateAllRx}
                         />
 
                         {/* Accordion: Mô tả / Vận chuyển / Bảo hành / Cửa hàng */}

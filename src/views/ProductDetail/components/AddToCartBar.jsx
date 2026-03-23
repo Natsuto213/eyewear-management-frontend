@@ -1,62 +1,15 @@
 /**
- * AddToCartBar.jsx
- * =================
- * Khu vực chứa toàn bộ logic "Thêm vào giỏ hàng" với các business rule:
- *
- * ┌─────────────────────────────────────────────────────────────────────┐
- * │ GỌNG KÍNH:                                                          │
- * │  - Luôn hiển thị PrescriptionForm                                   │
- * │  - Người dùng phải CHỌN 1 trong 2:                                  │
- * │    A) Tick "Không mua tròng kính" → thêm đơn lẻ vào giỏ            │
- * │    B) Click "Chọn tròng kính phù hợp" → mở Modal chọn Tròng kính   │
- * │       → sau khi chọn, hiển thị tên tròng kính đã chọn              │
- * │       → lúc này mới được Thêm vào giỏ (bundle Gọng + Tròng)        │
- * ├─────────────────────────────────────────────────────────────────────┤
- * │ TRÒNG KÍNH:                                                         │
- * │  - Luôn hiển thị PrescriptionForm                                   │
- * │  - Người dùng phải CHỌN 1 trong 2:                                  │
- * │    A) Tick "Đã có gọng kính" → thêm đơn lẻ vào giỏ                 │
- * │    B) Click "Chọn gọng kính phù hợp" → mở Modal chọn Gọng kính     │
- * │       → sau khi chọn, hiển thị tên gọng đã chọn                    │
- * │       → lúc này mới được Thêm vào giỏ (bundle Tròng + Gọng)        │
- * ├─────────────────────────────────────────────────────────────────────┤
- * │ KÍNH ÁP TRÒNG:                                                      │
- * │  - Hiển thị PrescriptionForm để nhập độ (tùy chọn)                  │
- * │  - Luôn là đơn lẻ, không cần chọn sản phẩm kèm                      │
- * │  - Chọn số lượng rồi Thêm vào giỏ ngay                              │
- * └─────────────────────────────────────────────────────────────────────┘
- *
- * Props nhận từ index.jsx:
- * @param {object}   product         - Dữ liệu sản phẩm
- * @param {boolean}  isFrame         - True nếu là Gọng kính
- * @param {boolean}  isLenses        - True nếu là Tròng kính
- * @param {boolean}  isContact       - True nếu là Kính áp tròng
- * @param {object}   rxData          - Dữ liệu đơn thuốc từ usePrescription
- * @param {object}   rxErrors        - Lỗi validate đơn thuốc
- * @param {function} onUpdateRx      - Hàm cập nhật field đơn thuốc
- * @param {function} onBlurRx        - Hàm validate onBlur đơn thuốc
- * @param {function} validateAllRx   - Hàm validate toàn bộ đơn thuốc
+
  */
 
 import { useState } from "react";
-import PrescriptionForm from "./PrescriptionForm";
 import QuantitySelector from "./QuantitySelector";
 import LensModal from "./LensModal";
 import { PRODUCT_TYPES } from "../utils/constants";
 import { useShoppingContext } from "../../Cart/contexts/ShoppingContext";
+import PrescriptionInputTabs from "./PrescriptionInputTabs";
 
-export default function AddToCartBar({
-    product,
-    isFrame,
-    isLenses,
-    isContact,
-    rxData,
-    rxErrors,
-    onUpdateRx,
-    onBlurRx,
-    validateAllRx,
-}) {
-    // ─── State: số lượng ──────────────────────────────────────────────────────
+export default function AddToCartBar({ product, isFrame, isLenses, formik }) {
     const [quantity, setQuantity] = useState(1);
 
     // ─── State: người dùng đã tick "mua đơn lẻ" chưa ─────────────────────────
@@ -78,7 +31,30 @@ export default function AddToCartBar({
     const modalType = isFrame ? PRODUCT_TYPES.LENSES : PRODUCT_TYPES.FRAME;
     const modalTitle = isFrame ? "Chọn Tròng Kính Phù Hợp" : "Chọn Gọng Kính Phù Hợp";
 
+    // ─── LOGIC TỒN KHO SẢN PHẨM CHÍNH ───
+    const availableQuantity = product.availableQuantity || 0;
+    const allowPreorder = product.allowPreorder || false;
+    const isOutOfStock = availableQuantity === 0 && !allowPreorder;
 
+    // ─── LOGIC TỒN KHO SẢN PHẨM BỔ TRỢ (NẾU CÓ) ───
+    const pairedAvailableQty = pairedProduct?.availableQuantity || 0;
+    const pairedAllowPreorder = pairedProduct?.allowPreorder || false;
+
+    // Block phụ: Chỉ kiểm tra khi có pairedProduct
+    const isPairedOutOfStock = pairedProduct
+        ? (pairedAvailableQty === 0 && !pairedAllowPreorder)
+        : false;
+
+    // Tổng hợp trạng thái: 1 trong 2 món hết hàng -> Khóa nút Add To Cart
+    const isAnyOutOfStock = isOutOfStock || isPairedOutOfStock;
+
+    console.log("Available quantity of main product:", availableQuantity);
+    console.log("Allow preorder for main product:", allowPreorder);
+    console.log("Is main product out of stock?", isOutOfStock);
+
+    console.log("Available quantity of paired product:", pairedAvailableQty);
+    console.log("Allow preorder for paired product:", pairedAllowPreorder);
+    console.log("Is paired product out of stock?", isPairedOutOfStock);
     const { addCartItem } = useShoppingContext();
 
     /**
@@ -92,16 +68,28 @@ export default function AddToCartBar({
      *     - Đơn lẻ:  { productId, quantity, prescription }
      *     - Mua kèm: { productId, pairedProductId, quantity, prescription }
      */
-    function handleAddToCart() {
-        // Bước 1: Validate đơn thuốc cho tất cả loại (Gọng, Tròng, Kính áp tròng đều có form)
-        const isValid = validateAllRx();
-        if (!isValid) {
+    async function handleAddToCart() {
+        if (isOutOfStock) {
+            alert("Sản phẩm đã hết hàng và không hỗ trợ đặt trước.");
+            return;
+        }
+
+        if (isPairedOutOfStock) {
+            alert("Sản phẩm đi kèm bạn chọn đã hết hàng. Vui lòng chọn mẫu khác!");
+            return;
+        }
+
+        const errors = await formik.validateForm();
+
+        if (Object.keys(errors).length > 0) {
+            formik.setTouched(
+                Object.keys(formik.initialValues).reduce((acc, key) => ({ ...acc, [key]: true }), {})
+            );
             alert("Vui lòng kiểm tra lại thông số đơn thuốc!");
             return;
         }
 
         // Bước 2: Chỉ Gọng/Tròng mới cần chọn phương án mua
-        // Kính áp tròng bỏ qua bước này (luôn là đơn lẻ)
         if ((isFrame || isLenses) && !isSoloChecked && !pairedProduct) {
             alert(`Vui lòng tick "${soloLabel}" hoặc "${pairLabel}" để tiếp tục!`);
             return;
@@ -116,7 +104,7 @@ export default function AddToCartBar({
             nameProduct: product.name,                          // Tên sản phẩm chính
             imgProduct: product.imageUrls,                      // Ảnh sản phẩm chính
             quantity,
-            prescription: rxData,                               // Tất cả loại đều gửi đơn thuốc
+            prescription: formik.values,                               // Tất cả loại đều gửi đơn thuốc
 
             // ── Loại sản phẩm + ID riêng theo loại (dùng cho API) ──
             productType: product.Product_Type,                  // "Gọng kính" | "Tròng kính" | "Kính áp tròng"
@@ -148,13 +136,8 @@ export default function AddToCartBar({
         }
     }
 
-    // ─── Kiểm tra form đơn thuốc có dữ liệu khác 0 không ────────────────────
-    // Duyệt qua tất cả giá trị trong rxData (10 field).
-    // Nếu có BẤT KỲ field nào khác "0" và khác "" → hasRxData = true (người dùng đã nhập độ)
-    // Ví dụ: leftSPH = "-3.00" → hasRxData = true → bắt buộc phải chọn tròng kính
-    const hasRxData = Object.values(rxData).some(
-        (val) => val !== "0" && val !== "" && val !== "0.00"
-    );
+    // Logic kiểm tra xem đã nhập độ chưa để disable solo
+    const hasRxData = Object.values(formik.values).some(v => v !== "0" && v !== "" && v !== 0);
 
     // ─── Checkbox "Không mua tròng kính" có bị disable không ────────────────
     // Chỉ disable khi: đang xem Gọng kính VÀ người dùng đã nhập độ
@@ -165,20 +148,40 @@ export default function AddToCartBar({
     // Nút cảnh báo (đỏ) khi là Gọng/Tròng mà chưa chọn phương án nào
     // Kính áp tròng luôn xanh vì không cần chọn phương án
     const needsSelection = (isFrame || isLenses) && !isSoloChecked && !pairedProduct;
-    const cartBtnClass = needsSelection
-        ? "bg-red-50 border-2 border-red-400 text-red-500 cursor-not-allowed"
-        : "bg-teal-500 text-white hover:bg-teal-600";
+
+    let cartBtnClass = "";
+    let buttonText = "";
+
+    // 1. Ưu tiên kiểm tra lỗi hết hàng trước
+    if (isOutOfStock) {
+        cartBtnClass = "bg-gray-400 text-white cursor-not-allowed";
+        buttonText = "Sản phẩm chính đã hết hàng";
+    } else if (isPairedOutOfStock) {
+        cartBtnClass = "bg-gray-400 text-white cursor-not-allowed";
+        buttonText = "Sản phẩm kèm đã hết hàng";
+    }
+    // 2. Kiểm tra xem đã chọn đủ combo/solo chưa
+    else if (needsSelection) {
+        cartBtnClass = "bg-red-50 border-2 border-red-400 text-red-500 cursor-not-allowed";
+        buttonText = "Chưa hoàn tất lựa chọn";
+    }
+    // 3. Hợp lệ -> Hiển thị nút Mua hoặc Pre-order
+    else {
+        cartBtnClass = "bg-teal-500 text-white hover:bg-teal-600";
+
+        // Nếu món chính HOẶC món phụ rơi vào trạng thái cần Pre-order, nút sẽ thành Đặt trước
+        const isPreorderAction =
+            (availableQuantity === 0 && allowPreorder) ||
+            (pairedProduct && pairedAvailableQty === 0 && pairedAllowPreorder);
+
+        buttonText = isPreorderAction ? "Đặt hàng trước (Pre-order)" : "Thêm vào giỏ hàng";
+    }
 
     return (
         <div className="space-y-5">
-            {/* ── PrescriptionForm: hiện cho tất cả loại sản phẩm ── */}
-            {/* Gọng + Tròng: nhập để cắt kính theo đơn                */}
-            {/* Kính áp tròng: nhập tùy chọn, luôn tính là đơn lẻ     */}
-            <PrescriptionForm
-                data={rxData}
-                errors={rxErrors}
-                onUpdate={onUpdateRx}
-                onBlur={onBlurRx}
+            {/* ── PrescriptionInputTabs: cho phép nhập hoặc upload ảnh đơn thuốc ── */}
+            <PrescriptionInputTabs
+                formik={formik}
             />
 
             {/* ── Phần chọn phương án (chỉ Gọng/Tròng) ── */}
@@ -247,15 +250,32 @@ export default function AddToCartBar({
                 <QuantitySelector
                     quantity={quantity}
                     onDecrease={() => setQuantity((q) => Math.max(1, q - 1))}
-                    onIncrease={() => setQuantity((q) => q + 1)}
+                    onIncrease={() => {
+                        // 1. Kiểm tra giới hạn của Sản phẩm chính (Chỉ chặn nếu ĐANG CÓ HÀNG trong kho)
+                        if (availableQuantity > 0 && quantity >= availableQuantity) {
+                            alert(`Sản phẩm chính chỉ còn ${availableQuantity} món trong kho.`);
+                            return;
+                        }
+
+                        // 2. Kiểm tra giới hạn của Sản phẩm kèm (Chỉ chặn nếu có pairedProduct và ĐANG CÓ HÀNG)
+                        if (pairedProduct && pairedAvailableQty > 0 && quantity >= pairedAvailableQty) {
+                            alert(`Sản phẩm kèm "${pairedProduct.name}" chỉ còn ${pairedAvailableQty} món.`);
+                            return;
+                        }
+
+                        // Nếu vượt qua cả 2 bước check (hoặc cả 2 đều là hàng Pre-order) thì mới cho tăng
+                        setQuantity((q) => q + 1);
+                    }}
+                    // Vô hiệu hóa nếu món chính hoặc món kèm bị hết hàng hoàn toàn
+                    disabled={isAnyOutOfStock}
                 />
 
                 <button
                     onClick={handleAddToCart}
-                    title={needsSelection ? `Vui long tick "${soloLabel}" hoac chon san pham kem` : ""}
+                    disabled={isAnyOutOfStock || needsSelection}
                     className={`flex-1 h-10 rounded-lg font-bold uppercase text-sm transition-all duration-200 ${cartBtnClass}`}
                 >
-                    {needsSelection ? "Chưa hoàn tất lựa chọn" : "Thêm vào giỏ hàng"}
+                    {buttonText}
                 </button>
             </div>
 

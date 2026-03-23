@@ -214,8 +214,8 @@ export function mapApiItemToLocal(apiItem) {
         pricePairedProduct,
 
         prescription,
-
-        // ⭐ _raw = dữ liệu gốc từ server
+        itemType: apiItem.itemType,
+        // _raw = dữ liệu gốc từ server
         // Dùng khi bấm +/- (PUT /api/cart/update) để gửi lại đúng data
         // Vì item trong giỏ không có productType → không dùng buildCartApiBody được
         _raw: {
@@ -240,7 +240,6 @@ export function mapApiItemToLocal(apiItem) {
  */
 export async function addCartItemApi(item, quantity) {
     const body = buildCartApiBody(item, quantity);
-    alert("thêm đơn hàng thành công")
     const response = await api.post("/api/cart/add", body);
     return response.data;
 }
