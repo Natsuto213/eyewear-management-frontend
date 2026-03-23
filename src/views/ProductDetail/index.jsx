@@ -11,7 +11,7 @@
  *  - Khi :id thay đổi (người dùng xem sản phẩm khác), useEffect reset đơn thuốc + scroll lên đầu
  */
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 
 // ── Layout chung ──
@@ -40,6 +40,8 @@ import CartSuccessPopup from "@/views/Cart/components/CartSuccessPopup";
 
 // ── Utilities ──
 import { getProductFlags, getRelatedLists } from "./utils/productHelpers";
+import VirtualTryOnModal from "./components/VirtualTryOnModal";
+import Model3DModal from "./components/Model3DModal";
 
 export default function ProductDetailPage() {
     const { id } = useParams();
@@ -48,6 +50,11 @@ export default function ProductDetailPage() {
 
     // ─── Hook 2: Quản lý state form đơn thuốc mắt ─────────────────────────────
     const { formik, resetPrescription } = usePrescription();
+    const [tryOnOpenForId, setTryOnOpenForId] = useState(null);
+    const [model3DOpenForId, setModel3DOpenForId] = useState(null);
+
+    const isTryOnOpen = tryOnOpenForId === id;
+    const isModel3DOpen = model3DOpenForId === id;
 
     const prevIdRef = useRef(id);
     useEffect(() => {
@@ -66,6 +73,8 @@ export default function ProductDetailPage() {
     // ─── Phân loại sản phẩm: Gọng / Tròng / Kính áp tròng ────────────────────
     const flags = getProductFlags(product);
     const { isFrame, isLenses, isContact } = flags;
+    const canTryOn = isFrame && product.virtualTryOn?.enabled;
+    const canView3D = isFrame && Boolean(product.virtualTryOn?.modelUrl);
 
     // ─── Lấy danh sách sản phẩm liên quan ─────────────────────────────────────
     const {
@@ -89,6 +98,25 @@ export default function ProductDetailPage() {
                 <CartSuccessPopup show={showSuccessPopup} onClose={() => setShowSuccessPopup(false)} />
             )}
 
+            {canTryOn && (
+                <VirtualTryOnModal
+                    open={isTryOnOpen}
+                    onClose={() => setTryOnOpenForId(null)}
+                    productName={product.name}
+                    tryOnConfig={product.virtualTryOn}
+                    frameMetrics={product.frameMetrics}
+                />
+            )}
+
+            {canView3D && (
+                <Model3DModal
+                    open={isModel3DOpen}
+                    onClose={() => setModel3DOpenForId(null)}
+                    productName={product.name}
+                    modelUrl={product.virtualTryOn?.modelUrl}
+                />
+            )}
+
             <main className="max-w-350 mx-auto px-4 md:px-10 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-[60%_40%] gap-8 items-start">
 
@@ -102,7 +130,14 @@ export default function ProductDetailPage() {
                     <div className="flex flex-col lg:pl-6">
 
                         {/* Tên, SKU, Brand, Giá, thông số đặc trưng */}
-                        <ProductInfo product={product} isContact={isContact} />
+                        {/* <ProductInfo product={product} isContact={isContact} /> */}
+                        <ProductInfo
+                            product={product}
+                            isContact={isContact}
+                            isFrame={isFrame}
+                            onTryOn={() => setTryOnOpenForId(id)}
+                            onView3D={() => setModel3DOpenForId(id)}
+                        />
 
                         {/* AddToCartBar xử lý toàn bộ business logic:
                 - PrescriptionForm (nếu là Gọng/Tròng)
