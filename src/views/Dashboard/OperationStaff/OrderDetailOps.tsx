@@ -509,8 +509,12 @@ export default function OrderDetail() {
               <span className="text-xl">📦</span>
             </div>
             <div>
-              <p className="font-bold text-violet-800 text-base mb-1">Đơn Pre-Order — Chờ nhập đủ  hàng</p>
-              
+              <p className="font-bold text-violet-800 text-base mb-1">Đơn Pre-Order — Chờ nhập hàng</p>
+              <p className="text-violet-700 text-sm leading-relaxed">
+                Đơn hàng này là <span className="font-semibold">Pre-Order</span>. Hệ thống chưa thể chuyển sang gia công vì{" "}
+                <span className="font-semibold">chưa đủ tồn kho</span> cho sản phẩm trong đơn.
+                Vui lòng nhập hàng mới trước, sau đó thao tác sẽ được mở lại tự động.
+              </p>
             </div>
           </motion.div>
         )}
@@ -648,8 +652,9 @@ export default function OrderDetail() {
                 <motion.div key={index} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 * index }}
                   className="border-2 border-indigo-100 rounded-2xl p-6 bg-gradient-to-br from-indigo-50 to-purple-50 hover:border-indigo-300 transition-all"
                 >
-                  <div className={`grid grid-cols-1 ${item.lensId ? "md:grid-cols-2" : ""} gap-6 mb-6`}>
-                    {/* Gọng */}
+                  <div className={`grid grid-cols-1 ${item.frameId && item.lensId ? "md:grid-cols-2" : ""} gap-6 mb-6`}>
+                    {/* Gọng — chỉ hiện nếu có data */}
+                    {item.frameId && (
                     <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                       <div className="text-xs text-indigo-600 uppercase font-bold mb-3 flex items-center gap-2">
                         <div className="w-6 h-6 bg-indigo-100 rounded-md flex items-center justify-center">👓</div>
@@ -669,8 +674,9 @@ export default function OrderDetail() {
                         </div>
                       </div>
                     </div>
+                    )}
 
-                    {/* Tròng */}
+                    {/* Tròng — chỉ hiện nếu có data */}
                     {item.lensId && (
                       <div className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                         <div className="text-xs text-purple-600 uppercase font-bold mb-3 flex items-center gap-2">

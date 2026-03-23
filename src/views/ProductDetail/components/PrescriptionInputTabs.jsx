@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import { PRESCRIPTION_FIELDS } from "../utils/constants";
 import { api } from "../../../lib/api";
+import { DEFAULT_PRESCRIPTION } from "../utils/constants";
 
 /**
  * PrescriptionInputTabs - Đã chuyển đổi sang Formik
@@ -28,9 +29,13 @@ export default function PrescriptionInputTabs({ formik }) {
             try {
                 const formData = new FormData();
                 formData.append("file", file);
-                const response = await api.post("api/prescriptions/parse-image", formData, {
-                    headers: { "Content-Type": "multipart/form-data" }
-                });
+                const response = await api.post(
+                    "api/prescriptions/parse-image",
+                    formData,
+                    {
+                        headers: { "Content-Type": "multipart/form-data" },
+                    },
+                );
 
                 const result = response.data;
                 if (result.code === 1000 && result.result) {
@@ -39,17 +44,17 @@ export default function PrescriptionInputTabs({ formik }) {
                     // Map kết quả từ API vào định dạng của Formik
                     const newValues = {
                         ...formik.values,
-                        leftSPH: parsed.leftEyeSph ?? "",
-                        leftCYL: parsed.leftEyeCyl ?? "",
-                        leftAXIS: parsed.leftEyeAxis ?? "",
-                        leftADD: parsed.leftEyeAdd ?? "",
-                        rightSPH: parsed.rightEyeSph ?? "",
-                        rightCYL: parsed.rightEyeCyl ?? "",
-                        rightAXIS: parsed.rightEyeAxis ?? "",
-                        rightADD: parsed.rightEyeAdd ?? "",
-                        PD: parsed.pd ?? "",
-                        PDLeft: parsed.pdLeft ?? "",
-                        PDRight: parsed.pdRight ?? "",
+                        leftSPH: parsed.leftEyeSph ?? "0",
+                        leftCYL: parsed.leftEyeCyl ?? "0",
+                        leftAXIS: parsed.leftEyeAxis ?? "0",
+                        leftADD: parsed.leftEyeAdd ?? "0",
+                        rightSPH: parsed.rightEyeSph ?? "0",
+                        rightCYL: parsed.rightEyeCyl ?? "0",
+                        rightAXIS: parsed.rightEyeAxis ?? "0",
+                        rightADD: parsed.rightEyeAdd ?? "0",
+                        PD: parsed.pd ?? "0",
+                        PDLeft: parsed.pdLeft ?? "0",
+                        PDRight: parsed.pdRight ?? "0",
                     };
 
                     // Cập nhật toàn bộ giá trị vào Formik
@@ -60,7 +65,9 @@ export default function PrescriptionInputTabs({ formik }) {
                         setMode("form"); // Tự động chuyển về bảng số nếu nhận diện hoàn hảo
                     }
                 } else {
-                    setWarnings([result.message || "Không nhận diện được đơn thuốc."]);
+                    setWarnings([
+                        result.message || "Không nhận diện được đơn thuốc.",
+                    ]);
                 }
             } catch (err) {
                 setWarnings(["Không thể nhận diện các số đo trong ảnh."]);
@@ -77,6 +84,10 @@ export default function PrescriptionInputTabs({ formik }) {
         setFileName("");
         setWarnings([]);
         if (inputRef.current) inputRef.current.value = "";
+    };
+
+    const removeForm = () => {
+        formik.setValues(DEFAULT_PRESCRIPTION);
     };
 
     return (
@@ -111,41 +122,70 @@ export default function PrescriptionInputTabs({ formik }) {
 
             {mode === "form" ? (
                 <div className="overflow-x-auto">
+                    <div className="flex justify-end mb-2">
+                        <button
+                            type="button"
+                            onClick={removeForm}
+                            className="px-4 py-1 bg-red-100 text-red-700 rounded-lg text-xs font-semibold hover:bg-red-200"
+                        >
+                            Xóa thông số
+                        </button>
+                    </div>
                     <table className="w-full text-sm">
                         <thead>
                             <tr>
-                                <th className="text-left py-2 pr-3 text-gray-500 font-medium w-32">Thông số</th>
-                                <th className="text-center py-2 px-3 text-teal-700 font-semibold">Mắt Trái (OS)</th>
-                                <th className="text-center py-2 px-3 text-teal-700 font-semibold">Mắt Phải (OD)</th>
+                                <th className="text-left py-2 pr-3 text-gray-500 font-medium w-32">
+                                    Thông số
+                                </th>
+                                <th className="text-center py-2 px-3 text-teal-700 font-semibold">
+                                    Mắt Trái (OS)
+                                </th>
+                                <th className="text-center py-2 px-3 text-teal-700 font-semibold">
+                                    Mắt Phải (OD)
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
                             {PRESCRIPTION_FIELDS.map(({ key, label, unit }) => (
-                                <tr key={key} className="border-t border-teal-100">
+                                <tr
+                                    key={key}
+                                    className="border-t border-teal-100"
+                                >
                                     <td className="py-2 pr-3 text-gray-600 font-medium text-xs">
                                         {label}
-                                        <span className="text-gray-400 ml-1">({unit})</span>
+                                        <span className="text-gray-400 ml-1">
+                                            ({unit})
+                                        </span>
                                     </td>
                                     {["left", "right"].map((side) => {
                                         const fieldName = `${side}${key}`;
                                         // Kiểm tra lỗi từ Formik
-                                        const errorMsg = formik.errors[fieldName];
-                                        const isTouched = formik.touched[fieldName];
+                                        const errorMsg =
+                                            formik.errors[fieldName];
+                                        const isTouched =
+                                            formik.touched[fieldName];
 
                                         return (
-                                            <td key={side} className="py-2 px-3 text-center">
+                                            <td
+                                                key={side}
+                                                className="py-2 px-3 text-center"
+                                            >
                                                 <input
                                                     type="text"
                                                     inputMode="decimal"
                                                     placeholder="0"
                                                     // Rút gọn value, onChange, onBlur bằng getFieldProps
-                                                    {...formik.getFieldProps(fieldName)}
+                                                    {...formik.getFieldProps(
+                                                        fieldName,
+                                                    )}
                                                     className={`w-20 text-center border rounded-lg px-2 py-1.5 text-sm outline-none transition
                                                         focus:ring-2 focus:ring-teal-400 focus:border-teal-500
                                                         ${isTouched && errorMsg ? "border-red-400 bg-red-50" : "border-gray-300 bg-white hover:border-teal-300"}`}
                                                 />
                                                 {isTouched && errorMsg && (
-                                                    <p className="text-[10px] text-red-500 mt-0.5 leading-tight">{errorMsg}</p>
+                                                    <p className="text-[10px] text-red-500 mt-0.5 leading-tight">
+                                                        {errorMsg}
+                                                    </p>
                                                 )}
                                             </td>
                                         );
@@ -167,8 +207,14 @@ export default function PrescriptionInputTabs({ formik }) {
                         />
                     ) : (
                         <div className="flex flex-col items-center gap-2">
-                            <img src={image} alt="Đơn thuốc" className="max-h-60 rounded-lg border border-teal-200 shadow" />
-                            <span className="text-xs text-gray-500">{fileName}</span>
+                            <img
+                                src={image}
+                                alt="Đơn thuốc"
+                                className="max-h-60 rounded-lg border border-teal-200 shadow"
+                            />
+                            <span className="text-xs text-gray-500">
+                                {fileName}
+                            </span>
                             <div className="flex gap-2">
                                 <button
                                     type="button"
@@ -179,13 +225,24 @@ export default function PrescriptionInputTabs({ formik }) {
                                 </button>
                                 <label className="mt-2 px-4 py-1 bg-teal-100 text-teal-700 rounded-lg text-xs font-semibold hover:bg-teal-200 cursor-pointer">
                                     Thay ảnh khác
-                                    <input type="file" hidden accept="image/*" onChange={handleFileChange} />
+                                    <input
+                                        type="file"
+                                        hidden
+                                        accept="image/*"
+                                        onChange={handleFileChange}
+                                    />
                                 </label>
                             </div>
-                            {loadingParse && <div className="text-xs text-teal-600 mt-2 animate-pulse">Đang nhận diện đơn thuốc...</div>}
+                            {loadingParse && (
+                                <div className="text-xs text-teal-600 mt-2 animate-pulse">
+                                    Đang nhận diện đơn thuốc...
+                                </div>
+                            )}
                             {warnings.length > 0 && (
                                 <ul className="mt-2 text-xs text-orange-600 bg-orange-50 rounded-lg p-2 border border-orange-200">
-                                    {warnings.map((w, i) => <li key={i}> {w}</li>)}
+                                    {warnings.map((w, i) => (
+                                        <li key={i}> {w}</li>
+                                    ))}
                                 </ul>
                             )}
                         </div>
@@ -193,7 +250,8 @@ export default function PrescriptionInputTabs({ formik }) {
                 </div>
             )}
             <p className="text-[10px] text-gray-400 mt-3 italic text-center">
-                * Dữ liệu đơn thuốc sẽ được lưu kèm đơn hàng để kỹ thuật viên cắt kính chính xác.
+                * Dữ liệu đơn thuốc sẽ được lưu kèm đơn hàng để kỹ thuật viên
+                cắt kính chính xác.
             </p>
         </div>
     );

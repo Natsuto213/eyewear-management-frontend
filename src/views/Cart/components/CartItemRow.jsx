@@ -16,6 +16,8 @@ export default function CartItemRow({ item, isSelected, onToggle, onIncrease, on
 
     // ── Kiểm tra có sản phẩm kèm không ──
     const hasPaired = item.pairedProductId != null;
+    const isPreorder = item.itemType === "PREORDER";
+    const isOrder = item.itemType === "ORDER";
 
     return (
         <tr className="hover:bg-gray-50 transition-colors">
@@ -63,7 +65,18 @@ export default function CartItemRow({ item, isSelected, onToggle, onIncrease, on
                 <p className="font-semibold text-gray-800 text-sm">
                     {item.nameProduct}
                 </p>
-
+                {/* Nhãn Preorder nếu có */}
+                {isPreorder && (
+                    <span className="inline-block text-[10px] bg-yellow-100 text-yellow-700 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider mt-1 mr-2">
+                        Đơn đặt trước
+                    </span>
+                )}
+                {/* Nhãn Order nếu có */}
+                {isOrder && (
+                    <span className="inline-block text-[10px] bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider mt-1">
+                        Đơn sẵn hàng
+                    </span>
+                )}
                 {/* Tên sản phẩm kèm (nếu có) */}
                 {hasPaired && (
                     <p className="text-xs text-teal-600 mt-0.5">

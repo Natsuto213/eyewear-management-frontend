@@ -1,6 +1,6 @@
 // ManagerProductView/ProductModal.tsx
 import { useState, useEffect } from 'react';
-import { Product } from './productConfig';
+import { Product } from './ProductConfig';
 import { X, Upload, AlertCircle } from 'lucide-react';
 
 interface Props {
@@ -10,6 +10,37 @@ interface Props {
     initialData: Product | null;
     showPopup: (message: string, type: 'success' | 'error') => void;
 }
+
+// ─── ĐƯA INPUT FIELD RA NGOÀI ĐỂ KHÔNG BỊ RENDER LẠI GÂY MẤT FOCUS ───
+const InputField = ({ label, name, type = "text", placeholder = "", required = false, step = "", min = "", value, onChange, error }: any) => {
+    const hasError = !!error;
+    const displayValue = (value === 0 && type === 'number') ? '' : value;
+
+    return (
+        <div className="flex flex-col relative">
+            <label className={`block text-xs font-medium mb-1 ${hasError ? 'text-red-600' : 'text-gray-700'}`}>
+                {label} {required && '*'}
+            </label>
+            <div className="relative">
+                <input
+                    type={type}
+                    name={name}
+                    placeholder={placeholder}
+                    value={displayValue}
+                    onChange={onChange}
+                    step={step}
+                    min={min}
+                    className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-colors bg-white
+                        ${hasError
+                            ? 'border-red-400 focus:ring-red-200 bg-red-50 text-red-900 placeholder-red-300'
+                            : 'border-gray-300 focus:ring-purple-400'}`}
+                />
+                {hasError && <AlertCircle className="absolute right-2 top-2.5 w-4 h-4 text-red-500" />}
+            </div>
+            {hasError && <span className="text-[10px] text-red-600 mt-1 font-medium absolute -bottom-4 left-0">{error}</span>}
+        </div>
+    );
+};
 
 export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }: Props) {
     const [formData, setFormData] = useState({
@@ -35,29 +66,29 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
     const [imageFiles, setImageFiles] = useState<File[]>([]);
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    
+
     // STATE LƯU TRỮ LỖI CỦA TỪNG TRƯỜNG DỮ LIỆU
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     useEffect(() => {
         if (initialData && isOpen) {
             const p = initialData as any;
-            const firstImageUrl = p.images?.find((img: any) => img.isAvatar)?.imageUrl 
-                                  || p.images?.[0]?.imageUrl 
-                                  || p.Image_URL;
+            const firstImageUrl = p.images?.find((img: any) => img.isAvatar)?.imageUrl
+                || p.images?.[0]?.imageUrl
+                || p.Image_URL;
 
             setFormData(prev => ({
-                ...prev, 
+                ...prev,
                 id: p.productID || p.id || 0,
                 sku: p.sku || '',
                 name: p.productName || p.name || '',
                 price: p.price || 0,
                 costPrice: p.costPrice || p.price || 0,
                 description: p.description || p.Description || '',
-                
+
                 brandName: p.brand?.brandName || p.brandName || p.Brand || '',
                 typeName: p.productType?.typeName || p.typeName || p.Product_Type || 'Gọng kính',
-                
+
                 allowPreorder: p.allowPreorder ?? false,
                 isActive: p.isActive ?? true,
             }));
@@ -77,7 +108,7 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
             setImageFiles([]);
             setErrors({}); // Xóa lỗi khi mở modal
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialData, isOpen]);
 
     if (!isOpen) return null;
@@ -131,7 +162,7 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
 
         // Validate Gọng kính
         if (currentTypeName === 'Gọng kính') {
-             if (['frameColor', 'frameShapeName', 'frameMaterialName'].includes(name) && !value.toString().trim()) {
+            if (['frameColor', 'frameShapeName', 'frameMaterialName'].includes(name) && !value.toString().trim()) {
                 errorMsg = 'Bắt buộc nhập';
             }
             if (['frameTempleLength', 'frameLensWidth', 'frameBridgeWidth'].includes(name) && Number(value) <= 0) {
@@ -152,7 +183,7 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
         }
 
         const numberFields = ['price', 'costPrice', 'frameTempleLength', 'frameLensWidth', 'frameBridgeWidth', 'lensIndexValue', 'lensDiameter', 'contactLensBaseCurve', 'contactLensDiameter', 'contactLensWaterContent', 'contactLensQuantityPerBox'];
-        
+
         const finalValue = numberFields.includes(name) ? Number(value) : value;
 
         setFormData(prev => ({
@@ -186,17 +217,27 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (isImageEmpty) {
             showPopup("Vui lòng thêm ít nhất 1 hình ảnh cho sản phẩm!", "error");
-            return; 
+            return;
         }
 
         // KIỂM TRA LỖI TOÀN BỘ FORM TRƯỚC KHI SUBMIT
         let hasError = false;
         const newErrors: Record<string, string> = {};
 
-        Object.keys(formData).forEach(key => {
+        // Cho hàm biết là đang Edit
+        const isEditing = !!initialData;
+
+        const fieldsToValidate = Object.keys(formData).filter(key => {
+            if (isEditing) {
+                return ['sku', 'name', 'brandName', 'price', 'costPrice'].includes(key);
+            }
+            return true;
+        })
+
+        fieldsToValidate.forEach(key => {
             const errorMsg = validateField(key, (formData as any)[key], formData.typeName);
             if (errorMsg) {
                 newErrors[key] = errorMsg;
@@ -217,35 +258,6 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
     };
 
     const isEditMode = !!initialData;
-    
-    // COMPONENT INPUT CÓ KÈM CẢNH BÁO LỖI
-    const InputField = ({ label, name, type = "text", placeholder = "", required = false, step = "", min = "" }: any) => {
-        const hasError = !!errors[name];
-        return (
-            <div className="flex flex-col relative">
-                <label className={`block text-xs font-medium mb-1 ${hasError ? 'text-red-600' : 'text-gray-700'}`}>
-                    {label} {required && '*'}
-                </label>
-                <div className="relative">
-                    <input 
-                        type={type} 
-                        name={name} 
-                        placeholder={placeholder} 
-                        value={(formData as any)[name] === 0 && type === 'number' ? '' : (formData as any)[name]} 
-                        onChange={handleChange} 
-                        step={step}
-                        min={min}
-                        className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-colors bg-white
-                            ${hasError 
-                                ? 'border-red-400 focus:ring-red-200 bg-red-50 text-red-900 placeholder-red-300' 
-                                : 'border-gray-300 focus:ring-purple-400'}`} 
-                    />
-                    {hasError && <AlertCircle className="absolute right-2 top-2.5 w-4 h-4 text-red-500" />}
-                </div>
-                {hasError && <span className="text-[10px] text-red-600 mt-1 font-medium absolute -bottom-4 left-0">{errors[name]}</span>}
-            </div>
-        );
-    };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity p-4">
@@ -275,8 +287,8 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
                                 </label>
                                 <div className="flex flex-wrap gap-3 items-start">
                                     <label className={`w-20 h-20 shrink-0 border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition-colors
-                                        ${isImageEmpty 
-                                            ? 'border-red-400 bg-red-50 text-red-500 hover:border-red-500 hover:bg-red-100' 
+                                        ${isImageEmpty
+                                            ? 'border-red-400 bg-red-50 text-red-500 hover:border-red-500 hover:bg-red-100'
                                             : 'border-purple-300 text-purple-600 hover:bg-purple-50 hover:border-purple-500'
                                         }`}
                                     >
@@ -284,7 +296,7 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
                                         <span className="text-[10px] font-medium">Tải lên</span>
                                         <input type="file" multiple accept="image/*" onChange={handleImageChange} className="hidden" />
                                     </label>
-                                    
+
                                     {imagePreviews.map((preview, idx) => (
                                         <div key={idx} className="w-20 h-20 relative rounded-xl border border-gray-200 overflow-hidden bg-gray-50 group shadow-sm">
                                             <img src={preview} alt={`Preview ${idx}`} className="w-full h-full object-cover" />
@@ -300,14 +312,14 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
                             </div>
 
                             <div className="grid grid-cols-3 gap-x-4 gap-y-6">
-                                <div><InputField label="SKU" name="sku" placeholder="RB1024" required /></div>
-                                <div className="col-span-2"><InputField label="Tên sản phẩm" name="name" placeholder="Gọng Kính Aviator Classic" required /></div>
+                                <div><InputField label="SKU" name="sku" value={formData.sku} onChange={handleChange} error={errors.sku} placeholder="RB1024" required /></div>
+                                <div className="col-span-2"><InputField label="Tên sản phẩm" name="name" value={formData.name} onChange={handleChange} error={errors.name} placeholder="Gọng Kính Aviator Classic" required /></div>
                             </div>
 
                             <div className="grid grid-cols-3 gap-x-4 gap-y-6">
-                                <div><InputField label="Thương hiệu" name="brandName" placeholder="Ray-Ban, Gucci" required /></div>
-                                <div><InputField label="Giá bán (VNĐ)" name="price" type="number" min="0" placeholder="1500000" required /></div>
-                                <div><InputField label="Giá nhập (VNĐ)" name="costPrice" type="number" min="0" placeholder="800000" /></div>
+                                <div><InputField label="Thương hiệu" name="brandName" value={formData.brandName} onChange={handleChange} error={errors.brandName} placeholder="Ray-Ban, Gucci" required /></div>
+                                <div><InputField label="Giá bán (VNĐ)" name="price" type="number" min="0" value={formData.price} onChange={handleChange} error={errors.price} placeholder="1500000" required /></div>
+                                <div><InputField label="Giá nhập (VNĐ)" name="costPrice" type="number" min="0" value={formData.costPrice} onChange={handleChange} error={errors.costPrice} placeholder="800000" /></div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4 items-center">
@@ -340,14 +352,14 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
                                 {formData.typeName === 'Gọng kính' && (
                                     <>
                                         <div className="grid grid-cols-3 gap-x-4 gap-y-6">
-                                            <div><InputField label="Màu sắc" name="frameColor" placeholder="Đen nhám" required /></div>
-                                            <div><InputField label="Kiểu dáng" name="frameShapeName" placeholder="Tròn, Vuông" required /></div>
-                                            <div><InputField label="Chất liệu" name="frameMaterialName" placeholder="Nhựa TR90" required /></div>
+                                            <div><InputField label="Màu sắc" name="frameColor" value={formData.frameColor} onChange={handleChange} error={errors.frameColor} placeholder="Đen nhám" required /></div>
+                                            <div><InputField label="Kiểu dáng" name="frameShapeName" value={formData.frameShapeName} onChange={handleChange} error={errors.frameShapeName} placeholder="Tròn, Vuông" required /></div>
+                                            <div><InputField label="Chất liệu" name="frameMaterialName" value={formData.frameMaterialName} onChange={handleChange} error={errors.frameMaterialName} placeholder="Nhựa TR90" required /></div>
                                         </div>
                                         <div className="grid grid-cols-3 gap-x-4 gap-y-6">
-                                            <div><InputField label="Độ dài càng kính (mm)" name="frameTempleLength" type="number" placeholder="VD: 145" required /></div>
-                                            <div><InputField label="Độ rộng tròng (mm)" name="frameLensWidth" type="number" placeholder="VD: 52" required /></div>
-                                            <div><InputField label="Cầu kính (mm)" name="frameBridgeWidth" type="number" placeholder="VD: 18" required /></div>
+                                            <div><InputField label="Độ dài càng kính (mm)" name="frameTempleLength" type="number" value={formData.frameTempleLength} onChange={handleChange} error={errors.frameTempleLength} placeholder="VD: 145" required /></div>
+                                            <div><InputField label="Độ rộng tròng (mm)" name="frameLensWidth" type="number" value={formData.frameLensWidth} onChange={handleChange} error={errors.frameLensWidth} placeholder="VD: 52" required /></div>
+                                            <div><InputField label="Cầu kính (mm)" name="frameBridgeWidth" type="number" value={formData.frameBridgeWidth} onChange={handleChange} error={errors.frameBridgeWidth} placeholder="VD: 18" required /></div>
                                         </div>
                                         <div>
                                             <label className="block text-xs font-medium text-gray-700 mb-1">Mô tả gọng kính</label>
@@ -368,11 +380,11 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
                                                     <option value="Đổi màu">Đổi màu</option>
                                                 </select>
                                             </div>
-                                            <div><InputField label="Dải độ sẵn có" name="lensAvailablePowerRange" placeholder="VD: -0.00 đến -6.00" required /></div>
+                                            <div><InputField label="Dải độ sẵn có" name="lensAvailablePowerRange" value={formData.lensAvailablePowerRange} onChange={handleChange} error={errors.lensAvailablePowerRange} placeholder="VD: -0.00 đến -6.00" required /></div>
                                         </div>
                                         <div className="grid grid-cols-2 gap-x-4 gap-y-6">
-                                            <div><InputField label="Chiết suất" name="lensIndexValue" type="number" step="0.01" placeholder="VD: 1.56 (Từ 1.5 đến 1.74)" required /></div>
-                                            <div><InputField label="Đường kính (mm)" name="lensDiameter" type="number" placeholder="VD: 70" required /></div>
+                                            <div><InputField label="Chiết suất" name="lensIndexValue" type="number" step="0.01" value={formData.lensIndexValue} onChange={handleChange} error={errors.lensIndexValue} placeholder="VD: 1.56 (Từ 1.5 đến 1.74)" required /></div>
+                                            <div><InputField label="Đường kính (mm)" name="lensDiameter" type="number" value={formData.lensDiameter} onChange={handleChange} error={errors.lensDiameter} placeholder="VD: 70" required /></div>
                                         </div>
                                         <div className="flex gap-6 mt-2">
                                             <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="lensIsBlueLightBlock" checked={formData.lensIsBlueLightBlock} onChange={handleChange} className="w-4 h-4 text-purple-600 rounded" /><span className="text-sm font-medium">Chống ánh sáng xanh</span></label>
@@ -389,19 +401,19 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
                                 {formData.typeName === 'Kính áp tròng' && (
                                     <>
                                         <div className="grid grid-cols-3 gap-x-4 gap-y-6">
-                                            <div><InputField label="Loại sử dụng" name="contactLensUsageType" placeholder="Trong suốt" required /></div>
-                                            <div><InputField label="Màu sắc" name="contactLensColor" placeholder="Xanh Blue" required /></div>
-                                            <div><InputField label="Chất liệu" name="contactLensMaterial" placeholder="Silicone Hydrogel" required /></div>
+                                            <div><InputField label="Loại sử dụng" name="contactLensUsageType" value={formData.contactLensUsageType} onChange={handleChange} error={errors.contactLensUsageType} placeholder="Trong suốt" required /></div>
+                                            <div><InputField label="Màu sắc" name="contactLensColor" value={formData.contactLensColor} onChange={handleChange} error={errors.contactLensColor} placeholder="Xanh Blue" required /></div>
+                                            <div><InputField label="Chất liệu" name="contactLensMaterial" value={formData.contactLensMaterial} onChange={handleChange} error={errors.contactLensMaterial} placeholder="Silicone Hydrogel" required /></div>
                                         </div>
                                         <div className="grid grid-cols-3 gap-x-4 gap-y-6">
-                                            <div><InputField label="Bán kính cong (BC)" name="contactLensBaseCurve" type="number" step="0.1" placeholder="VD: 8.6 (Từ 8.0 đến 9.0)" required /></div>
-                                            <div><InputField label="Đường kính (DIA)" name="contactLensDiameter" type="number" step="0.1" placeholder="VD: 14.2" required /></div>
-                                            <div><InputField label="Độ ngậm nước (%)" name="contactLensWaterContent" type="number" placeholder="VD: 38 (Từ 0 đến 100)" required /></div>
+                                            <div><InputField label="Bán kính cong (BC)" name="contactLensBaseCurve" type="number" step="0.1" value={formData.contactLensBaseCurve} onChange={handleChange} error={errors.contactLensBaseCurve} placeholder="VD: 8.6 (Từ 8.0 đến 9.0)" required /></div>
+                                            <div><InputField label="Đường kính (DIA)" name="contactLensDiameter" type="number" step="0.1" value={formData.contactLensDiameter} onChange={handleChange} error={errors.contactLensDiameter} placeholder="VD: 14.2" required /></div>
+                                            <div><InputField label="Độ ngậm nước (%)" name="contactLensWaterContent" type="number" value={formData.contactLensWaterContent} onChange={handleChange} error={errors.contactLensWaterContent} placeholder="VD: 38 (Từ 0 đến 100)" required /></div>
                                         </div>
                                         <div className="grid grid-cols-3 gap-x-4 gap-y-6">
-                                            <div><InputField label="Dải độ" name="contactLensAvailablePowerRange" placeholder="VD: 0.00 đến -8.00" required /></div>
-                                            <div><InputField label="Số lượng / Hộp" name="contactLensQuantityPerBox" type="number" placeholder="VD: 30" required /></div>
-                                            <div><InputField label="Lịch thay thế" name="contactLensReplacementSchedule" placeholder="VD: 1 ngày" required /></div>
+                                            <div><InputField label="Dải độ" name="contactLensAvailablePowerRange" value={formData.contactLensAvailablePowerRange} onChange={handleChange} error={errors.contactLensAvailablePowerRange} placeholder="VD: 0.00 đến -8.00" required /></div>
+                                            <div><InputField label="Số lượng / Hộp" name="contactLensQuantityPerBox" type="number" value={formData.contactLensQuantityPerBox} onChange={handleChange} error={errors.contactLensQuantityPerBox} placeholder="VD: 30" required /></div>
+                                            <div><InputField label="Lịch thay thế" name="contactLensReplacementSchedule" value={formData.contactLensReplacementSchedule} onChange={handleChange} error={errors.contactLensReplacementSchedule} placeholder="VD: 1 ngày" required /></div>
                                         </div>
                                     </>
                                 )}

@@ -75,7 +75,7 @@ const ReturnOrderTable = () => {
 
     // Chạy 1 lần khi mở trang
     useEffect(() => {
-        fetchOrders()
+        fetchOrders();
     }, [])
 
     useEffect(() => {
@@ -101,29 +101,28 @@ const ReturnOrderTable = () => {
 
     // Tạo danh sách không trùng cho 2 dropdown
     const statusList = getUniqueList(orders, "orderStatus")
-    const orderTypeList = getUniqueList(orders, "orderType")
     const returnExchangeStatusList = getUniqueList(orders, "returnExchangeStatus")
 
     // Lọc đơn hàng: kiểm tra từng đơn có khớp 4 tiêu chí không
     const filteredOrders = orders.filter((order) => {
+        if (loading || !orders.length) return [];
         const matchId = isMatch(order.orderCode, filters.orderId);
         const matchDate = isMatch(order.orderDate.slice(0, 10).split('-').join('-'), filters.orderDate);
         const matchStatus = isExactMatch(order.orderStatus, filters.status);
-        const matchType = isExactMatch(order.orderType, filters.orderType);
-        const matchReturnStatus = isMatch(order.returnExchangeStatus, filters.returnExchangeStatus);
+        const matchReturnStatus = isExactMatch(order.returnExchangeStatus, filters.returnExchangeStatus);
         // Phải khớp tất cả (ô nào rỗng thì tự bỏ qua)
-        return matchId && matchDate && matchStatus && matchType && matchReturnStatus;
+        return matchId && matchDate && matchStatus && matchReturnStatus;
     })
 
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentReturnOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
+    console.log("currentReturnOrders: ", currentReturnOrders)
     const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
 
     if (loading) {
         return <div className="p-10 text-center text-lg text-gray-400">Đang tải dữ liệu...</div>
     }
-
     return (
         <div className="min-h-screen bg-gray-200 p-6">
             <h2 className="mb-5 text-2xl font-bold text-gray-800">Quản lý Đơn hàng</h2>
@@ -133,7 +132,6 @@ const ReturnOrderTable = () => {
                 onFilterChange={handleFilterChange}
                 onResetFilter={handleResetFilter}
                 statusList={statusList}
-                orderTypeList={orderTypeList}
                 returnExchangeStatusList={returnExchangeStatusList}
             />
 
@@ -149,8 +147,6 @@ const ReturnOrderTable = () => {
                                 <th className="px-4 py-3 text-left font-semibold">STT</th>
                                 <th className="px-4 py-3 text-left font-semibold">Mã đơn</th>
                                 <th className="px-4 py-3 text-left font-semibold">Ngày đặt</th>
-                                <th className="px-4 py-3 text-center font-semibold">Loại đơn</th>
-                                <th className="px-4 py-3 text-center font-semibold">Tổng tiền</th>
                                 <th className="px-4 py-3 text-center font-semibold">Trạng thái ORDER</th>
                                 <th className="px-4 py-3 text-center font-semibold">Trạng thái RETURN</th>
                                 <th className="px-4 py-3 text-center font-semibold">Thao tác</th>
@@ -159,7 +155,7 @@ const ReturnOrderTable = () => {
                         <tbody className="text-sm text-gray-600">
                             {currentReturnOrders.length > 0 ? (
                                 currentReturnOrders.map((order, index) => (
-                                    <OrderRow key={order.orderId} order={order} index={index} />
+                                    <OrderRow key={`${order.orderId}-${order.returnExchangeStatus}-${index}`} order={order} index={index} />
                                 ))
                             ) : (
                                 <tr>

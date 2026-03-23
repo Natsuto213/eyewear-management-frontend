@@ -55,6 +55,8 @@ export default function LensModal({ isOpen, onClose, onSelect, filterType, title
                     frameId: p.frameId ?? null,           // ID gọng (có khi là Gọng kính)
                     lensId: p.lensId ?? null,             // ID tròng (có khi là Tròng kính)
                     contactLensId: p.contactLensId ?? null, // ID kính áp tròng
+                    availableQuantity: p.availableQuantity,        // Số lượng có sẵn (để kiểm tra tồn kho)
+                    allowPreorder: p.allowPreorder,                // Có cho phép đặt trước khi hết hàng không
                 }));
 
                 // Chỉ giữ lại sản phẩm thuộc loại cần tìm (Tròng kính hoặc Gọng kính)

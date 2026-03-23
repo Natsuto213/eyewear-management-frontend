@@ -28,9 +28,9 @@ import {
     handleApprove,
     handleComplete,
     handleReject,
-} from "./utils/apiReturn.js";
+} from "./utils/apiCancel.js";
 
-export default function ReturnOrderDetail() {
+function CancelledDetail() {
     const navigate = useNavigate();
     const { returnExchangeId } = useParams();
     const [orderData, setOrderData] = useState(null);
@@ -45,7 +45,7 @@ export default function ReturnOrderDetail() {
             setLoading(true);
             setError("");
             const response = await api.get(
-                `api/staff/return-exchange/${returnExchangeId}`,
+                `api/staff/return-exchange/cancel-refund-requests/${returnExchangeId}`,
             );
             setOrderData(response.data.result);
         } catch (err) {
@@ -100,11 +100,13 @@ export default function ReturnOrderDetail() {
 
             <main className="max-w-7xl mx-auto px-8 py-8">
                 <button
-                    onClick={() => navigate("/sales/containers/return-orders")}
+                    onClick={() =>
+                        navigate("/sales/containers/cancelled-orders")
+                    }
                     className="flex items-center gap-2 mb-6 px-4 py-2 bg-white text-gray-700 font-semibold rounded-lg shadow-sm border border-gray-100 hover:bg-gray-50 hover:text-blue-600 transition-all group"
                 >
                     <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
-                    Quay lại danh sách yêu cầu trả hàng
+                    Quay lại danh sách huỷ đơn hàng
                 </button>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -121,7 +123,7 @@ export default function ReturnOrderDetail() {
                             orderData={orderData}
                             formatDateTime={formatDateTime}
                             mapReturnExchangeStatus={mapReturnExchangeStatus}
-                            hasCustomerEvidence={true} // Trả hàng có ảnh minh chứng từ khách
+                            hasCustomerEvidence={false} // Hủy đơn không có ảnh minh chứng từ khách
                         />
 
                         {normalProducts.length > 0 && (
@@ -171,7 +173,7 @@ export default function ReturnOrderDetail() {
                                         formatDateTime={formatDateTime}
                                         isApproved={isApproved}
                                         isPending={isPending}
-                                        showRemainingTime={true}
+                                        showRemainingTime={false}
                                     />
 
                                     {isApproved && (
@@ -197,10 +199,6 @@ export default function ReturnOrderDetail() {
                                                     fetchOrderDetail,
                                                 )
                                             }
-                                            disableApprove={
-                                                orderData.remainingTimeValid <=
-                                                0
-                                            } // Chỉ trang này có check điều kiện này
                                         />
                                     )}
 
@@ -227,3 +225,5 @@ export default function ReturnOrderDetail() {
         </div>
     );
 }
+
+export default CancelledDetail;

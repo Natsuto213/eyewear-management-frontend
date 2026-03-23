@@ -31,10 +31,9 @@ const returnExchangeStatusVN = {
 
 const OrderRow = ({ order, index }) => {
     const formattedDate = order.orderDate ? order.orderDate.slice(0, 10).split('-').join('-') : '';
-    const typeVN = orderTypeVN[order.orderType] || order.orderType || '';
+    const typeVN = order.orderType ? orderTypeVN[order.orderType] || order.orderType || '' : null;
     const statusVN = orderStatusVN[order.orderStatus] || order.orderStatus || '';
     const returnStatusVN = order.returnExchangeStatus ? (returnExchangeStatusVN[order.returnExchangeStatus] || order.returnExchangeStatus) : null;
-
     return (
         <tr className="border-b border-gray-100 hover:bg-gray-50">
             <td className="px-4 py-3">{index + 1}</td>
@@ -44,16 +43,20 @@ const OrderRow = ({ order, index }) => {
             </td>
 
             <td className="px-4 py-3">{formattedDate}</td>
+            {!order.returnExchangeId && (
+                <>
+                    <td className="px-4 py-3 text-center">
+                        <span className="rounded-full bg-gray-200 px-3 py-1 text-xs text-gray-700">
+                            {typeVN}
+                        </span>
+                    </td>
 
-            <td className="px-4 py-3 text-center">
-                <span className="rounded-full bg-gray-200 px-3 py-1 text-xs text-gray-700">
-                    {typeVN}
-                </span>
-            </td>
+                    <td className="px-4 py-3 text-center font-bold">
+                        {formatCurrency(order.totalAmount)}
+                    </td>
+                </>
+            )}
 
-            <td className="px-4 py-3 text-center font-bold">
-                {formatCurrency(order.totalAmount)}
-            </td>
 
             <td className="px-4 py-3 text-center">
                 <span className={`rounded-full px-3 py-1 text-xs font-semibold mr-1

@@ -1,66 +1,103 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Truck, Search, PlusCircle, Trash2, Calendar, ShoppingBag, Plus, Minus } from 'lucide-react';
-
-// 1. DỮ LIỆU GIẢ LẬP: DANH SÁCH CÁC NHÀ CUNG CẤP (SUPPLIERS)
-const suppliers = [
-    { id: "SUP001", name: "Công ty TNHH Eyewear Miền Nam", code: "SRC-HCM-001", phone: "028 3844 5566", address: "Khu công nghệ cao, Quận 9, TP. HCM" },
-    { id: "SUP002", name: "Tổng đại lý Ray-Ban VN", code: "RB-VN-HQ", phone: "024 1122 3344", address: "Quận Hoàn Kiếm, TP. Hà Nội" },
-    { id: "SUP003", name: "Nhà phân phối Tròng kính Essilor", code: "ESSILOR-DIST", phone: "0909 888 777", address: "Quận 1, TP. HCM" }
-];
-
-// 2. DỮ LIỆU GIẢ LẬP: KHO SẢN PHẨM TỪ CÁC NHÀ CUNG CẤP
-const allProducts = [
-    { id: 101, name: "Gọng kính Ray-Ban Aviator", code: "RB-3025", unit: "Cái", price: 3500000, vat: 10, supplierId: "SUP002" },
-    { id: 102, name: "Tròng kính Essilor Crizal", code: "ES-CRIZ", unit: "Cặp", price: 1200000, vat: 10, supplierId: "SUP003" },
-    { id: 103, name: "Kính áp tròng Acuvue", code: "AC-OAS", unit: "Hộp", price: 650000, vat: 10, supplierId: "SUP001" },
-    { id: 104, name: "Gọng kính Gentle Monster", code: "GM-KUBO", unit: "Cái", price: 5800000, vat: 10, supplierId: "SUP001" },
-    { id: 105, name: "Gọng kính Titanium siêu nhẹ", code: "TI-001", unit: "Cái", price: 2100000, vat: 10, supplierId: "SUP001" },
-    { id: 106, name: "Tròng kính chống ánh sáng xanh", code: "BL-CUT", unit: "Cặp", price: 850000, vat: 10, supplierId: "SUP003" }
-];
+import { Truck, Search, PlusCircle, Trash2, Calendar, ShoppingBag, Plus, Minus, Upload } from 'lucide-react';
+import { api } from '@/lib/api';
 
 const PurchaseCard = () => {
+    // --- STATE: DANH SÁCH NHÀ CUNG CẤP (TỪ API) ---
+    const [suppliers, setSuppliers] = useState<any[]>([]);
+
     // --- STATE: THÔNG TIN CHUNG ---
     const [selectedSupplierId, setSelectedSupplierId] = useState("");
     const [orderDate, setOrderDate] = useState("");
+    const [orderNote, setOrderNote] = useState(""); // State mới: Ghi chú phiếu nhập
 
-    // Set ngày hiện tại làm ngày đặt đơn mặc định
+    // 1. GỌI API LẤY DANH SÁCH NHÀ CUNG CẤP VÀ SETUP NGÀY
     useEffect(() => {
+        const fetchSuppliers = async () => {
+            try {
+                const response = await api.get('/api/suppliers');
+                setSuppliers(response.data);
+            } catch (error) {
+                console.error("Lỗi khi tải danh sách nhà cung cấp:", error);
+            }
+        };
+        fetchSuppliers();
+
         const today = new Date().toISOString().split('T')[0];
         setOrderDate(today);
     }, []);
 
     const selectedSupplier = useMemo(() => {
-        return suppliers.find(s => s.id === selectedSupplierId) || null;
-    }, [selectedSupplierId]);
+        if (!selectedSupplierId) return null;
+        return suppliers.find(s => s.id.toString() === selectedSupplierId) || null;
+    }, [selectedSupplierId, suppliers]);
 
-    // --- STATE: TÌM KIẾM SẢN PHẨM ---
+    // --- STATE: SẢN PHẨM TỪ API & TÌM KIẾM ---
+    const [fetchedProducts, setFetchedProducts] = useState<any[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
 
-    // Lọc danh sách sản phẩm theo TỪ KHÓA và NHÀ CUNG CẤP đã chọn
+    // 2. GỌI API LẤY SẢN PHẨM KHI CHỌN NHÀ CUNG CẤP
+    useEffect(() => {
+        if (!selectedSupplierId) {
+            setFetchedProducts([]);
+            return;
+        }
+
+        const fetchSupplierProducts = async () => {
+            try {
+                const response = await api.get('/api/inventory-receipts/products/search', {
+                    params: { supplierId: selectedSupplierId }
+                });
+
+                const mappedData = response.data.map((item: any) => {
+                    let unitType = "Cái";
+                    if (item.productTypeName === "Tròng kính") unitType = "Cặp";
+                    if (item.productTypeName === "Kính áp tròng") unitType = "Hộp";
+
+                    return {
+                        id: item.productID,
+                        name: item.productName,
+                        code: item.SKU,
+                        unit: unitType,
+                        price: item.costPrice || 0,
+                        vat: 10, // Mặc định VAT 10%
+                        supplierId: selectedSupplierId
+                    };
+                });
+
+                setFetchedProducts(mappedData);
+            } catch (error) {
+                console.error("Lỗi khi tải sản phẩm của nhà cung cấp:", error);
+                setFetchedProducts([]);
+            }
+        };
+
+        fetchSupplierProducts();
+    }, [selectedSupplierId]);
+
+    // 3. LỌC DANH SÁCH SẢN PHẨM Ở Ô TÌM KIẾM
     const availableProducts = useMemo(() => {
-        if (!selectedSupplierId) return []; // Chưa chọn nhà cung cấp thì không hiện SP
-        return allProducts.filter(p =>
-            p.supplierId === selectedSupplierId &&
-            (p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                p.code.toLowerCase().includes(searchQuery.toLowerCase()))
+        return fetchedProducts.filter(p =>
+            p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            p.code.toLowerCase().includes(searchQuery.toLowerCase())
         );
-    }, [searchQuery, selectedSupplierId]);
+    }, [searchQuery, fetchedProducts]);
 
     // --- STATE: GIỎ HÀNG ĐẶT MUA ---
-    // Cấu trúc item: { ...product, orderQty: 1 }
     const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
+    const [isSubmitting, setIsSubmitting] = useState(false); // State mới: Đang gửi API
 
     // Xóa sạch giỏ hàng nếu đổi nhà cung cấp
     useEffect(() => {
         setSelectedProducts([]);
+        setSearchQuery("");
+        setOrderNote("");
     }, [selectedSupplierId]);
 
-    // 🚀 ĐÃ SỬA: HÀM THÊM SẢN PHẨM TỪ BẢNG TÌM KIẾM
     const handleAddProduct = (product: any) => {
         const existing = selectedProducts.find(p => p.id === product.id);
-        
+
         if (existing) {
-            // Nếu đã có -> Tăng số lượng lên 1
             setSelectedProducts(selectedProducts.map(p => {
                 if (p.id === product.id) {
                     const currentQty = p.orderQty === '' ? 0 : parseInt(p.orderQty);
@@ -69,7 +106,6 @@ const PurchaseCard = () => {
                 return p;
             }));
         } else {
-            // Nếu chưa có -> Thêm mới với số lượng 1
             setSelectedProducts([...selectedProducts, { ...product, orderQty: '1' }]);
         }
     };
@@ -86,7 +122,6 @@ const PurchaseCard = () => {
         }
     };
 
-    // HÀM TĂNG SỐ LƯỢNG
     const handleIncrement = (id: number) => {
         setSelectedProducts(selectedProducts.map(p => {
             if (p.id === id) {
@@ -97,12 +132,11 @@ const PurchaseCard = () => {
         }));
     };
 
-    // HÀM GIẢM SỐ LƯỢNG
     const handleDecrement = (id: number) => {
         setSelectedProducts(selectedProducts.map(p => {
             if (p.id === id) {
                 const currentQty = p.orderQty === '' ? 0 : parseInt(p.orderQty);
-                const newQty = currentQty > 1 ? currentQty - 1 : 1; // Tối thiểu là 1
+                const newQty = currentQty > 1 ? currentQty - 1 : 1;
                 return { ...p, orderQty: newQty.toString() };
             }
             return p;
@@ -118,15 +152,64 @@ const PurchaseCard = () => {
         }, 0);
     }, [selectedProducts]);
 
+    // 4. HÀM GỌI API SUBMIT TẠO PHIẾU
+    const handleSubmitOrder = async () => {
+        if (!selectedSupplierId || selectedProducts.length === 0) {
+            alert("Vui lòng chọn nhà cung cấp và ít nhất 1 sản phẩm!");
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            // Ráp data thành cục JSON theo đúng chuẩn Swagger
+            const payload = {
+                supplierId: Number(selectedSupplierId),
+                note: orderNote.trim(),
+                details: selectedProducts.map(p => {
+                    const qty = p.orderQty === '' ? 0 : parseInt(p.orderQty);
+                    const unitCost = Number(p.price);
+                    const totalPrice = Math.round(qty * unitCost * (1 + p.vat / 100));
+                    
+                    return {
+                        productId: Number(p.id),
+                        quantity: qty,
+                        unitCost: unitCost,
+                        totalPrice: totalPrice,
+                        vatRate: p.vat,
+                        note: "" // Có thể mở rộng cho phép user nhập note từng món sau
+                    };
+                })
+            };
+
+            // Gọi API POST
+            await api.post('/api/inventory-receipts', payload);
+
+            // Báo thành công và Reset form
+            alert("🎉 Đã tạo Phiếu Đặt Hàng thành công!");
+            setSelectedProducts([]);
+            setSearchQuery("");
+            setOrderNote("");
+
+            // Tuỳ chọn: Có thể redirect user về trang danh sách phiếu (PurchaseList) ở đây
+
+        } catch (error: any) {
+            console.error("Lỗi khi tạo phiếu đặt hàng:", error);
+            const errorMsg = error.response?.data?.message || "Có lỗi xảy ra khi tạo phiếu!";
+            alert("❌ Lỗi: " + errorMsg);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     return (
         <main className="max-w-5xl mx-auto py-8 px-4 space-y-8 font-sans bg-gray-50 min-h-screen">
             <header className="text-center mb-8">
                 <h1 className="text-3xl font-extrabold text-blue-900 uppercase tracking-wide">
-                    PHIẾU ĐẶT HÀNG (PO)
+                    PHIẾU NHẬP KHO
                 </h1>
             </header>
 
-            {/* BƯỚC 1: THÔNG TIN CHUNG TỰ FILL */}
+            {/* BƯỚC 1: THÔNG TIN CHUNG */}
             <section className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
                 <div className="bg-gray-100 border-b border-gray-200 px-6 py-3">
                     <h2 className="text-base font-bold text-gray-800 uppercase flex items-center gap-2">
@@ -136,7 +219,6 @@ const PurchaseCard = () => {
 
                 <div className="p-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {/* Cột trái: Cột chọn nhà cung cấp */}
                         <div className="space-y-5">
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Nguồn nhập (Công ty) *</label>
@@ -154,25 +236,31 @@ const PurchaseCard = () => {
 
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Mã nguồn</label>
-                                <input type="text" disabled className="w-full bg-gray-100 border-gray-200 rounded-lg text-sm py-2 px-4 text-gray-600 font-mono" value={selectedSupplier?.code || ''} placeholder="Tự động điền..." />
+                                <input type="text" disabled className="w-full bg-gray-100 border-gray-200 rounded-lg text-sm py-2 px-4 text-gray-600 font-mono"
+                                    value={selectedSupplier ? `NCC-00${selectedSupplier.id}` : ''}
+                                    placeholder="Tự động điền..." />
                             </div>
 
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Số điện thoại</label>
-                                <input type="text" disabled className="w-full bg-gray-100 border-gray-200 rounded-lg text-sm py-2 px-4 text-gray-600" value={selectedSupplier?.phone || ''} placeholder="Tự động điền..." />
+                                <input type="text" disabled className="w-full bg-gray-100 border-gray-200 rounded-lg text-sm py-2 px-4 text-gray-600"
+                                    value={selectedSupplier?.phone || ''}
+                                    placeholder="Tự động điền..." />
                             </div>
 
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Địa chỉ</label>
-                                <textarea disabled className="w-full bg-gray-100 border-gray-200 rounded-lg text-sm py-2 px-4 text-gray-600 resize-none" rows={2} value={selectedSupplier?.address || ''} placeholder="Tự động điền..." />
+                                <textarea disabled className="w-full bg-gray-100 border-gray-200 rounded-lg text-sm py-2 px-4 text-gray-600 resize-none"
+                                    rows={2}
+                                    value={selectedSupplier?.address || ''}
+                                    placeholder="Tự động điền..." />
                             </div>
                         </div>
 
-                        {/* Cột phải: Ngày tháng */}
                         <div className="space-y-5 border-l-0 md:border-l border-gray-100 md:pl-8">
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1">Mã phiếu đặt hàng</label>
-                                <input type="text" disabled className="w-full bg-gray-100 border-gray-200 rounded-lg text-sm py-2 px-4 text-blue-700 font-bold font-mono" value="PO-AUTO-001" />
+                                <input type="text" disabled className="w-full bg-gray-100 border-gray-200 rounded-lg text-sm py-2 px-4 text-blue-700 font-bold font-mono" value="PO-AUTO" placeholder="Tạo tự động..." />
                             </div>
 
                             <div>
@@ -206,16 +294,16 @@ const PurchaseCard = () => {
 
                 <div className="max-h-64 overflow-y-auto">
                     {!selectedSupplierId ? (
-                        <div className="p-8 text-center text-gray-500 italic text-sm">Vui lòng chọn Nguồn nhập ở trên để xem danh sách sản phẩm.</div>
+                        <div className="p-8 text-center text-gray-500 italic text-sm">Vui lòng chọn Nguồn nhập ở trên để tải danh sách sản phẩm.</div>
                     ) : availableProducts.length === 0 ? (
-                        <div className="p-8 text-center text-gray-500 italic text-sm">Không tìm thấy sản phẩm nào khớp với từ khóa.</div>
+                        <div className="p-8 text-center text-gray-500 italic text-sm">Không tìm thấy sản phẩm nào của nhà cung cấp này.</div>
                     ) : (
                         <table className="w-full text-sm border-collapse">
-                            <thead className="bg-blue-50 sticky top-0">
+                            <thead className="bg-blue-50 sticky top-0 z-10">
                                 <tr>
                                     <th className="p-3 text-left text-xs font-semibold text-gray-600 uppercase w-1/2">Tên sản phẩm</th>
                                     <th className="p-3 text-center text-xs font-semibold text-gray-600 uppercase">Mã SP</th>
-                                    <th className="p-3 text-right text-xs font-semibold text-gray-600 uppercase">Đơn giá</th>
+                                    <th className="p-3 text-right text-xs font-semibold text-gray-600 uppercase">Giá Nhập</th>
                                     <th className="p-3 text-center text-xs font-semibold text-gray-600 uppercase w-20">Thao tác</th>
                                 </tr>
                             </thead>
@@ -224,12 +312,11 @@ const PurchaseCard = () => {
                                     <tr key={p.id} className="hover:bg-gray-50 transition-colors">
                                         <td className="p-3 font-medium text-gray-800">{p.name}</td>
                                         <td className="p-3 text-center font-mono text-gray-500 text-xs">{p.code}</td>
-                                        <td className="p-3 text-right text-gray-700">{formatCurrency(p.price)} đ</td>
+                                        <td className="p-3 text-right text-gray-700 font-semibold">{formatCurrency(p.price)} đ</td>
                                         <td className="p-3 text-center">
                                             <button
                                                 onClick={() => handleAddProduct(p)}
                                                 className="inline-flex items-center gap-1 bg-blue-100 hover:bg-blue-600 text-blue-700 hover:text-white px-3 py-1.5 rounded-md text-xs font-bold transition-colors"
-                                                title="Thêm vào danh sách đặt"
                                             >
                                                 <PlusCircle className="w-3.5 h-3.5" /> Thêm
                                             </button>
@@ -284,9 +371,8 @@ const PurchaseCard = () => {
                                             <td className="p-3 font-semibold text-gray-800">{p.name}</td>
                                             <td className="p-3 text-center font-mono text-xs text-gray-500">{p.code}</td>
                                             <td className="p-3 text-center text-gray-500">{p.unit}</td>
-                                            <td className="p-3 text-right text-gray-700">{formatCurrency(p.price)}</td>
+                                            <td className="p-3 text-right text-gray-700 font-semibold">{formatCurrency(p.price)}</td>
 
-                                            {/* Ô NHO NG NÚT TĂNG GIẢM */}
                                             <td className="p-3 bg-yellow-50/50">
                                                 <div className="flex items-center justify-center bg-white border border-gray-300 rounded-md overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 w-full">
                                                     <button
@@ -319,7 +405,6 @@ const PurchaseCard = () => {
                                                 <button
                                                     onClick={() => handleRemoveProduct(p.id)}
                                                     className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                                                    title="Xóa mặt hàng này"
                                                 >
                                                     <Trash2 className="w-5 h-5 mx-auto" />
                                                 </button>
@@ -341,18 +426,35 @@ const PurchaseCard = () => {
                         </tfoot>
                     </table>
                 </div>
+
+                {/* GHI CHÚ PHIẾU NHẬP (Thêm vào đây để chuẩn bị gửi xuống DB) */}
+                <div className="p-6 border-t border-gray-200 bg-white">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Ghi chú chung cho Phiếu đặt hàng</label>
+                    <textarea
+                        className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm py-2 px-4 resize-none"
+                        rows={2}
+                        placeholder="VD: Nhập lô hàng gọng kính tháng 3..."
+                        value={orderNote}
+                        onChange={(e) => setOrderNote(e.target.value)}
+                    />
+                </div>
             </section>
 
             {/* BƯỚC 4: NÚT XÁC NHẬN TỔNG */}
             <div className="flex justify-center pt-4 pb-10">
                 <button
-                    className={`py-4 px-16 rounded-xl font-bold shadow-lg flex items-center gap-3 transition-all transform active:scale-95 text-lg uppercase tracking-wider
+                    className={`py-4 px-16 rounded-xl font-bold shadow-lg flex items-center gap-3 transition-all transform text-lg uppercase tracking-wider
                         ${selectedProducts.length > 0
-                            ? 'bg-blue-700 hover:bg-blue-800 text-white shadow-blue-300 hover:-translate-y-1'
+                            ? 'bg-blue-700 hover:bg-blue-800 text-white shadow-blue-300 hover:-translate-y-1 active:scale-95'
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
-                    disabled={selectedProducts.length === 0}
-                    onClick={() => alert("Đã xác nhận tạo Phiếu Đặt Hàng thành công!")}
+                    disabled={selectedProducts.length === 0 || isSubmitting}
+                    onClick={handleSubmitOrder}
                 >
+                    {isSubmitting ? (
+                        <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                    ) : (
+                        <Upload className="w-5 h-5" />
+                    )}
                     Xác nhận tạo phiếu đặt hàng
                 </button>
             </div>

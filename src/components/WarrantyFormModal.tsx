@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { ShieldAlert, X, Upload, Plus, Minus, Image as ImageIcon, AlertTriangle } from 'lucide-react';
-import { toast } from 'sonner';
 
 import { api } from "@/lib/api";
 import { Popup } from "@/components/Popup";
@@ -20,6 +19,10 @@ export default function WarrantyFormModal({ isOpen, onClose, order }: WarrantyFo
 
     // STATE LƯU LỖI ĐỂ HIỂN THỊ TRÊN FORM
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+    // STATE LƯU ẢNH QR MÃ HOÀN TIỀN
+    const [qrFile, setQrFile] = useState<File | null>(null);
+    const [qrPreview, setQrPreview] = useState<string | null>(null);
 
     // FORM STATE
     const [form, setForm] = useState({
@@ -80,15 +83,17 @@ export default function WarrantyFormModal({ isOpen, onClose, order }: WarrantyFo
             });
             setSelectedItems(initialItems);
             setForm({ returnType: 'WARRANTY', requestScope: 'ITEM', returnReason: '', refundMethod: '', refundAccountNumber: '', refundAccountName: '', requestNote: '' });
-            setErrorMsg(null); // Xóa lỗi cũ khi mở lại modal
+            setErrorMsg(null);
+            setQrFile(null);
+            setQrPreview(null);
         }
     }, [isOpen, unifiedProducts]);
 
     const handleFormChange = (field: string, value: string) => {
-        setErrorMsg(null); 
+        setErrorMsg(null);
         setForm(prev => {
             const newForm = { ...prev, [field]: value };
-            
+
             // LOGIC TỰ ĐỘNG CHỌN HẾT KHI ĐỔI SANG "TOÀN BỘ ĐƠN"
             if (field === 'requestScope' && value === 'ORDER') {
                 newForm.returnType = 'REFUND';
@@ -96,13 +101,12 @@ export default function WarrantyFormModal({ isOpen, onClose, order }: WarrantyFo
                     const newItems = { ...prevItems };
                     Object.keys(newItems).forEach(key => {
                         newItems[Number(key)].selected = true;
-                        newItems[Number(key)].qty = newItems[Number(key)].maxQty; // Full số lượng
+                        newItems[Number(key)].qty = newItems[Number(key)].maxQty;
                     });
                     return newItems;
                 });
             }
-            
-            // Nếu đổi lại ITEM thì set tạm về WARRANTY
+
             if (field === 'requestScope' && value === 'ITEM' && prev.returnType === 'REFUND') {
                 newForm.returnType = 'WARRANTY';
             }
@@ -111,7 +115,7 @@ export default function WarrantyFormModal({ isOpen, onClose, order }: WarrantyFo
     };
 
     const handleItemToggle = (id: number) => {
-        setErrorMsg(null); 
+        setErrorMsg(null);
         setSelectedItems(prev => ({
             ...prev, [id]: { ...prev[id], selected: !prev[id].selected }
         }));
@@ -135,12 +139,29 @@ export default function WarrantyFormModal({ isOpen, onClose, order }: WarrantyFo
         handleItemDataChange(id, 'preview', preview);
     };
 
+    // ── XỬ LÝ ẢNH QR ──
+    const handleQrUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setErrorMsg(null);
+        if (qrPreview) URL.revokeObjectURL(qrPreview);
+        setQrPreview(URL.createObjectURL(file));
+        setQrFile(file);
+    };
+
+    const removeQr = () => {
+        if (qrPreview) URL.revokeObjectURL(qrPreview);
+        setQrPreview(null);
+        setQrFile(null);
+    };
+
     // ── GỌI API TRỰC TIẾP KHI BẤM NÚT GỬI ──
     const submitWarrantyRequest = async (e: React.FormEvent) => {
         e.preventDefault();
         setErrorMsg(null);
 
-        // Validate
+        // 1. Validate
         if (!form.returnReason.trim()) {
             setErrorMsg("Vui lòng nhập lý do chung!");
             return;
@@ -163,35 +184,55 @@ export default function WarrantyFormModal({ isOpen, onClose, order }: WarrantyFo
         try {
             const formData = new FormData();
 
+            // Hàm chuyển chuỗi rỗng "" thành null
+            const getNullIfEmpty = (val: string) => {
+                if (!val) return null;
+                const trimmed = val.trim();
+                return trimmed === '' ? null : trimmed;
+            };
+
+            // 2. Tạo cục JSON request và nhét NULL vào nếu field trống
             const requestPayload: any = {
                 orderId: order.orderId,
                 returnType: form.returnType,
                 requestScope: form.requestScope,
-                returnReason: form.returnReason,
-                requestNote: form.requestNote || null,
-                refundMethod: (form.returnType === 'RETURN' || form.returnType === 'REFUND') ? form.refundMethod : null,
-                refundAccountNumber: (form.returnType === 'RETURN' || form.returnType === 'REFUND') ? form.refundAccountNumber : null,
-                refundAccountName: (form.returnType === 'RETURN' || form.returnType === 'REFUND') ? form.refundAccountName : null,
+                returnReason: getNullIfEmpty(form.returnReason),
+                requestNote: getNullIfEmpty(form.requestNote),
+                refundMethod: (form.returnType === 'RETURN' || form.returnType === 'REFUND') ? getNullIfEmpty(form.refundMethod) : null,
+                refundAccountNumber: (form.returnType === 'RETURN' || form.returnType === 'REFUND') ? getNullIfEmpty(form.refundAccountNumber) : null,
+                refundAccountName: (form.returnType === 'RETURN' || form.returnType === 'REFUND') ? getNullIfEmpty(form.refundAccountName) : null,
                 items: []
             };
 
-            // LƯU Ý: Vẫn lặp và push mảng items bất kể là ORDER hay ITEM theo yêu cầu của bạn
+            // Quét TẤT CẢ sản phẩm đã chọn
             selectedArray.forEach(([id, itemData]) => {
                 requestPayload.items.push({
                     orderDetailId: Number(id),
-                    quantity: itemData.qty,
-                    itemReason: itemData.reason || null,
-                    note: itemData.note || null
+                    quantity: Number(itemData.qty),
+                    itemReason: getNullIfEmpty(itemData.reason),
+                    note: getNullIfEmpty(itemData.note)
                 });
+
+                // Mảng ảnh phải có độ dài bằng mảng items.
                 if (itemData.file) {
                     formData.append('itemImages', itemData.file as Blob);
+                } else {
+                    const emptyFile = new File([""], "empty.png", { type: "image/png" });
+                    formData.append('itemImages', emptyFile);
                 }
             });
 
+            // Ép thành application/json để Spring Boot đọc @RequestPart
             formData.append('request', new Blob([JSON.stringify(requestPayload)], {
                 type: "application/json"
             }));
 
+            // Gửi thêm QR Code (nếu có)
+            if (qrFile && (form.returnType === 'RETURN' || form.returnType === 'REFUND')) {
+                formData.append('customerImageQr', qrFile as Blob);
+            }
+
+            // Gọi API (Ép header multipart/form-data để Axios không tự chèn application/json)
             await api.post('/api/return-exchanges', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
@@ -276,7 +317,7 @@ export default function WarrantyFormModal({ isOpen, onClose, order }: WarrantyFo
                             </div>
                         </section>
 
-                        {/* NHÓM 2: THÔNG TIN NGÂN HÀNG */}
+                        {/* NHÓM 2: THÔNG TIN NGÂN HÀNG VÀ ẢNH QR */}
                         {(form.returnType === 'RETURN' || form.returnType === 'REFUND') && (
                             <section className="bg-orange-50 p-5 rounded-xl border border-orange-200 shadow-sm space-y-4 animate-in fade-in slide-in-from-top-2">
                                 <h3 className="font-bold text-orange-800 border-b border-orange-200/50 pb-2">2. Thông tin nhận tiền hoàn</h3>
@@ -293,6 +334,30 @@ export default function WarrantyFormModal({ isOpen, onClose, order }: WarrantyFo
                                         <label className="block text-sm font-semibold text-orange-900 mb-1">Tên chủ tài khoản <span className="text-red-500">*</span></label>
                                         <input type="text" value={form.refundAccountName} onChange={(e) => handleFormChange('refundAccountName', e.target.value.toUpperCase())} placeholder="NGUYEN VAN A" className="w-full border border-orange-300 rounded-lg text-sm py-2 px-3 uppercase focus:ring-orange-500 focus:border-orange-500" />
                                     </div>
+
+                                    {/* ẢNH QR CODE */}
+                                    <div className="md:col-span-2 pt-2 border-t border-orange-200/50 mt-1">
+                                        <label className="block text-sm font-semibold text-orange-900 mb-2">Mã QR Nhận Tiền (Tùy chọn)</label>
+                                        <div className="flex flex-col sm:flex-row items-start gap-4">
+                                            {!qrPreview ? (
+                                                <label className="w-24 h-24 shrink-0 border-2 border-dashed border-orange-300 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-orange-100 transition-colors text-orange-600 bg-white">
+                                                    <ImageIcon className="w-5 h-5 mb-1 opacity-50" />
+                                                    <span className="text-[10px] font-bold">Tải ảnh QR</span>
+                                                    <input type="file" accept="image/*" onChange={handleQrUpload} className="hidden" />
+                                                </label>
+                                            ) : (
+                                                <div className="relative w-24 h-24 shrink-0 group">
+                                                    <img src={qrPreview} alt="QR Preview" className="w-full h-full object-cover rounded-xl border border-orange-300 shadow-sm" />
+                                                    <button type="button" onClick={removeQr} className="absolute -top-2 -right-2 p-1 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors shadow-md">
+                                                        <X className="w-3 h-3" />
+                                                    </button>
+                                                </div>
+                                            )}
+                                            <p className="text-xs text-orange-700/80 mt-1 flex-1">
+                                                Tải lên hình ảnh mã QR nhận tiền của bạn để chúng tôi có thể xử lý hoàn tiền nhanh chóng và chính xác hơn.
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
                             </section>
                         )}
@@ -304,21 +369,21 @@ export default function WarrantyFormModal({ isOpen, onClose, order }: WarrantyFo
                                 {unifiedProducts.map(p => {
                                     const isSelected = selectedItems[p.id]?.selected;
                                     const itemState = selectedItems[p.id];
-                                    const isOrderScope = form.requestScope === 'ORDER'; // Kiểm tra xem có đang chọn toàn bộ đơn không
+                                    const isOrderScope = form.requestScope === 'ORDER';
 
                                     return (
                                         <div key={p.id} className={`border rounded-xl transition-all overflow-hidden ${isSelected ? 'border-teal-400 bg-teal-50/20 shadow-sm ring-1 ring-teal-400' : 'border-gray-200 hover:border-gray-300'}`}>
-                                            <div 
-                                                className={`flex items-center gap-4 p-3 ${isOrderScope ? 'cursor-default opacity-90' : 'cursor-pointer'}`} 
-                                                onClick={() => !isOrderScope && handleItemToggle(p.id)} // Khóa click nếu đang chọn "Cả đơn"
+                                            <div
+                                                className={`flex items-center gap-4 p-3 ${isOrderScope ? 'cursor-default opacity-90' : 'cursor-pointer'}`}
+                                                onClick={() => !isOrderScope && handleItemToggle(p.id)}
                                             >
                                                 <div className="pl-2">
-                                                    <input 
-                                                        type="checkbox" 
-                                                        checked={isSelected} 
-                                                        readOnly 
-                                                        disabled={isOrderScope} // Khóa ô checkbox luôn
-                                                        className="w-5 h-5 text-teal-600 rounded border-gray-300 focus:ring-teal-500 disabled:opacity-70" 
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={isSelected}
+                                                        readOnly
+                                                        disabled={isOrderScope}
+                                                        className="w-5 h-5 text-teal-600 rounded border-gray-300 focus:ring-teal-500 disabled:opacity-70"
                                                     />
                                                 </div>
                                                 <img src={p.img} alt={p.name} className="w-14 h-14 rounded-lg object-cover border border-gray-200 shrink-0" />
@@ -336,7 +401,6 @@ export default function WarrantyFormModal({ isOpen, onClose, order }: WarrantyFo
                                                     <div className="flex items-center gap-4">
                                                         <label className="text-sm font-semibold text-gray-700 w-32 shrink-0">Số lượng bị lỗi:</label>
                                                         <div className="flex items-center justify-center bg-white border border-gray-300 rounded-lg overflow-hidden h-9">
-                                                            {/* Khóa nút tăng giảm nếu là trả cả đơn (trả cả đơn thì bắt buộc trả full số lượng) */}
                                                             <button type="button" disabled={isOrderScope || itemState.qty <= 1} onClick={() => handleItemDataChange(p.id, 'qty', Math.max(1, itemState.qty - 1))} className="p-2 px-3 text-gray-500 hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:hover:bg-transparent"><Minus className="w-3.5 h-3.5" /></button>
                                                             <input type="text" readOnly value={itemState.qty} className="w-10 text-center font-bold text-teal-700 border-none p-1 text-sm focus:ring-0" />
                                                             <button type="button" disabled={isOrderScope || itemState.qty >= p.maxQty} onClick={() => handleItemDataChange(p.id, 'qty', Math.min(p.maxQty, itemState.qty + 1))} className="p-2 px-3 text-gray-500 hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:hover:bg-transparent"><Plus className="w-3.5 h-3.5" /></button>

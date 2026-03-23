@@ -47,15 +47,15 @@ export const roleTabsConfig: RoleTabs[] = [
                 icon: FileText,
                 path: '/sales/containers/return-orders'
             }, {
-                id: 'form-list',
-                label: 'Form List',
+                id: 'inventoryorder',
+                label: 'Quản lý kho',
                 icon: ClipboardList,
-                path: '/sales/form-list'
+                path: '/sales/ui/inventoryorder'
             }, {
-                id: 'form-detail',
-                label: 'Form Detail',
+                id: 'cancelled-orders',
+                label: 'Danh sách đơn huỷ',
                 icon: FileText,
-                path: '/sales/form-detail'
+                path: '/sales/containers/cancelled-orders'
             }
         ]
     },
@@ -80,9 +80,15 @@ export const roleTabsConfig: RoleTabs[] = [
                 path: '/operation-staff/inventory'
             }, {
                 id: 'purchase-card',
-                label: 'Phiếu đặt hàng',
+                label: 'Phiếu nhập kho',
                 icon: BarChart3,
                 path: '/operation-staff/purchase-card'
+            },
+            {
+                id: 'purchase-list',
+                label: 'Quản lí phiếu nhập kho',
+                icon: BarChart3,
+                path: '/operation-staff/purchase-list'
             }
         ]
     },
