@@ -128,7 +128,7 @@ export default function PrescriptionInputTabs({ formik }) {
                             onClick={removeForm}
                             className="px-4 py-1 bg-red-100 text-red-700 rounded-lg text-xs font-semibold hover:bg-red-200"
                         >
-                            Xóa thông số
+                            Xóa tất cả thông số
                         </button>
                     </div>
                     <table className="w-full text-sm">

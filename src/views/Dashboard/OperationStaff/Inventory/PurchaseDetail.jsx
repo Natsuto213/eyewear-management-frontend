@@ -153,7 +153,7 @@ const PurchaseDetail = () => {
             };
 
             // Gọi API POST /receive
-            api.post(`api/inventory-receipts/${id}/receive`, payload)
+            api.put(`api/inventory-receipts/${id}/receive`, payload)
                 .then(() => {
                     alert("Nhập kho thành công!");
                     fetchOrderDetail(); // Tải lại để cập nhật status mới

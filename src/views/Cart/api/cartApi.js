@@ -1,52 +1,14 @@
-/**
- * cartApi.js
- * ───────────
- * Chứa tất cả hàm gọi API giỏ hàng.
- *
- * 5 API dùng:
- *   POST   /api/cart/add           — Thêm sản phẩm mới vào giỏ
- *   PUT    /api/cart/update        — Cập nhật số lượng sản phẩm đã có
- *   GET    /api/cart/getAllCart     — Lấy toàn bộ giỏ hàng
- *   DELETE /api/cart/delete/:id    — Xóa 1 sản phẩm
- *   DELETE /api/cart/deleteAllCart — Xóa toàn bộ giỏ hàng
- */
+
 
 import { api } from "@/lib/api";
 
-// ═══════════════════════════════════════════════════════════════
-// 1. HÀM CHUYỂN ĐỔI: payload frontend → body API (dùng khi POST /add)
-// ═══════════════════════════════════════════════════════════════
 // Frontend lưu: { productId, pairedProductId, priceProduct, pricePairedProduct, prescription, ... }
 // API cần:      { frameId, lensId, contactLensId, framePrice, lensPrice, price, rightEyeSph, ... }
 //
 // Vì 1 sản phẩm có thể là Gọng, Tròng, hoặc Kính áp tròng
-// → cần dựa vào productType để biết gán vào field nào
-// ═══════════════════════════════════════════════════════════════
+//  cần dựa vào productType để biết gán vào field nào
 
-/**
- * parsePrescription — Chuyển giá trị đơn thuốc từ chuỗi sang số
- *
- * @param {string} value - Giá trị user nhập, ví dụ: "0", "-1.5", ""
- * @param {boolean} needPrescription - Có cả frameId + lensId không?
- * @returns {number|null}
- *
- * 3 trường hợp:
- *   1. Có cả frame + lens (needPrescription = true):
- *      → Luôn giữ giá trị, kể cả 0. Trống/sai → mặc định 0
- *      parsePrescription("0", true)     → 0
- *      parsePrescription("-1.5", true)  → -1.5
- *      parsePrescription("", true)      → 0
- *
- *   2. Chỉ có 1 ID (needPrescription = false), giá trị = 0 hoặc trống:
- *      → null
- *      parsePrescription("0", false)    → null
- *      parsePrescription("", false)     → null
- *
- *   3. Chỉ có 1 ID (needPrescription = false), giá trị ≠ 0:
- *      → Giữ nguyên giá trị
- *      parsePrescription("-1.5", false) → -1.5
- *      parsePrescription("180", false)  → 180
- */
+
 function parsePrescription(value, needPrescription) {
     // Chuyển chuỗi thành số
     const number = parseFloat(value);
@@ -69,7 +31,6 @@ function parsePrescription(value, needPrescription) {
 }
 
 function buildCartApiBody(item, quantity) {
-    // Bước 1: Xác định frameId, lensId, contactLensId
     let frameId = null;
     let lensId = null;
     let contactLensId = null;
@@ -96,17 +57,15 @@ function buildCartApiBody(item, quantity) {
         lensPrice = item.pricePairedProduct ?? 0;
     }
 
-    // Bước 2: Lấy thông số đơn thuốc
+    // Lấy thông số đơn thuốc
     const rx = item.prescription || {};
 
     // Kiểm tra sản phẩm có cần đơn thuốc không?
     // Chỉ cần đơn thuốc khi mua Gọng kính + Tròng kính cùng lúc
     const needPrescription = frameId !== null && lensId !== null;
 
-    // Bước 3: Tính tổng giá
+    //Tính tổng giá
     const totalPrice = (item.priceProduct ?? 0) + (item.pricePairedProduct ?? 0);
-
-    // Bước 4: Tạo body API
     return {
         frameId,
         lensId,
@@ -138,27 +97,20 @@ function buildCartApiBody(item, quantity) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 2. HÀM CHUYỂN ĐỔI: response API → object hiển thị trên UI
+//  HÀM CHUYỂN ĐỔI: response API → object hiển thị trên UI
 // ═══════════════════════════════════════════════════════════════
 // API trả về: { cartItemId, frameName, framePrice, frameImg, lensName, lensPrice, lensImg,
 //               contactLensName, contactLensPrice, contactLensImg, quantity, price }
 //
 // UI cần:     { cartItemId, nameProduct, imgProduct, priceProduct, quantity, price,
 //               namePairedProduct, imgPairedProduct, pricePairedProduct, ... }
-//
-// Quy tắc:
-//   - Nếu framePrice > 0 → Gọng kính là sản phẩm CHÍNH
-//   - Nếu lensPrice > 0 kèm frame → Tròng kính là sản phẩm KÈM
-//   - Nếu lensPrice > 0 mà KHÔNG có frame → Tròng kính là sản phẩm CHÍNH
-//   - Nếu contactLensPrice > 0 → Kính áp tròng là sản phẩm CHÍNH
 // ═══════════════════════════════════════════════════════════════
 
 export function mapApiItemToLocal(apiItem) {
-    // Kết quả sẽ điền vào đây
     let nameProduct = "";
     let imgProduct = "";
     let priceProduct = 0;
-    let productId = null;           // ID sản phẩm chính (frameId / lensId / contactLensId)
+    let productId = null;
 
     let namePairedProduct = null;
     let imgPairedProduct = null;
@@ -196,7 +148,6 @@ export function mapApiItemToLocal(apiItem) {
     }
 
     // ── Đơn thuốc — API đã trả về prescription object ──
-    // Nếu API trả prescription → dùng luôn, nếu chưa có → null
     const prescription = apiItem.prescription ?? null;
 
     return {
@@ -215,44 +166,22 @@ export function mapApiItemToLocal(apiItem) {
 
         prescription,
         itemType: apiItem.itemType,
-        // _raw = dữ liệu gốc từ server
-        // Dùng khi bấm +/- (PUT /api/cart/update) để gửi lại đúng data
-        // Vì item trong giỏ không có productType → không dùng buildCartApiBody được
-        _raw: {
-            frameId: apiItem.frameId ?? null,
-            lensId: apiItem.lensId ?? null,
-            contactLensId: apiItem.contactLensId ?? null,
-            framePrice: apiItem.framePrice ?? null,
-            lensPrice: apiItem.lensPrice ?? null,
-            price: apiItem.price ?? null,
-        },
+
     };
 }
 
-// ═══════════════════════════════════════════════════════════════
-// 3. CÁC HÀM GỌI API
-// ═══════════════════════════════════════════════════════════════
 
 /**
- * addCartItemApi — POST /api/cart/add
- * Thêm sản phẩm MỚI vào giỏ (gọi từ trang ProductDetail)
  * Dùng buildCartApiBody để chuyển payload frontend → body API
  */
 export async function addCartItemApi(item, quantity) {
     const body = buildCartApiBody(item, quantity);
+    console.log("[ADD] Gọi API cart/add:", body);
     const response = await api.post("/api/cart/add", body);
     return response.data;
 }
 
-/**
- * updateCartQtyApi — PUT /api/cart/update
- * Cập nhật số lượng sản phẩm ĐÃ CÓ trong giỏ (bấm +/-)
- *
- * Backend chỉ cần 2 field: cartItemId + quantity
- *
- * @param {number} cartItemId - ID của item trong giỏ
- * @param {number} newQty     - Số lượng mới
- */
+
 export async function updateCartQtyApi(cartItemId, newQty) {
     const body = {
         cartItemId,
@@ -265,28 +194,17 @@ export async function updateCartQtyApi(cartItemId, newQty) {
 }
 
 
-/**
- * getAllCartApi — GET /api/cart/getAllCart
- * Lấy toàn bộ giỏ hàng từ server
- */
 export async function getAllCartApi() {
     const response = await api.get("/api/cart/getAllCart");
     return response.data;
 }
 
-/**
- * deleteCartItemApi — DELETE /api/cart/delete/:cartItemId
- * Xóa 1 sản phẩm khỏi giỏ
- */
 export async function deleteCartItemApi(cartItemId) {
     const response = await api.delete(`/api/cart/delete/${cartItemId}`);
     return response.data;
 }
 
-/**
- * deleteAllCartApi — DELETE /api/cart/deleteAllCart
- * Xóa toàn bộ giỏ hàng
- */
+
 export async function deleteAllCartApi() {
     const response = await api.delete("/api/cart/deleteAllCart");
     return response.data;

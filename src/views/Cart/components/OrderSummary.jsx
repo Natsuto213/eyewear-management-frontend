@@ -1,24 +1,4 @@
-/**
- * OrderSummary.jsx
- * ─────────────────
- * Component hiển thị SIDEBAR TÓM TẮT ĐƠN HÀNG (bên phải).
- *
- * ⚡ CHỈ hiển thị những sản phẩm ĐƯỢC TICK (selectedItems)
- * ⚡ Tổng tiền chỉ tính cho sản phẩm được tick (selectedTotal)
- *
- * Gồm:
- *   - Tiêu đề "Tóm tắt đơn hàng"
- *   - Danh sách tên + thành tiền (chỉ sản phẩm được tick)
- *   - Tổng cộng (chỉ sản phẩm được tick)
- *   - Nút "Tiến hành đặt hàng" (disable nếu chưa tick gì)
- *   - Link "Tiếp tục mua sắm"
- *
- * Props:
- *   - selectedItems: mảng sản phẩm ĐÃ ĐƯỢC TICK
- *   - selectedTotal: tổng tiền của sản phẩm được tick
- *   - formatCurrency: hàm format tiền VND
- *   - onCheckout: hàm gọi khi nhấn "Tiến hành đặt hàng"
- */
+
 
 import { Link } from "react-router-dom";
 
@@ -31,7 +11,6 @@ export default function OrderSummary({ selectedItems, selectedTotal, formatCurre
         <div className="lg:w-72 w-full shrink-0">
             <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4 sticky top-6">
 
-                {/* ── Tiêu đề ── */}
                 <h2 className="font-bold text-gray-800 text-base">
                     Tóm tắt đơn hàng
                     {/* Hiện số lượng sản phẩm được chọn */}
@@ -48,7 +27,6 @@ export default function OrderSummary({ selectedItems, selectedTotal, formatCurre
                 {hasSelection ? (
                     <ul className="space-y-2 max-h-60 overflow-y-auto">
                         {selectedItems.map((item) => {
-                            // Tính thành tiền — dùng item.price từ server
                             const lineTotal = item.price * item.quantity;
 
                             return (

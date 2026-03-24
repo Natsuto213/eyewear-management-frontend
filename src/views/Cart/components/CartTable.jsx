@@ -1,25 +1,4 @@
-/**
- * CartTable.jsx
- * ──────────────
- * Component hiển thị BẢNG DANH SÁCH tất cả sản phẩm trong giỏ hàng.
- *
- * Có thêm cột CHECKBOX ở đầu mỗi dòng:
- *   - Header: checkbox "Chọn tất cả"
- *   - Mỗi dòng: checkbox tick/bỏ tick từng sản phẩm
- *
- * Cấu trúc bảng (7 cột):
- *   ✅ | Ảnh | Tên & Đơn thuốc | Đơn giá | Số lượng | Thành tiền | Xoá
- *
- * Props:
- *   - cartItems: mảng sản phẩm trong giỏ
- *   - selectedKeys: MẢNG chứa key của các item đã tick (dạng ["cart-0", "cart-1"])
- *   - isAllSelected: boolean — tất cả đã tick chưa?
- *   - onToggle(itemKey): hàm tick/bỏ tick 1 sản phẩm
- *   - onToggleAll(): hàm tick/bỏ tick tất cả
- *   - getItemKey(item, index): hàm tạo key duy nhất cho item (dùng index)
- *   - onIncrease, onDecrease, onRemove: hàm xử lý số lượng/xóa
- *   - formatCurrency: hàm format tiền
- */
+
 
 import CartItemRow from "./CartItemRow";
 
@@ -65,17 +44,14 @@ export default function CartTable({
                 {/* ── Nội dung: lặp qua từng sản phẩm ── */}
                 <tbody className="divide-y divide-gray-50">
                     {cartItems.map((item) => {
-                        // Tạo key duy nhất dùng cartItemId từ server
                         const itemKey = getItemKey(item);
 
                         return (
                             <CartItemRow
                                 key={itemKey}
                                 item={item}
-                                // ── Checkbox props ──
                                 isSelected={selectedKeys.includes(itemKey)}
                                 onToggle={() => onToggle(itemKey)}
-                                // ── Hàm xử lý — truyền cartItemId (ID duy nhất từ server) ──
                                 onIncrease={() => onIncrease(item.cartItemId)}
                                 onDecrease={() => onDecrease(item.cartItemId)}
                                 onRemove={() => onRemove(item.cartItemId)}

@@ -104,7 +104,7 @@ export default function ReturnRequestInfo({
                                                     (item, index) => (
                                                         <img
                                                             key={index}
-                                                            // SỬA: itemEvidenceURL (URL viết hoa)
+
                                                             src={
                                                                 item.itemEvidenceURL
                                                             }

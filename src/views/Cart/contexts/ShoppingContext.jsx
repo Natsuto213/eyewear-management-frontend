@@ -9,21 +9,9 @@ import {
 } from "../api/cartApi";
 
 const ShoppingContext = createContext();
-
-// ═══════════════════════════════════════════════════════════════
-// ShoppingContextProvider
-// ───────────────────────
-// Quản lý giỏ hàng HOÀN TOÀN qua API backend.
-//
-// ⚙️ Cách hoạt động (rất đơn giản):
-//   1. Khi mở trang   → gọi GET /getAllCart → hiển thị lên UI
-//   2. Khi thêm/sửa/xóa → gọi API tương ứng → gọi lại GET để cập nhật UI
-//   3. Backend tự xử lý logic trùng đơn → Frontend chỉ cần gọi API
-//
-// 🔒 Kiểm tra đăng nhập:
-//   Chỉ check ở hàm addCartItem (khi bấm "Thêm vào giỏ hàng")
-//   Nếu chưa đăng nhập → hiện popup yêu cầu đăng nhập
-// ═══════════════════════════════════════════════════════════════
+//   1. Khi mở trang  -> gọi GET /getAllCart -> hiển thị lên UI
+//   2. Khi thêm/sửa/xóa -> gọi API tương ứng -> gọi lại GET để cập nhật UI
+//   3. Backend tự xử lý logic trùng đơn -> Frontend chỉ cần gọi API
 export function ShoppingContextProvider({ children }) {
 
     // ── State chính ──
@@ -31,14 +19,7 @@ export function ShoppingContextProvider({ children }) {
     const [loading, setLoading] = useState(false);
     const [showLoginPopup, setShowLoginPopup] = useState(false);
     const [showSuccessPopup, setShowSuccessPopup] = useState(false);
-    // ══════════════════════════════════════════════════════════════
-    // fetchCart — Lấy toàn bộ giỏ hàng từ server
-    // ──────────────────────────────────────────────────────────────
-    // Gọi GET /api/cart/getAllCart
-    // → Server trả về mảng sản phẩm
-    // → Chuyển đổi sang format hiển thị (mapApiItemToLocal)
-    // → Lưu vào state cartItems
-    // ══════════════════════════════════════════════════════════════
+
     const fetchCart = useCallback(async () => {
         // Chưa đăng nhập → không gọi API (sẽ bị lỗi 401)
         const token = localStorage.getItem("access_token");
@@ -54,7 +35,7 @@ export function ShoppingContextProvider({ children }) {
             const localItems = apiItems.map(mapApiItemToLocal); // Chuyển đổi format
             setCartItems(localItems);
         } catch (err) {
-            console.error("❌ Lỗi tải giỏ hàng:", err);
+            console.error(" Lỗi tải giỏ hàng:", err);
         } finally {
             setLoading(false);
         }
@@ -65,17 +46,6 @@ export function ShoppingContextProvider({ children }) {
         fetchCart();
     }, [fetchCart]);
 
-    // ══════════════════════════════════════════════════════════════
-    // addCartItem — Thêm sản phẩm vào giỏ
-    // ──────────────────────────────────────────────────────────────
-    // 🔒 Kiểm tra đăng nhập:
-    //   - Chưa login → hiện popup → dừng lại
-    //   - Đã login → gọi API thêm → tải lại giỏ hàng
-    //
-    // Backend tự xử lý:
-    //   - Nếu sản phẩm + đơn thuốc trùng → tăng quantity
-    //   - Nếu mới → tạo dòng mới
-    // ══════════════════════════════════════════════════════════════
     const addCartItem = async (newItem) => {
         console.log("Theem vao gio hang", newItem)
         const token = localStorage.getItem("access_token");
@@ -85,13 +55,13 @@ export function ShoppingContextProvider({ children }) {
         }
         try {
             await addCartItemApi(newItem, newItem.quantity);
-            await fetchCart();  // Tải lại giỏ hàng để UI cập nhật
-            setShowSuccessPopup(true); // Hiện popup thành công
-            setTimeout(() => setShowSuccessPopup(false), 2000); // Tự tắt sau 2s
+            await fetchCart();
+            setShowSuccessPopup(true);
+            setTimeout(() => setShowSuccessPopup(false), 2000);
         } catch (err) {
-            console.error("❌ Lỗi thêm vào giỏ:", err);
-            console.error("❌ Response data:", err.response?.data);
-            console.error("❌ Response status:", err.response?.status);
+            console.error("Lỗi thêm vào giỏ:", err);
+            console.error(" Response data:", err.response?.data);
+            console.error(" Response status:", err.response?.status);
         }
     };
 
@@ -103,7 +73,7 @@ export function ShoppingContextProvider({ children }) {
             await updateCartQtyApi(cartItemId, item.quantity + 1);  // PUT với quantity mới
             await fetchCart();
         } catch (err) {
-            console.error("❌ Lỗi tăng số lượng:", err);
+            console.error(" Lỗi tăng số lượng:", err);
         }
     };
 
@@ -119,7 +89,7 @@ export function ShoppingContextProvider({ children }) {
             }
             await fetchCart();
         } catch (err) {
-            console.error("❌ Lỗi giảm số lượng:", err);
+            console.error(" Lỗi giảm số lượng:", err);
         }
     };
 
@@ -128,7 +98,7 @@ export function ShoppingContextProvider({ children }) {
             await deleteCartItemApi(cartItemId);
             await fetchCart();
         } catch (err) {
-            console.error("❌ Lỗi xóa sản phẩm:", err);
+            console.error(" Lỗi xóa sản phẩm:", err);
         }
     };
 
@@ -137,7 +107,7 @@ export function ShoppingContextProvider({ children }) {
             await deleteAllCartApi();
             await fetchCart();
         } catch (err) {
-            console.error("❌ Lỗi xóa toàn bộ:", err);
+            console.error(" Lỗi xóa toàn bộ:", err);
         }
     };
 
@@ -150,22 +120,22 @@ export function ShoppingContextProvider({ children }) {
     return (
         <ShoppingContext.Provider
             value={{
-                cartItems,          // Mảng sản phẩm trong giỏ
-                cartQty,            // Tổng số lượng
-                totalPrice,         // Tổng tiền
-                loading,            // Đang tải?
+                cartItems,
+                cartQty,
+                totalPrice,
+                loading,
 
-                addCartItem,        // Thêm sản phẩm (có check login)
-                increaseQty,        // Tăng số lượng (nhận cartItemId)
-                decreaseQty,        // Giảm số lượng (nhận cartItemId)
+                addCartItem,
+                increaseQty,
+                decreaseQty,
                 removeCartItem,     // Xóa 1 sản phẩm (nhận cartItemId)
                 clearCart,          // Xóa toàn bộ
                 fetchCart,          // Tải lại giỏ từ server
 
-                showLoginPopup,     // Trạng thái popup đăng nhập
-                setShowLoginPopup,  // Bật/tắt popup đăng nhập
-                showSuccessPopup,   // Trạng thái popup thành công
-                setShowSuccessPopup // Bật/tắt popup thành công
+                showLoginPopup,
+                setShowLoginPopup,
+                showSuccessPopup,
+                setShowSuccessPopup
             }}
         >
             {children}
