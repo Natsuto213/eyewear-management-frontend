@@ -38,13 +38,6 @@ export default function AddToCartBar({ product, isFrame, isLenses, formik }) {
     // Tổng hợp trạng thái: 1 trong 2 món hết hàng -> Khóa nút Add To Cart
     const isAnyOutOfStock = isOutOfStock || isPairedOutOfStock;
 
-    console.log("Available quantity of main product:", availableQuantity);
-    console.log("Allow preorder for main product:", allowPreorder);
-    console.log("Is main product out of stock?", isOutOfStock);
-
-    console.log("Available quantity of paired product:", pairedAvailableQty);
-    console.log("Allow preorder for paired product:", pairedAllowPreorder);
-    console.log("Is paired product out of stock?", isPairedOutOfStock);
     const { addCartItem } = useShoppingContext();
     async function handleAddToCart() {
         if (isOutOfStock) {
@@ -240,7 +233,7 @@ export default function AddToCartBar({ product, isFrame, isLenses, formik }) {
                         // Nếu vượt qua cả 2 bước check (hoặc cả 2 đều là hàng Pre-order) thì mới cho tăng
                         setQuantity((q) => q + 1);
                     }}
-                    // Vô hiệu hóa nếu món chính hoặc món kèm bị hết hàng hoàn toàn
+
                     disabled={isAnyOutOfStock}
                 />
 

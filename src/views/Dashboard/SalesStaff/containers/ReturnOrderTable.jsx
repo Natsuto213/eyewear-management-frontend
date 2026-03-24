@@ -97,7 +97,7 @@ const ReturnOrderTable = () => {
 
     // Khi user bấm "Xóa lọc" → đặt lại tất cả về rỗng
     const handleResetFilter = () => {
-        setFilters({ orderId: "", orderDate: "", status: "", returnExchangeStatus: "" })
+        setFilters({ orderId: "", orderDate: "", status: "", returnExchangeStatus: "", returnType: "" })
     }
 
     // Tạo danh sách không trùng cho 2 dropdown

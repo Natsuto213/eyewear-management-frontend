@@ -4,9 +4,7 @@ import { DEFAULT_PRESCRIPTION, PRESCRIPTION_FIELDS } from "../utils/constants";
 import { useEffect } from "react";
 
 export function usePrescription() {
-    // Định nghĩa Schema bằng Yup
     const validationSchema = Yup.object(
-        // Tạo schema tự động cho 10 trường (5 thông số x 2 mắt)
         ["left", "right"].reduce((acc, side) => {
             acc[`${side}SPH`] = Yup.number()
                 .typeError("Phải là số")
