@@ -55,6 +55,7 @@ const ReturnOrderTable = () => {
             orderDate: "",
             status: "",
             returnExchangeStatus: "",
+            returnType: ""
         };
     });
 
@@ -102,6 +103,10 @@ const ReturnOrderTable = () => {
     // Tạo danh sách không trùng cho 2 dropdown
     const statusList = getUniqueList(orders, "orderStatus")
     const returnExchangeStatusList = getUniqueList(orders, "returnExchangeStatus")
+    const returnTypeList = getUniqueList(orders, "returnType")
+
+    //
+
 
     // Lọc đơn hàng: kiểm tra từng đơn có khớp 4 tiêu chí không
     const filteredOrders = orders.filter((order) => {
@@ -110,8 +115,9 @@ const ReturnOrderTable = () => {
         const matchDate = isMatch(order.orderDate.slice(0, 10).split('-').join('-'), filters.orderDate);
         const matchStatus = isExactMatch(order.orderStatus, filters.status);
         const matchReturnStatus = isExactMatch(order.returnExchangeStatus, filters.returnExchangeStatus);
+        const matchReturnType = isExactMatch(order.returnType, filters.returnType);
         // Phải khớp tất cả (ô nào rỗng thì tự bỏ qua)
-        return matchId && matchDate && matchStatus && matchReturnStatus;
+        return matchId && matchDate && matchStatus && matchReturnStatus && matchReturnType;
     })
 
     const indexOfLastItem = currentPage * itemsPerPage;
@@ -133,6 +139,7 @@ const ReturnOrderTable = () => {
                 onResetFilter={handleResetFilter}
                 statusList={statusList}
                 returnExchangeStatusList={returnExchangeStatusList}
+                returnTypeList={returnTypeList}
             />
 
             <div className="overflow-hidden rounded-xl bg-white shadow">
@@ -149,6 +156,7 @@ const ReturnOrderTable = () => {
                                 <th className="px-4 py-3 text-left font-semibold">Ngày đặt</th>
                                 <th className="px-4 py-3 text-center font-semibold">Trạng thái ORDER</th>
                                 <th className="px-4 py-3 text-center font-semibold">Trạng thái RETURN</th>
+                                <th className="px-4 py-3 text-center font-semibold">Loại đơn</th>
                                 <th className="px-4 py-3 text-center font-semibold">Thao tác</th>
                             </tr>
                         </thead>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { RefreshCw, Calendar, FileText, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api'; // Import api từ config của bạn
-
+import { useNavigate } from 'react-router-dom';
 // HÀM RENDER NHÃN TRẠNG THÁI (BADGE) DỰA THEO DATA BACKEND
 const getStatusBadge = (status: string) => {
     switch (status) {
@@ -35,6 +35,8 @@ export default function PurchaseList() {
     const [dateOrder, setDateOrder] = useState("");
     const [dateReceive, setDateReceive] = useState("");
 
+    const navigation = useNavigate();
+
     // GỌI API LẤY DANH SÁCH PHIẾU NHẬP
     const fetchReceipts = async () => {
         setLoading(true);
@@ -61,7 +63,7 @@ export default function PurchaseList() {
             const matchStatus = filterStatus ? receipt.status === filterStatus : true;
             // Lọc theo Nguồn nhập (Supplier ID)
             const matchSupplier = filterSupplier ? receipt.supplierId?.toString() === filterSupplier : true;
-            
+
             // Lọc theo ngày đặt (So sánh phần YYYY-MM-DD)
             const matchOrderDate = dateOrder ? receipt.orderDate?.startsWith(dateOrder) : true;
             const matchReceiveDate = dateReceive ? receipt.receivedDate?.startsWith(dateReceive) : true;
@@ -79,21 +81,21 @@ export default function PurchaseList() {
         <main className="max-w-6xl mx-auto py-6 px-4 font-sans min-h-screen">
             {/* TIÊU ĐỀ */}
             <h1 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                <FileText className="w-6 h-6 text-gray-600" /> 
+                <FileText className="w-6 h-6 text-gray-600" />
                 QUẢN LÝ PHIẾU NHẬP KHO
             </h1>
 
             {/* KHU VỰC BACKGROUND TRẮNG */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
-                
+
                 {/* BỘ LỌC (FILTERS) */}
                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-100 space-y-4">
                     {/* Dòng 1 */}
                     <div className="flex flex-wrap items-center gap-4">
                         <div className="flex items-center gap-2 flex-1 min-w-[200px]">
                             <label className="text-sm font-semibold text-gray-700 whitespace-nowrap w-24">Mã phiếu</label>
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm py-1.5 px-3 border bg-white"
                                 value={filterCode}
                                 onChange={(e) => setFilterCode(e.target.value)}
@@ -103,7 +105,7 @@ export default function PurchaseList() {
 
                         <div className="flex items-center gap-2 flex-1 min-w-[200px]">
                             <label className="text-sm font-semibold text-gray-700 whitespace-nowrap w-24">Tình trạng</label>
-                            <select 
+                            <select
                                 className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm py-1.5 px-3 border bg-white"
                                 value={filterStatus}
                                 onChange={(e) => setFilterStatus(e.target.value)}
@@ -119,8 +121,8 @@ export default function PurchaseList() {
                             <label className="text-sm font-semibold text-gray-700 whitespace-nowrap w-20">Ngày đặt</label>
                             <div className="relative w-full">
                                 <Calendar className="w-4 h-4 text-gray-500 absolute left-2.5 top-2" />
-                                <input 
-                                    type="date" 
+                                <input
+                                    type="date"
                                     className="w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded-md shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500 bg-white"
                                     value={dateOrder}
                                     onChange={(e) => setDateOrder(e.target.value)}
@@ -129,7 +131,7 @@ export default function PurchaseList() {
                         </div>
 
                         {/* Nút Làm mới Data */}
-                        <button 
+                        <button
                             onClick={handleSearch}
                             className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 font-bold py-1.5 px-4 rounded-md shadow-sm flex items-center gap-2 text-sm transition-colors"
                         >
@@ -141,7 +143,7 @@ export default function PurchaseList() {
                     <div className="flex flex-wrap items-center gap-4">
                         <div className="flex items-center gap-2 flex-[2] min-w-[300px]">
                             <label className="text-sm font-semibold text-gray-700 whitespace-nowrap w-24">Nguồn nhập</label>
-                            <select 
+                            <select
                                 className="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm py-1.5 px-3 border bg-white"
                                 value={filterSupplier}
                                 onChange={(e) => setFilterSupplier(e.target.value)}
@@ -156,8 +158,8 @@ export default function PurchaseList() {
                             <label className="text-sm font-semibold text-gray-700 whitespace-nowrap w-20">Ngày nhận</label>
                             <div className="relative w-full">
                                 <Calendar className="w-4 h-4 text-gray-500 absolute left-2.5 top-2" />
-                                <input 
-                                    type="date" 
+                                <input
+                                    type="date"
                                     className="w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded-md shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500 bg-white"
                                     value={dateReceive}
                                     onChange={(e) => setDateReceive(e.target.value)}
@@ -165,7 +167,7 @@ export default function PurchaseList() {
                             </div>
                         </div>
 
-                        <div className="w-[110px] hidden md:block"></div> 
+                        <div className="w-[110px] hidden md:block"></div>
                     </div>
                 </div>
 
@@ -215,7 +217,9 @@ export default function PurchaseList() {
                                             {getStatusBadge(receipt.status)}
                                         </td>
                                         <td className="p-4 text-center">
-                                            <button className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1.5 px-4 rounded-md text-sm shadow-sm transition-colors">
+                                            <button className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1.5 px-4 rounded-md text-sm shadow-sm transition-colors"
+                                                onClick={() => navigation(`/operation-staff/purchase-detail/${receipt.inventoryReceiptId}`)}
+                                            >
                                                 Chi tiết
                                             </button>
                                         </td>

@@ -90,6 +90,7 @@ export const roleTabsConfig: RoleTabs[] = [
                 icon: BarChart3,
                 path: '/operation-staff/purchase-list'
             }
+
         ]
     },
     {
