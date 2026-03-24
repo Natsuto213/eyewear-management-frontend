@@ -7,6 +7,8 @@ const getStatusBadge = (status: string) => {
     switch (status) {
         case 'Fully Entered':
             return <span className="px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-md">Đã nhập</span>;
+        case 'Partially Entered':
+            return <span className="px-3 py-1 bg-cyan-500 text-white text-xs font-bold rounded-md">Đã nhập một phần</span>;
         case 'REJECTED':
             return <span className="px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-md">Từ chối/Hủy</span>;
         case 'Pending Verification':
