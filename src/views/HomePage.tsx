@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
-
-import { ImageWithFallback } from "@/components/ImageWithFallback";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { api } from "@/lib/api";
+import { ImageWithFallback } from "@/components/ImageWithFallback";
 
 import banner1 from "@/assets/Sale_banner_01.png";
 import banner2 from "@/assets/Sale_banner_02.png";
 import banner3 from "@/assets/Sale_banner_03.png";
+
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 // Hàm hỗ trợ format ngày (YYYY-MM-DD)
 const getFormattedDate = (date: Date) => {
