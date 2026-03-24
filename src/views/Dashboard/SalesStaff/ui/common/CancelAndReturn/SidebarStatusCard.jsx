@@ -8,6 +8,7 @@ export default function SidebarStatusCard({
     isApproved,
     isPending,
     showRemainingTime = false,
+    isRejected
 }) {
     return (
         <>
@@ -26,6 +27,11 @@ export default function SidebarStatusCard({
                 </p>
                 <p className="text-sm font-bold text-gray-800">
                     {mapReturnExchangeStatus(orderData.returnExchangeStatus)}
+                    {isRejected && (
+                        <p className=" text-red-600 bg-red-50 rounded">
+                            Lý do: {orderData.rejectReason || "Lý do từ chối không rõ"}
+                        </p>
+                    )}
                 </p>
             </div>
 

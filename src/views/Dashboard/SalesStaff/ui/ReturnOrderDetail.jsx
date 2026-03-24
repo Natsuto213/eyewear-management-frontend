@@ -89,6 +89,8 @@ export default function ReturnOrderDetail() {
     const prescriptionProducts = orderData.prescriptionOrderDetail || [];
     const isApproved = orderData.returnExchangeStatus === "APPROVED";
     const isPending = orderData.returnExchangeStatus === "PENDING";
+    const isRejected = orderData.returnExchangeStatus === "REJECTED";
+
 
     return (
         <div className="min-h-screen bg-gray-200">
@@ -171,6 +173,7 @@ export default function ReturnOrderDetail() {
                                         isApproved={isApproved}
                                         isPending={isPending}
                                         showRemainingTime={true}
+                                        isRejected={isRejected}
                                     />
 
                                     {isApproved && (
