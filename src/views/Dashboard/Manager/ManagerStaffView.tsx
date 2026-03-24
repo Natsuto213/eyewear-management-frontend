@@ -125,7 +125,7 @@ export default function ManagerStaffView() {
                 phone: staffToRestore.phone || "",
                 address: staffToRestore.address || null,
                 status: true,
-                roleName: staffToRestore.role?.name || 'CUSTOMER' 
+                roleName: staffToRestore.role?.name || 'CUSTOMER'
             };
 
             await api.put('users/admin/update', putPayload);
@@ -161,7 +161,7 @@ export default function ManagerStaffView() {
         setEditingStaff(staffObj);
         setFormData({
             username: staffObj.username || '',
-            password: '', 
+            password: '',
             email: staffObj.email || '',
             phone: staffObj.phone || '',
             name: staffObj.name || '',
@@ -184,8 +184,9 @@ export default function ManagerStaffView() {
         try {
             if (editingStaff) {
                 const putPayload = {
-                    username: formData.username, 
+                    username: formData.username,
                     name: formData.name,
+                    email: formData.email,
                     phone: formData.phone,
                     address: formData.address || null,
                     status: formData.status,
@@ -197,7 +198,7 @@ export default function ManagerStaffView() {
 
                 setStaff(prev => prev.map(s =>
                     (s.username === formData.username)
-                        ? { ...s, name: formData.name, phone: formData.phone, address: formData.address, status: formData.status, role: { name: formData.roleName } }
+                        ? { ...s, name: formData.name, email: formData.email, phone: formData.phone, address: formData.address, status: formData.status, role: { name: formData.roleName } }
                         : s
                 ));
             } else {
@@ -249,7 +250,7 @@ export default function ManagerStaffView() {
                 setCurrentPage={setCurrentPage}
                 onDeleteClick={handleDeleteClick}
                 onEditClick={handleEditClick}
-                onRestoreClick={handleRestoreClick} 
+                onRestoreClick={handleRestoreClick}
             />
 
             <DeleteConfirmModal
@@ -280,11 +281,11 @@ export default function ManagerStaffView() {
                 }}
             />
 
-            <Popup 
-                isOpen={popup.isOpen} 
-                message={popup.message} 
-                type={popup.type} 
-                onClose={() => setPopup({ ...popup, isOpen: false })} 
+            <Popup
+                isOpen={popup.isOpen}
+                message={popup.message}
+                type={popup.type}
+                onClose={() => setPopup({ ...popup, isOpen: false })}
             />
         </div>
     );
