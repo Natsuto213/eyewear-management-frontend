@@ -11,21 +11,11 @@ import PrescriptionInputTabs from "./PrescriptionInputTabs";
 
 export default function AddToCartBar({ product, isFrame, isLenses, formik }) {
     const [quantity, setQuantity] = useState(1);
-
-    // ─── State: người dùng đã tick "mua đơn lẻ" chưa ─────────────────────────
-    // isSoloChecked = true → mua đơn lẻ, không cần chọn sản phẩm bổ trợ
     const [isSoloChecked, setIsSoloChecked] = useState(false);
-
-    // ─── State: sản phẩm bổ trợ đã chọn trong modal ──────────────────────────
-    // null = chưa chọn, object = đã chọn (có .id, .name, .price)
     const [pairedProduct, setPairedProduct] = useState(null);
-
-    // ─── State: modal có đang mở không ──────────────────────────────────────
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     // ─── Xác định nội dung hiển thị theo loại sản phẩm ───────────────────────
-    // Gọng kính → cần chọn TRÒNG kính bổ trợ
-    // Tròng kính → cần chọn GỌNG kính bổ trợ
     const soloLabel = isFrame ? "Không mua tròng kính" : "Đã có gọng kính";
     const pairLabel = isFrame ? "Chọn tròng kính phù hợp" : "Chọn gọng kính phù hợp";
     const modalType = isFrame ? PRODUCT_TYPES.LENSES : PRODUCT_TYPES.FRAME;
@@ -56,18 +46,6 @@ export default function AddToCartBar({ product, isFrame, isLenses, formik }) {
     console.log("Allow preorder for paired product:", pairedAllowPreorder);
     console.log("Is paired product out of stock?", isPairedOutOfStock);
     const { addCartItem } = useShoppingContext();
-
-    /**
-     * handleAddToCart - Xử lý khi nhấn "Thêm vào giỏ hàng"
-     *
-     * Kiểm tra:
-     *  1. Validate đơn thuốc (nếu là Gọng/Tròng/Kính áp tròng)
-     *  2. Với Gọng/Tròng: kiểm tra người dùng đã chọn solo hoặc sản phẩm kèm chưa
-     *  3. Kính áp tròng: luôn là đơn lẻ, không cần bước 2
-     *  4. Tạo payload gửi đi:
-     *     - Đơn lẻ:  { productId, quantity, prescription }
-     *     - Mua kèm: { productId, pairedProductId, quantity, prescription }
-     */
     async function handleAddToCart() {
         if (isOutOfStock) {
             alert("Sản phẩm đã hết hàng và không hỗ trợ đặt trước.");
@@ -89,37 +67,33 @@ export default function AddToCartBar({ product, isFrame, isLenses, formik }) {
             return;
         }
 
-        // Bước 2: Chỉ Gọng/Tròng mới cần chọn phương án mua
-        if ((isFrame || isLenses) && !isSoloChecked && !pairedProduct) {
-            alert(`Vui lòng tick "${soloLabel}" hoặc "${pairLabel}" để tiếp tục!`);
-            return;
-        }
 
-        // Bước 3: Tạo payload
+
+        // Tạo payload
         // Gồm thông tin sản phẩm chính + sản phẩm kèm + đơn thuốc + loại sản phẩm
         // Các field "productType", "frameId", "lensId", "contactLensId" → dùng khi gọi API cart/add
         const payload = {
             productId: product.id,
-            priceProduct: product.price,                        // Giá sản phẩm chính
-            nameProduct: product.name,                          // Tên sản phẩm chính
-            imgProduct: product.imageUrls,                      // Ảnh sản phẩm chính
+            priceProduct: product.price,
+            nameProduct: product.name,
+            imgProduct: product.imageUrls,
             quantity,
-            prescription: formik.values,                               // Tất cả loại đều gửi đơn thuốc
+            prescription: formik.values,
 
             // ── Loại sản phẩm + ID riêng theo loại (dùng cho API) ──
-            productType: product.Product_Type,                  // "Gọng kính" | "Tròng kính" | "Kính áp tròng"
-            frameId: product.frameId ?? null,                   // ID gọng (chỉ có khi là Gọng kính)
-            lensId: product.lensId ?? null,                     // ID tròng (chỉ có khi là Tròng kính)
-            contactLensId: product.contactLensId ?? null,       // ID kính áp tròng
+            productType: product.Product_Type,
+            frameId: product.frameId ?? null,
+            lensId: product.lensId ?? null,
+            contactLensId: product.contactLensId ?? null,
 
             // ── Sản phẩm kèm (null nếu mua đơn lẻ) ──
             pairedProductId: pairedProduct?.id ?? null,
-            pricePairedProduct: pairedProduct?.price ?? null,   // Giá sản phẩm kèm
-            namePairedProduct: pairedProduct?.name ?? null,     // Tên sản phẩm kèm
-            imgPairedProduct: pairedProduct?.image ?? null,     // Ảnh sản phẩm kèm
-            pairedProductType: pairedProduct?.productType ?? null, // Loại sản phẩm kèm (dùng cho API)
-            pairedFrameId: pairedProduct?.frameId ?? null,      // frameId của sản phẩm kèm (nếu là Gọng)
-            pairedLensId: pairedProduct?.lensId ?? null,        // lensId của sản phẩm kèm (nếu là Tròng)
+            pricePairedProduct: pairedProduct?.price ?? null,
+            namePairedProduct: pairedProduct?.name ?? null,
+            imgPairedProduct: pairedProduct?.image ?? null,
+            pairedProductType: pairedProduct?.productType ?? null,
+            pairedFrameId: pairedProduct?.frameId ?? null,
+            pairedLensId: pairedProduct?.lensId ?? null,
         };
 
         addCartItem(payload);
