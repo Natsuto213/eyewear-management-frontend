@@ -181,7 +181,7 @@ export default function WarrantyFormModal({ isOpen, onClose, order }: WarrantyFo
 
         const isMissingImage = selectedArray.some(([_, data]) => !data.file);
         if (isMissingImage) {
-            setErrorMsg("Vui lòng tải lên 1 ảnh minh chứng cho TẤT CẢ các sản phẩm bạn đã chọn!");
+            setErrorMsg("Vui lòng tải lên 1 ảnh minh chứng cho các sản phẩm bạn đã chọn!");
             return;
         }
 
@@ -425,7 +425,7 @@ export default function WarrantyFormModal({ isOpen, onClose, order }: WarrantyFo
                                                             </div>
                                                         </div>
                                                         <div className="w-full md:w-32 shrink-0">
-                                                            <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase text-center">Ảnh minh chứng<span className="text-red-500">*</span></label>
+                                                            <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase text-center">Ảnh minh chứng <span className="text-red-500">*</span></label>
                                                             {!itemState.preview ? (
                                                                 <label className="w-full h-24 border-2 border-dashed border-teal-300 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-teal-50 transition-colors text-teal-600">
                                                                     <ImageIcon className="w-5 h-5 mb-1 opacity-50" />
