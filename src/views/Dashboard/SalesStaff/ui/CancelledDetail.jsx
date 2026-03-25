@@ -177,7 +177,7 @@ function CancelledDetail() {
 
                         {!isCANCELLED && (
                             <TotalRefundBanner
-                                refundAmount={orderData.refundAmount}
+                                totalAmount={orderData.refundAmount}
                                 formatCurrency={formatCurrency}
                             />
                         )}
