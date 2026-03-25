@@ -32,6 +32,41 @@ export const shippingConfig: Record<string, { label: string; bg: string; text: s
   CANCELED:  { label: "Đã hủy giao hàng",         bg: "bg-red-100",    text: "text-red-800",    icon: XCircle },
 };
 
+export const warrantyStatusConfig: Record<string, {
+  label: string; bg: string; text: string; border: string; icon: any; desc: string
+}> = {
+  PENDING: {
+    label: "Đang chờ xử lý",
+    bg: "bg-yellow-50", text: "text-yellow-800", border: "border-yellow-200",
+    icon: Clock,
+    desc: "Yêu cầu bảo hành của bạn đang chờ nhân viên xem xét.",
+  },
+  APPROVED: {
+    label: "Đã chấp thuận",
+    bg: "bg-blue-50", text: "text-blue-800", border: "border-blue-200",
+    icon: CheckCircle2,
+    desc: "Yêu cầu đã được duyệt. Chúng tôi đang tiến hành xử lý bảo hành.",
+  },
+  PROCESSING: {
+    label: "Đang xử lý bảo hành",
+    bg: "bg-amber-50", text: "text-amber-800", border: "border-amber-200",
+    icon: Package,
+    desc: "Sản phẩm đang được kiểm tra và sửa chữa / thay thế.",
+  },
+  COMPLETED: {
+    label: "Bảo hành hoàn tất",
+    bg: "bg-green-50", text: "text-green-800", border: "border-green-200",
+    icon: CheckCheck,
+    desc: "Bảo hành đã hoàn tất. Sản phẩm đã sẵn sàng hoặc đã được giao lại.",
+  },
+  REJECTED: {
+    label: "Bị từ chối",
+    bg: "bg-red-50", text: "text-red-800", border: "border-red-200",
+    icon: Ban,
+    desc: "Yêu cầu bảo hành của bạn đã bị từ chối.",
+  },
+};
+
 export const refundStatusConfig: Record<string, {
   label: string; bg: string; text: string; border: string; icon: any; desc: string
 }> = {
