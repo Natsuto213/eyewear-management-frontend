@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Truck, Search, PlusCircle, Trash2, Calendar, ShoppingBag, Plus, Minus, Upload } from 'lucide-react';
 import { api } from '@/lib/api';
-import { Popup } from "@/components/Popup"; // THÊM IMPORT NÀY
+import { Popup } from "@/components/Popup";
 
 const PurchaseCard = () => {
     // --- STATE CHO POPUP --- 
@@ -17,7 +17,7 @@ const PurchaseCard = () => {
     // --- STATE: THÔNG TIN CHUNG ---
     const [selectedSupplierId, setSelectedSupplierId] = useState("");
     const [orderDate, setOrderDate] = useState("");
-    const [orderNote, setOrderNote] = useState(""); // State mới: Ghi chú phiếu nhập
+    const [orderNote, setOrderNote] = useState("");
 
     // 1. GỌI API LẤY DANH SÁCH NHÀ CUNG CẤP VÀ SETUP NGÀY
     useEffect(() => {
@@ -93,7 +93,7 @@ const PurchaseCard = () => {
 
     // --- STATE: GIỎ HÀNG ĐẶT MUA ---
     const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
-    const [isSubmitting, setIsSubmitting] = useState(false); // State mới: Đang gửi API
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Xóa sạch giỏ hàng nếu đổi nhà cung cấp
     useEffect(() => {
@@ -197,9 +197,7 @@ const PurchaseCard = () => {
             setSelectedProducts([]);
             setSearchQuery("");
             setOrderNote("");
-
-            // Tuỳ chọn: Có thể redirect user về trang danh sách phiếu (PurchaseList) ở đây
-
+            
         } catch (error: any) {
             console.error("Lỗi khi tạo phiếu đặt hàng:", error);
             const errorMsg = error.response?.data?.message || "Có lỗi xảy ra khi tạo phiếu!";
