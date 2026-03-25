@@ -58,7 +58,7 @@ export const handleComplete = async (returnExchangeId, refundAmount, evidenceFil
         );
 
         // 3. Đưa file ảnh vào formData với đúng key 'staffEvidenceFile'
-        if (evidenceFile) {
+        if (evidenceFile && (evidenceFile instanceof File || evidenceFile instanceof Blob)) {
             formData.append("staffEvidenceFile", evidenceFile);
         }
 
@@ -79,7 +79,10 @@ export const handleComplete = async (returnExchangeId, refundAmount, evidenceFil
     } catch (err) {
         console.error("Lỗi khi gọi API:", err);
         // In ra chi tiết phản hồi từ Server để dễ debug nếu vẫn lỗi 400
-        console.log("Server Error Detail:", err.response?.data);
+        console.log("Status:", err.response?.status);
+        console.log("Data:", err.response?.data);
+        console.log("Message:", err.response?.data?.message);
+        console.log("Errors:", err.response?.data?.errors);
 
         alert(
             err?.response?.data?.message ||

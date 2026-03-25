@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "@/lib/api"; // axios instance đã cấu hình sẵn baseURL
+import { mapVirtualTryOnConfig } from "../utils/tryOnConfigMapper";
+import { extractFrameMetrics } from "../utils/frameMetricsMapper";
 
 export function useProductDetail(id) {
     const [product, setProduct] = useState(null);
@@ -17,6 +19,12 @@ export function useProductDetail(id) {
                 setProduct(null);
                 const response = await api.get(`/api/products/${id}`);
                 setProduct(response.data);
+                const payload = response.data ?? {};
+                setProduct({
+                    ...payload,
+                    virtualTryOn: mapVirtualTryOnConfig(payload.virtualTryOn),
+                    frameMetrics: extractFrameMetrics(payload),
+                });
             } catch (err) {
                 const message = err?.response?.data?.message || "Không thể tải sản phẩm";
                 setError(message);

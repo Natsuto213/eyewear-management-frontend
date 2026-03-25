@@ -8,7 +8,6 @@
  *   2. Quản lý state "selectedKeys" — danh sách sản phẩm được tick ✅
  *   3. Chỉ những sản phẩm được tick mới hiện bên OrderSummary & tính tổng tiền
  *   4. Khi đặt hàng → gửi danh sách cartItemId qua trang ConfirmPage
- *   5. Hiện LoginPopup nếu chưa đăng nhập
  *
  */
 
@@ -72,17 +71,12 @@ export default function CartPage() {
         }
     };
 
-    // ═══════════════════════════════════════════════════════════
-    // BƯỚC 3: Tính toán dữ liệu phái sinh (derived data)
-    // ═══════════════════════════════════════════════════════════
-
     // Lọc ra những sản phẩm ĐƯỢC TICK
     const selectedItems = useMemo(() => {
         return cartItems.filter((item) => selectedKeys.includes(getItemKey(item)));
     }, [cartItems, selectedKeys]);
 
     // Tính tổng tiền CHỈ cho sản phẩm được tick
-    // Dùng item.price từ server (đã tính sẵn giá chính + giá kèm)
     const selectedTotal = useMemo(() => {
         return selectedItems.reduce((total, item) => {
             return total + item.price * item.quantity;
@@ -92,21 +86,15 @@ export default function CartPage() {
     // Kiểm tra: tất cả sản phẩm đều được tick hay chưa?
     const isAllSelected = cartItems.length > 0 && selectedKeys.length === cartItems.length;
 
-    // ═══════════════════════════════════════════════════════════
-    // BƯỚC 3.5: Lưu trạng thái tick vào sessionStorage
-    // ═══════════════════════════════════════════════════════════
     useEffect(() => {
         sessionStorage.setItem("selected_keys", JSON.stringify(selectedKeys));
         sessionStorage.setItem("selected_cart_items", JSON.stringify(selectedItems));
     }, [selectedKeys, selectedItems]);
 
-    // ═══════════════════════════════════════════════════════════
-    // BƯỚC 3.6: Hàm xử lý đặt hàng — gửi cartItemId qua ConfirmPage
-    // ═══════════════════════════════════════════════════════════
     const handleCheckout = () => {
         // Lấy danh sách cartItemId của những sản phẩm được tick
         const selectedCartItemIds = selectedItems.map((item) => item.cartItemId);
-        console.log("🛍️ Đặt hàng với cartItemIds:", selectedCartItemIds);
+        console.log(" Đặt hàng với cartItemIds:", selectedCartItemIds);
 
         // Chuyển sang trang ConfirmPage, gửi cartItemIds qua state của navigate
         navigate("/confirm", {
@@ -114,13 +102,6 @@ export default function CartPage() {
         });
     };
 
-    // ═══════════════════════════════════════════════════════════
-    // BƯỚC 4: Hiển thị popup đăng nhập (nếu có)
-    // ═══════════════════════════════════════════════════════════
-
-    // ═══════════════════════════════════════════════════════════
-    // BƯỚC 5: Đang tải dữ liệu → hiện loading
-    // ═══════════════════════════════════════════════════════════
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -133,7 +114,7 @@ export default function CartPage() {
     }
 
     // ═══════════════════════════════════════════════════════════
-    // BƯỚC 6: Nếu giỏ hàng trống → hiện component EmptyCart
+    //  Nếu giỏ hàng trống → hiện component EmptyCart
     // ═══════════════════════════════════════════════════════════
     if (cartItems.length === 0) {
         return (
@@ -144,7 +125,7 @@ export default function CartPage() {
     }
 
     // ═══════════════════════════════════════════════════════════
-    // BƯỚC 7: Giỏ hàng có sản phẩm → ghép các component con
+    // Giỏ hàng có sản phẩm → ghép các component con
     // ═══════════════════════════════════════════════════════════
     return (
         <div className="min-h-screen bg-gray-50">
@@ -152,7 +133,6 @@ export default function CartPage() {
 
             <div className="max-w-6xl mx-auto px-4 py-10">
 
-                {/* ── Header: Tiêu đề + nút xóa tất cả ── */}
                 <div className="flex items-center justify-between mb-6">
                     <h1 className="text-2xl font-bold text-gray-800">
                         Giỏ hàng
@@ -171,7 +151,7 @@ export default function CartPage() {
                 {/* ── Layout 2 cột: Bảng sản phẩm | Sidebar tóm tắt ── */}
                 <div className="flex flex-col lg:flex-row gap-6 items-start">
 
-                    {/* CỘT TRÁI: Bảng danh sách sản phẩm (có checkbox) */}
+                    {/* CỘT TRÁI: Bảng danh sách sản phẩm */}
                     <CartTable
                         cartItems={cartItems}
                         selectedKeys={selectedKeys}

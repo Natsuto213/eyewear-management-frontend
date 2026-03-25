@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
-
+import { api } from "@/lib/api";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
+
+import banner1 from "@/assets/Sale_banner_01.png";
+import banner2 from "@/assets/Sale_banner_02.png";
+import banner3 from "@/assets/Sale_banner_03.png";
+
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { api } from "@/lib/api"; 
-
-import banner1 from "@/assets/Sale_banner_01.png"; 
-import banner2 from "@/assets/Sale_banner_02.png"; 
-import banner3 from "@/assets/Sale_banner_03.png"; 
 
 // Hàm hỗ trợ format ngày (YYYY-MM-DD)
 const getFormattedDate = (date: Date) => {
@@ -28,21 +28,22 @@ export default function HomePage() {
             try {
                 // TÍNH TOÁN NGÀY: StartDate = Mùng 1 đầu tháng, EndDate = Hôm nay
                 const todayDate = new Date();
-                
+
                 const firstDayOfMonth = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1);
-                
+
                 const start = getFormattedDate(firstDayOfMonth);
                 const end = getFormattedDate(todayDate);
 
-                // GỌI CHUNG API DASHBOARD
-                const response = await api.get(`/api/v1/dashboard?startDate=${start}&endDate=${end}`); 
-                
-                // Lấy mảng topProducts ra (chỉ lấy tối đa 5 cái cho đẹp giao diện)
-                const topProducts = response.data?.topProducts || [];
+                // GỌI API TOP PRODUCTS MỚI
+                const response = await api.get(`/api/v1/dashboard/top-products?startDate=${start}&endDate=${end}`);
+
+                // Lấy mảng dữ liệu (trực tiếp từ response.data do API trả về array)
+                // Nếu backend bọc trong 1 object (vd: { data: [...] }), bạn đổi thành response.data?.data nhé
+                const topProducts = response.data || [];
                 const top5 = topProducts.slice(0, 5);
 
                 setBestSellers(top5);
-                
+
             } catch (error) {
                 console.error("Lỗi khi tải sản phẩm trang chủ:", error);
             } finally {
@@ -52,7 +53,6 @@ export default function HomePage() {
 
         fetchHomepageData();
     }, []);
-
     // ----------------------------------------------------
     // COMPONENT: BANNER SLIDER (Tự lướt + Đếm ngược)
     // ----------------------------------------------------
@@ -74,7 +74,7 @@ export default function HomePage() {
             const countdownTimer = setInterval(() => {
                 const now = new Date();
                 const midnight = new Date();
-                midnight.setHours(24, 0, 0, 0); 
+                midnight.setHours(24, 0, 0, 0);
                 const diff = midnight.getTime() - now.getTime();
 
                 setTimeLeft({
@@ -98,9 +98,8 @@ export default function HomePage() {
                 {banners.map((banner, index) => (
                     <div
                         key={banner.id}
-                        className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                            index === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"
-                        }`}
+                        className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"
+                            }`}
                     >
                         <div
                             className="absolute inset-0 bg-cover bg-center"
@@ -162,10 +161,10 @@ export default function HomePage() {
 
                 <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2">
                     {banners.map((_, index) => (
-                        <button 
-                            key={index} 
+                        <button
+                            key={index}
                             onClick={() => setCurrentSlide(index)}
-                            className={`h-2 rounded-full transition-all ${index === currentSlide ? "w-8 bg-red-600" : "w-2 bg-white/50 hover:bg-white"}`} 
+                            className={`h-2 rounded-full transition-all ${index === currentSlide ? "w-8 bg-red-600" : "w-2 bg-white/50 hover:bg-white"}`}
                         />
                     ))}
                 </div>
@@ -247,14 +246,14 @@ export default function HomePage() {
     return (
         <div className="min-h-screen bg-white">
             <Navbar />
-            
+
             <main>
                 <BannerSlider />
-                
+
                 <div className="h-8"></div>
 
                 <ProductSection title={`Best Seller Tháng ${new Date().getMonth() + 1}`} dataList={bestSellers} />
-                
+
                 <div className="h-12"></div>
             </main>
 

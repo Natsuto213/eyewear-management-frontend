@@ -103,10 +103,12 @@ const PrescriptionProducts = ({ prescriptionProducts, openPrescriptionRows, togg
                                 item.leftEyeSph !== undefined ||
                                 item.leftEyeCyl !== undefined ||
                                 item.leftEyeAxis !== undefined ||
+                                item.leftEyeAdd !== undefined ||
                                 item.leftPD !== undefined ||
                                 item.rightEyeSph !== undefined ||
                                 item.rightEyeCyl !== undefined ||
                                 item.rightEyeAxis !== undefined ||
+                                item.rightEyeAdd !== undefined ||
                                 item.rightPD !== undefined;
 
                             const prescriptionRows = [
@@ -124,6 +126,11 @@ const PrescriptionProducts = ({ prescriptionProducts, openPrescriptionRows, togg
                                     label: "AXIS",
                                     l: item.leftEyeAxis,
                                     r: item.rightEyeAxis,
+                                },
+                                {
+                                    label: "ADD",
+                                    l: item.leftEyeAdd,
+                                    r: item.rightEyeAdd,
                                 },
                                 {
                                     label: "PD",

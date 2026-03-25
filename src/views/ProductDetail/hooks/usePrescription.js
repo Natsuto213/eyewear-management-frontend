@@ -4,18 +4,16 @@ import { DEFAULT_PRESCRIPTION, PRESCRIPTION_FIELDS } from "../utils/constants";
 import { useEffect } from "react";
 
 export function usePrescription() {
-    // Định nghĩa Schema bằng Yup
-    const validationSchema = Yup.object().shape(
-        // Tạo schema tự động cho 10 trường (5 thông số x 2 mắt)
+    const validationSchema = Yup.object(
         ["left", "right"].reduce((acc, side) => {
             acc[`${side}SPH`] = Yup.number()
                 .typeError("Phải là số")
-                .min(-20, "Tối thiểu -20.00").max(10, "Tối đa +10.00")
+                .min(-20, "Từ -20.00 đến +10.00").max(10, "Từ -20.00 đến +10.00")
                 .test("is-025", "Bội số 0.25", val => !val || Math.round(val * 100) % 25 === 0);
 
             acc[`${side}CYL`] = Yup.number()
                 .typeError("Phải là số")
-                .min(-6, "Tối thiểu -6.00").max(0, "Tối đa 0.00")
+                .min(-6, "Từ -6.00 đến +0.00").max(0, "Từ -6.00 đến +0.00")
                 .test("is-025", "Bội số 0.25", val => !val || Math.round(val * 100) % 25 === 0);
 
             acc[`${side}AXIS`] = Yup.number()
@@ -51,7 +49,7 @@ export function usePrescription() {
     }, [formik.values]);
 
     return {
-        formik, // Trả về đối tượng formik thay vì từng hàm lẻ
+        formik,
         resetPrescription: () => {
             sessionStorage.removeItem("prescription_data");
             formik.resetForm({ values: DEFAULT_PRESCRIPTION });

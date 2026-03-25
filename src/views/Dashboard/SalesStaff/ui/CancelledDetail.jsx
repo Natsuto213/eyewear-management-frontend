@@ -52,8 +52,8 @@ function CancelledDetail() {
             console.error(err);
             setError(
                 err?.response?.data?.message ||
-                    err?.message ||
-                    "Không tải được chi tiết đơn hàng",
+                err?.message ||
+                "Không tải được chi tiết đơn hàng",
             );
         } finally {
             setLoading(false);
@@ -90,13 +90,37 @@ function CancelledDetail() {
     const prescriptionProducts = orderData.prescriptionOrderDetail || [];
     const isApproved = orderData.returnExchangeStatus === "APPROVED";
     const isPending = orderData.returnExchangeStatus === "PENDING";
+    const isCANCELLED = orderData.returnType === "CANCEL_ORDER";
 
     return (
         <div className="min-h-screen bg-gray-200">
-            <HeaderDetail
-                totalAmount={formatCurrency(orderData.totalAmount)}
-                orderData={orderData}
-            />
+            <header className="bg-white shadow sticky top-0 z-50 border-b border-gray-200">
+                <div className="max-w-7xl mx-auto px-8 py-6">
+                    <div className="flex items-center justify-between mb-6">
+                        {isCANCELLED ? (
+                            <div>
+                                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                    Chi tiết đơn hàng HUỶ - KHÔNG HOÀN TIỀN
+                                </h1>
+                            </div>
+                        ) : (
+                            <div>
+                                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                    Chi tiết đơn TRẢ HÀNG HOÀN TIỀN THEO ĐƠN
+                                </h1>
+                            </div>
+                        )}
+                        <div className="flex items-center gap-4">
+                            <div className="text-right">
+                                <p className="text-sm text-gray-500">Tổng giá trị</p>
+                                <p className="text-2xl font-bold text-gray-800">
+                                    {formatCurrency(orderData.totalAmount)}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
 
             <main className="max-w-7xl mx-auto px-8 py-8">
                 <button
@@ -142,10 +166,12 @@ function CancelledDetail() {
                             />
                         )}
 
-                        <TotalRefundBanner
-                            totalAmount={orderData.totalAmount}
-                            formatCurrency={formatCurrency}
-                        />
+                        {!isCANCELLED && (
+                            <TotalRefundBanner
+                                refundAmount={orderData.refundAmount}
+                                formatCurrency={formatCurrency}
+                            />
+                        )}
 
                         <ShippingInfo
                             orderData={orderData}

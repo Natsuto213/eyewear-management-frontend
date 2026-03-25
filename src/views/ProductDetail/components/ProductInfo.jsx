@@ -14,7 +14,7 @@
  * @param {object} product - Dữ liệu sản phẩm từ API
  * @param {boolean} isContact - True nếu là Kính áp tròng (để hiện thêm thông số đặc trưng)
  */
-export default function ProductInfo({ product, isContact }) {
+export default function ProductInfo({ product, isContact, isFrame, onTryOn, onView3D }) {
     return (
         <div className="mb-4">
             {/* Tên sản phẩm + Mã hàng */}
@@ -36,6 +36,30 @@ export default function ProductInfo({ product, isContact }) {
             <p className="text-3xl font-bold text-red-600 font-mono mb-4">
                 {product.price?.toLocaleString("vi-VN")}đ
             </p>
+
+            {(isFrame && (product.virtualTryOn?.enabled || product.virtualTryOn?.modelUrl)) && (
+                <div className="flex flex-wrap gap-3">
+                    {product.virtualTryOn?.enabled && (
+                        <button
+                            type="button"
+                            onClick={onTryOn}
+                            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold"
+                        >
+                            Thử kính ảo
+                        </button>
+                    )}
+
+                    {product.virtualTryOn?.modelUrl && (
+                        <button
+                            type="button"
+                            onClick={onView3D}
+                            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold"
+                        >
+                            Xem ảnh 3D
+                        </button>
+                    )}
+                </div>
+            )}
 
             {/* Thông số đặc trưng cho Kính áp tròng */}
             {isContact && (

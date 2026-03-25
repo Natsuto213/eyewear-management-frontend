@@ -29,11 +29,19 @@ const returnExchangeStatusVN = {
     COMPLETED: 'Hoàn tất',
 };
 
+const returnTypeVN = {
+    WARRANTY: 'Bảo hành',
+    REFUND: 'Trả hàng hoàn tiền theo đơn',
+    RETURN: 'Trả hàng hoàn tiền theo sản phẩm',
+    CANCEL_ORDER: 'Đơn huỷ không cần hoàn tiền',
+};
+
 const OrderRow = ({ order, index }) => {
     const formattedDate = order.orderDate ? order.orderDate.slice(0, 10).split('-').join('-') : '';
     const typeVN = order.orderType ? orderTypeVN[order.orderType] || order.orderType || '' : null;
     const statusVN = orderStatusVN[order.orderStatus] || order.orderStatus || '';
     const returnStatusVN = order.returnExchangeStatus ? (returnExchangeStatusVN[order.returnExchangeStatus] || order.returnExchangeStatus) : null;
+    const returnType = order.returnType ? (returnTypeVN[order.returnType] || order.returnType) : null;
     return (
         <tr className="border-b border-gray-100 hover:bg-gray-50">
             <td className="px-4 py-3">{index + 1}</td>
@@ -83,6 +91,12 @@ const OrderRow = ({ order, index }) => {
                     `}
                 >
                     {returnStatusVN}
+                </span>
+            </td>}
+
+            {returnType && <td className="px-4 py-3 text-center">
+                <span className="rounded-full bg-gray-200 px-3 py-1 text-xs text-gray-700">
+                    {returnType}
                 </span>
             </td>}
 
