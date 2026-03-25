@@ -18,13 +18,13 @@ import ReturnExchangePanel from "./ReturnExchangePanel";
 
 export default function OrderDetailCustomer() {
   const { orderId } = useParams();
-  const navigate    = useNavigate();
+  const navigate = useNavigate();
 
-  const [order, setOrder]             = useState<any>(null);
-  const [loading, setLoading]         = useState(true);
-  const [error, setError]             = useState<string | null>(null);
+  const [order, setOrder] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
-  const [canceling, setCanceling]     = useState(false);
+  const [canceling, setCanceling] = useState(false);
   const [isWarrantyModalOpen, setIsWarrantyModalOpen] = useState(false);
 
   // ── Fetch order detail ───────────────────────────────────────────────────
@@ -33,14 +33,14 @@ export default function OrderDetailCustomer() {
     if (!token) { setError("Vui lòng đăng nhập để xem đơn hàng"); setLoading(false); return; }
     try {
       setLoading(true);
-      const res  = await fetch(`${BASE_URL}/orders/${orderId}/detail`, {
+      const res = await fetch(`${BASE_URL}/orders/${orderId}/detail`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
       if (data.code === 1000) { setOrder(data.result); setError(null); }
       else setError(data.message || "Không tìm thấy đơn hàng");
     } catch { setError("Lỗi kết nối server"); }
-    finally   { setLoading(false); }
+    finally { setLoading(false); }
   }, [orderId]);
 
   useEffect(() => { fetchDetail(); }, [fetchDetail]);
@@ -62,10 +62,10 @@ export default function OrderDetailCustomer() {
       const requestData: Record<string, any> = {
         cancelReason: formData.cancelReason,
       };
-      if (formData.requestNote.trim())         requestData.requestNote         = formData.requestNote.trim();
-      if (formData.refundMethod)               requestData.refundMethod        = formData.refundMethod;
+      if (formData.requestNote.trim()) requestData.requestNote = formData.requestNote.trim();
+      if (formData.refundMethod) requestData.refundMethod = formData.refundMethod;
       if (formData.refundAccountNumber.trim()) requestData.refundAccountNumber = formData.refundAccountNumber.trim();
-      if (formData.refundAccountName.trim())   requestData.refundAccountName   = formData.refundAccountName.trim();
+      if (formData.refundAccountName.trim()) requestData.refundAccountName = formData.refundAccountName.trim();
 
       // Backend dùng @RequestPart → phải gửi multipart/form-data
       // Dùng Blob với type application/json để Spring đọc được @RequestPart("request")
@@ -122,20 +122,20 @@ export default function OrderDetailCustomer() {
   );
 
   // ── Derived values ───────────────────────────────────────────────────────
-  const orderStatus    = orderStatusConfig[order.orderStatus]   || { label: order.orderStatus,   bg: "bg-zinc-100", text: "text-zinc-800", icon: Package };
-  const shippingStatus = shippingConfig[order.shippingStatus]   || { label: order.shippingStatus, bg: "bg-zinc-100", text: "text-zinc-800", icon: Truck };
-  const OrderStatusIcon    = orderStatus.icon;
+  const orderStatus = orderStatusConfig[order.orderStatus] || { label: order.orderStatus, bg: "bg-zinc-100", text: "text-zinc-800", icon: Package };
+  const shippingStatus = shippingConfig[order.shippingStatus] || { label: order.shippingStatus, bg: "bg-zinc-100", text: "text-zinc-800", icon: Truck };
+  const OrderStatusIcon = orderStatus.icon;
   const ShippingStatusIcon = shippingStatus.icon;
 
   const isCanceled = order.orderStatus === "CANCELED" || order.shippingStatus === "CANCELED";
-  const isFailed   = order.shippingStatus === "FAILED";
+  const isFailed = order.shippingStatus === "FAILED";
   const isReturned = order.shippingStatus === "RETURNED";
-  const timeline   = order.hasPrescriptionItem ? prescriptionTimeline : normalTimeline;
+  const timeline = order.hasPrescriptionItem ? prescriptionTimeline : normalTimeline;
 
   // Backend trả về canCancelOrder, requiresRefundInfoOnCancel, refundableAmount trực tiếp
-  const requiresRefund: boolean  = order.requiresRefundInfoOnCancel === true || (order.refundableAmount ?? 0) > 0;
+  const requiresRefund: boolean = order.requiresRefundInfoOnCancel === true || (order.refundableAmount ?? 0) > 0;
   const refundableAmount: number = order.refundableAmount ?? 0;
-  const canCancel: boolean       =
+  const canCancel: boolean =
     order.canCancelOrder === true ||
     (CANCELABLE_STATUSES.includes(order.orderStatus) && !order.hasOpenRefundRequest && order.latestReturnExchangeStatus == null);
 
@@ -190,13 +190,23 @@ export default function OrderDetailCustomer() {
 
           {/* Nút bảo hành — chỉ hiện khi COMPLETED VÀ chưa có ảnh bill hoàn tiền */}
           {order.orderStatus === "COMPLETED" && !order.latestStaffRefundEvidenceUrl && (
-            <button
-              onClick={() => setIsWarrantyModalOpen(true)}
-              className="flex items-center gap-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-bold py-2.5 px-5 rounded-xl shadow-md transition-all transform hover:scale-[1.02] active:scale-95"
-            >
-              <ShieldAlert className="w-4 h-4" />
-              Bảo hành - Đổi trả
-            </button>
+            <>
+              {/* Kiểm tra nếu đã có phiếu Đổi trả/Bảo hành rồi thì ẩn nút, hiện dòng text */}
+              {order.latestReturnExchangeStatus ? (
+                <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-50 border border-teal-200">
+                  <ShieldAlert className="w-4 h-4 text-teal-600" />
+                  <span className="text-sm font-bold text-teal-700">Bạn đã gửi yêu cầu Bảo Hành - Đổi Trả cho đơn này</span>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setIsWarrantyModalOpen(true)}
+                  className="flex items-center gap-2 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-bold py-2.5 px-5 rounded-xl shadow-md transition-all transform hover:scale-[1.02] active:scale-95"
+                >
+                  <ShieldAlert className="w-4 h-4" />
+                  Bảo hành - Đổi trả
+                </button>
+              )}
+            </>
           )}
         </div>
 
@@ -223,9 +233,9 @@ export default function OrderDetailCustomer() {
                         <div className={`absolute right-1/2 top-4 w-full h-0.5 -z-0 ${status === "done" || status === "active" ? "bg-teal-400" : "bg-zinc-200"}`} />
                       )}
                       <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all
-                        ${status === "done"   ? "bg-teal-500 border-teal-500 text-white"
-                        : status === "active" ? "bg-white border-teal-500 shadow-md"
-                        :                       "bg-white border-zinc-200"}`}>
+                        ${status === "done" ? "bg-teal-500 border-teal-500 text-white"
+                          : status === "active" ? "bg-white border-teal-500 shadow-md"
+                            : "bg-white border-zinc-200"}`}>
                         {status === "done"
                           ? <CheckCircle2 className="w-4 h-4" />
                           : status === "active"
@@ -234,9 +244,9 @@ export default function OrderDetailCustomer() {
                       </div>
                     </div>
                     <p className={`text-[10px] font-bold text-center leading-tight uppercase
-                      ${status === "done"   ? "text-teal-600"
-                      : status === "active" ? "text-teal-700"
-                      :                       "text-zinc-400"}`}>
+                      ${status === "done" ? "text-teal-600"
+                        : status === "active" ? "text-teal-700"
+                          : "text-zinc-400"}`}>
                       {step.label}
                     </p>
                   </div>
