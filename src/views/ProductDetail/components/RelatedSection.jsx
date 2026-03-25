@@ -17,36 +17,47 @@ import ProductCard from "./ProductCard";
  * @param {string}  title    - Tiêu đề section
  * @param {any[]}   products - Danh sách sản phẩm liên quan từ API
  */
-export default function RelatedSection({ title, products }) {
-  // Không hiển thị section nếu không có sản phẩm nào
-  if (!products || products.length === 0) return null;
+export default function RelatedSection({ title, products, isFrame, isLenses, isContact, sectionType }) {
+    // Không hiển thị section nếu không có sản phẩm nào
+    if (!products || products.length === 0) return null;
+    let route = "";
 
-  return (
-    <section className="w-full bg-white mt-10">
-      {/* Đường kẻ teal mỏng chia tách section */}
-      <div className="w-full h-0.5 bg-teal-500/20" />
+    if (sectionType === "complementary") {
+        if (isFrame) route = "/all-product/trong";
+        if (isLenses) route = "/all-product/gong";
+        // Nếu là contact lens bổ trợ thì có thể không có, tùy logic
+    } else if (sectionType === "similar") {
+        if (isFrame) route = "/all-product/gong";
+        if (isLenses) route = "/all-product/trong";
+        if (isContact) route = "/all-product/kinhaptrong";
+    }
 
-      <div className="max-w-350 mx-auto px-4 md:px-10 py-12">
-        {/* Header section */}
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 uppercase tracking-tight">
-            {title}
-          </h2>
-          <Link
-            to="/all-product"
-            className="text-teal-600 text-sm font-medium hover:underline flex items-center gap-1"
-          >
-            Xem thêm →
-          </Link>
-        </div>
+    return (
+        <section className="w-full bg-white mt-10">
+            {/* Đường kẻ teal mỏng chia tách section */}
+            <div className="w-full h-0.5 bg-teal-500/20" />
 
-        {/* Grid sản phẩm: 2 cột mobile, 4 cột desktop */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
-          {products.map((item) => (
-            <ProductCard key={item.id} item={item} />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
+            <div className="max-w-350 mx-auto px-4 md:px-10 py-12">
+                {/* Header section */}
+                <div className="flex justify-between items-center mb-8">
+                    <h2 className="text-2xl md:text-3xl font-bold text-gray-900 uppercase tracking-tight">
+                        {title}
+                    </h2>
+                    <Link
+                        to={route}
+                        className="text-teal-600 text-sm font-medium hover:underline flex items-center gap-1"
+                    >
+                        Xem thêm →
+                    </Link>
+                </div>
+
+                {/* Grid sản phẩm: 2 cột mobile, 4 cột desktop */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
+                    {products.map((item) => (
+                        <ProductCard key={item.id} item={item} />
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
 }

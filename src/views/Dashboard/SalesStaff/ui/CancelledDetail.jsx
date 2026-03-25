@@ -16,6 +16,7 @@ import CustomerRefundAccount from "./common/CancelAndReturn/CustomerRefundAccoun
 import ActionPendingGroup from "./common/CancelAndReturn/ActionPendingGroup";
 import ActionCompleteGroup from "./common/CancelAndReturn/ActionCompleteGroup";
 import SidebarStatusCard from "./common/CancelAndReturn/SidebarStatusCard";
+import TopCenterPopup from "../../../../components/TopCenterPopup.jsx";
 
 import {
     mapOrderStatus,
@@ -39,6 +40,12 @@ function CancelledDetail() {
     const [openPrescriptionRows, setOpenPrescriptionRows] = useState({});
     const [rejectReason, setRejectReason] = useState("");
     const [evidenceFile, setEvidenceFile] = useState(null);
+    const [showPopup, setShowPopup] = useState(false);
+    const [messageAndColor, setMessageAndColor] = useState({
+        message: "",
+        color: "green",
+    });
+
 
     const fetchOrderDetail = async () => {
         try {
@@ -94,6 +101,8 @@ function CancelledDetail() {
 
     return (
         <div className="min-h-screen bg-gray-200">
+            {/* Popup thông báo thành công */}
+            <TopCenterPopup show={showPopup} onClose={() => setShowPopup(false)} message={messageAndColor.message} color={messageAndColor.color} />
             <header className="bg-white shadow sticky top-0 z-50 border-b border-gray-200">
                 <div className="max-w-7xl mx-auto px-8 py-6">
                     <div className="flex items-center justify-between mb-6">
@@ -216,6 +225,8 @@ function CancelledDetail() {
                                                 handleApprove(
                                                     orderData.returnExchangeId,
                                                     fetchOrderDetail,
+                                                    setShowPopup,
+                                                    setMessageAndColor,
                                                 )
                                             }
                                             onReject={() =>
@@ -223,6 +234,8 @@ function CancelledDetail() {
                                                     orderData.returnExchangeId,
                                                     rejectReason,
                                                     fetchOrderDetail,
+                                                    setShowPopup,
+                                                    setMessageAndColor,
                                                 )
                                             }
                                         />
@@ -238,6 +251,8 @@ function CancelledDetail() {
                                                     orderData.refundAmount,
                                                     evidenceFile,
                                                     fetchOrderDetail,
+                                                    setShowPopup,
+                                                    setMessageAndColor,
                                                 )
                                             }
                                         />

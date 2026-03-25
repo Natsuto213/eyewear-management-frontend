@@ -11,7 +11,7 @@ import NormalProducts from "./common/NormalProducts";
 import PrescriptionProducts from "./common/PrescriptionProducts";
 import ShippingInfo from "./common/ShippingInfo";
 import { mapOrderStatus, mapOrderType, formatCurrency, formatDateTime } from "./utils/orderMaps.js";
-
+import TopCenterPopup from "../../../../components/TopCenterPopup.jsx";
 
 export default function OrderDetail() {
     const { orderId } = useParams();
@@ -20,6 +20,7 @@ export default function OrderDetail() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [openPrescriptionRows, setOpenPrescriptionRows] = useState({});
+    const [showPopup, setShowPopup] = useState(false);
 
     const fetchOrderDetail = async () => {
         try {
@@ -53,7 +54,8 @@ export default function OrderDetail() {
             const res = await api.put(`api/staff/orders/${orderId}/confirm`);
 
             console.log("API response:", res.data);
-            alert("Xác nhận đơn hàng thành công!");
+            setShowPopup(true); // Đảm bảo popup được reset trước khi hiển thị lại
+            setTimeout(() => setShowPopup(false), 2000); // Hiển thị popup thông báo thành công
             fetchOrderDetail(); // Gọi lại API để cập nhật thông tin đơn hàng mới nhất sau khi xác nhận
         } catch (err) {
             console.error("Lỗi khi gọi API:", err);
@@ -104,7 +106,10 @@ export default function OrderDetail() {
     const prescriptionProducts = orderData.prescriptionOrderDetail || [];
 
     return (
+
         <div className="min-h-screen bg-gray-200">
+            {/* Popup thông báo thành công */}
+            <TopCenterPopup show={showPopup} onClose={() => setShowPopup(false)} message={"Xác nhận đơn hàng thành công"} color="green" />
             <HeaderDetail totalAmount={formatCurrency(orderData.totalAmount)} orderData={orderData} />
 
             <main className="max-w-7xl mx-auto px-8 py-8">

@@ -84,6 +84,8 @@ export default function ProductDetailPage() {
         similarProducts,
     } = getRelatedLists(product, flags);
 
+
+
     // ─── Render trang ──────────────────────────────────────────────────────────
     return (
         <div className="w-full bg-white font-sans text-black antialiased min-h-screen">
@@ -162,12 +164,20 @@ export default function ProductDetailPage() {
             <RelatedSection
                 title={complementaryTitle}
                 products={complementaryProducts}
+                isFrame={isFrame}
+                isLenses={isLenses}
+                isContact={isContact}
+                sectionType="complementary"
             />
 
             {/* ── SECTION SẢN PHẨM TƯƠNG TỰ ── */}
             <RelatedSection
                 title={similarTitle}
                 products={similarProducts}
+                isFrame={isFrame}
+                isLenses={isLenses}
+                isContact={isContact}
+                sectionType="similar"
             />
 
             <Footer />
