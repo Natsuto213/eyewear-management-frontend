@@ -179,6 +179,12 @@ export default function WarrantyFormModal({ isOpen, onClose, order }: WarrantyFo
             return;
         }
 
+        const isMissingImage = selectedArray.some(([_, data]) => !data.file);
+        if (isMissingImage) {
+            setErrorMsg("Vui lòng tải lên 1 ảnh minh chứng cho TẤT CẢ các sản phẩm bạn đã chọn!");
+            return;
+        }
+
         setIsSubmitting(true);
 
         try {
