@@ -78,6 +78,14 @@ export default function OrderTable({ orders, loading }: OrderTableProps) {
       bg: "bg-gradient-to-r from-purple-100 to-pink-100",
       text: "text-purple-800", label: "Đơn hỗn hợp",
     },
+    DIRECT_ORDER: {
+      bg: "bg-gradient-to-r from-red-100 to-white-100",
+      text: "text-purple-800", label: "Đơn trực tiếp",
+    },
+    PRE_ORDER: {
+      bg: "bg-gradient-to-r from-purple-100 to-tear-100",
+      text: "text-blue-800", label: "Đơn đặt trước",
+    },
   };
 
   if (loading) {

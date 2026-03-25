@@ -8,10 +8,7 @@ export const BASE_URL = "https://api-eyewear.purintech.id.vn";
 export const CANCELABLE_STATUSES = ["PENDING", "PARTIALLY_PAID", "PAID"];
 
 export const REFUND_METHODS = [
-  { value: "BANK_TRANSFER", label: "Chuyển khoản ngân hàng", icon: "🏦" },
-  { value: "MOMO",          label: "Ví MoMo",                icon: "💳" },
-  { value: "ZALOPAY",       label: "ZaloPay",                icon: "💰" },
-  { value: "VNPAY",         label: "VNPay",                  icon: "🔵" },
+  
 ];
 
 export const orderStatusConfig: Record<string, { label: string; bg: string; text: string; icon: any }> = {
@@ -21,18 +18,18 @@ export const orderStatusConfig: Record<string, { label: string; bg: string; text
   CONFIRMED:      { label: "Đã xác nhận",       bg: "bg-blue-100",    text: "text-blue-800",    icon: CheckCircle2 },
   PROCESSING:     { label: "Đang gia công",     bg: "bg-amber-100",   text: "text-amber-800",   icon: Package },
   READY:          { label: "Chờ vận chuyển",    bg: "bg-purple-100",  text: "text-purple-800",  icon: Package },
-  COMPLETED:      { label: "Hoàn thành",        bg: "bg-green-100",   text: "text-green-800",   icon: CheckCircle2 },
-  CANCELED:       { label: "Đã hủy",            bg: "bg-red-100",     text: "text-red-800",     icon: XCircle },
+  COMPLETED:      { label: "Hoàn thành đơn",        bg: "bg-green-100",   text: "text-green-800",   icon: CheckCircle2 },
+  CANCELED:       { label: "Đã hủy đơn",            bg: "bg-red-100",     text: "text-red-800",     icon: XCircle },
 };
 
 export const shippingConfig: Record<string, { label: string; bg: string; text: string; icon: any }> = {
   PENDING:   { label: "Chờ xử lý",      bg: "bg-zinc-100",   text: "text-zinc-700",   icon: Clock },
   PACKING:   { label: "Đang đóng gói",  bg: "bg-blue-100",   text: "text-blue-800",   icon: Package },
   SHIPPING:  { label: "Đang giao hàng", bg: "bg-indigo-100", text: "text-indigo-800", icon: Truck },
-  DELIVERED: { label: "Đã giao",        bg: "bg-green-100",  text: "text-green-800",  icon: CheckCircle2 },
+  DELIVERED: { label: "Giao thành công",        bg: "bg-green-100",  text: "text-green-800",  icon: CheckCircle2 },
   FAILED:    { label: "Giao thất bại",  bg: "bg-red-100",    text: "text-red-800",    icon: XCircle },
-  RETURNED:  { label: "Hoàn hàng",      bg: "bg-orange-100", text: "text-orange-800", icon: XCircle },
-  CANCELED:  { label: "Đã hủy",         bg: "bg-red-100",    text: "text-red-800",    icon: XCircle },
+  RETURNED:  { label: "Hoàn hàng giao hàng",      bg: "bg-orange-100", text: "text-orange-800", icon: XCircle },
+  CANCELED:  { label: "Đã hủy giao hàng",         bg: "bg-red-100",    text: "text-red-800",    icon: XCircle },
 };
 
 export const refundStatusConfig: Record<string, {

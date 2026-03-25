@@ -2,6 +2,13 @@ import React from "react";
 import { Search, CalendarDays, RefreshCcw, Filter, BarChart3, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 
+const ORDER_TYPE_LABELS: Record<string, string> = {
+  DIRECT_ORDER:       " Đơn trực tiếp",
+  PRE_ORDER:          " Đơn đặt trước",
+  PRESCRIPTION_ORDER: " Kính thuốc",
+  MIX_ORDER:          " Đơn hỗn hợp",
+};
+
 export default function OrderToolbar({ filters, onFilterChange, onResetFilter, statusData, total, original }: any) {
   
   const statuses = statusData?.[0]?.statuses || [];
@@ -125,7 +132,9 @@ export default function OrderToolbar({ filters, onFilterChange, onResetFilter, s
               >
                 <option value="Tất cả">Tất cả loại đơn</option>
                 {orderTypes.map((type: string) => (
-                  <option key={type} value={type}>{type.replace('_', ' ')}</option>
+                  <option key={type} value={type}>
+                    {ORDER_TYPE_LABELS[type] ?? type.replace(/_/g, " ")}
+                  </option>
                 ))}
               </select>
               <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">

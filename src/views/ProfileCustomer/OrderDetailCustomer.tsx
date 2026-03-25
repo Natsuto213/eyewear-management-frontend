@@ -1,9 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  ArrowLeft, MapPin, Phone, Mail, Package,
-  Clock, CheckCircle2, XCircle, Truck, Eye, Trash2, AlertTriangle, ShieldAlert,
-} from "lucide-react";
+import { ArrowLeft, MapPin, Phone, Mail, Package,
+         Clock, CheckCircle2, XCircle, Truck, Eye, Trash2, AlertTriangle, ShieldAlert,
+       } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import WarrantyFormModal from "@/components/WarrantyFormModal";
 
