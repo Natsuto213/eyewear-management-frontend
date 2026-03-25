@@ -1,12 +1,14 @@
 import { api } from "@/lib/api";
-export const handleReject = async (returnExchangeId, reason, fetchOrderDetail) => {
+export const handleReject = async (returnExchangeId, reason, fetchOrderDetail, setShowPopup, setMessageAndColor) => {
     try {
         const res = await api.put(`api/staff/return-exchange/${returnExchangeId}/status`, {
             action: "REJECT",
             rejectReason: reason
         });
         console.log("API response COMPLETE:", res.data);
-        alert("Hoàn tất yêu cầu thành công!");
+        setMessageAndColor({ message: "Từ chối yêu cầu thành công!", color: "green" }); // Cập nhật message cho popup
+        setShowPopup(true); // Đảm bảo popup được reset trước khi hiển thị lại
+        setTimeout(() => setShowPopup(false), 3000); // Hiển thị popup thông báo thành công
         fetchOrderDetail(); // Gọi lại API để cập nhật thông tin đơn hàng mới nhất sau khi từ chối
         return res.data;
     } catch (err) {
@@ -19,13 +21,15 @@ export const handleReject = async (returnExchangeId, reason, fetchOrderDetail) =
     }
 }
 
-export const handleApprove = async (returnExchangeId, fetchOrderDetail) => {
+export const handleApprove = async (returnExchangeId, fetchOrderDetail, setShowPopup, setMessageAndColor) => {
     try {
         const res = await api.put(`api/staff/return-exchange/${returnExchangeId}/status`, {
             action: "APPROVE"
         });
         console.log("API response COMPLETE:", res.data);
-        alert("Hoàn tất yêu cầu thành công!");
+        setMessageAndColor({ message: "Xác nhận yêu cầu thành công!", color: "green" }); // Cập nhật message cho popup
+        setShowPopup(true); // Đảm bảo popup được reset trước khi hiển thị lại
+        setTimeout(() => setShowPopup(false), 3000); // Hiển thị popup thông báo thành công
         fetchOrderDetail(); // Gọi lại API để cập nhật thông tin đơn hàng mới nhất sau khi từ chối
         return res.data;
     } catch (err) {
@@ -39,7 +43,7 @@ export const handleApprove = async (returnExchangeId, fetchOrderDetail) => {
 }
 
 // Cập nhật lại hàm handleComplete trong apiReturn.js
-export const handleComplete = async (returnExchangeId, refundAmount, evidenceFile, fetchOrderDetail) => {
+export const handleComplete = async (returnExchangeId, refundAmount, evidenceFile, fetchOrderDetail, setShowPopup, setMessageAndColor) => {
     try {
         const formData = new FormData();
 
@@ -70,7 +74,9 @@ export const handleComplete = async (returnExchangeId, refundAmount, evidenceFil
         });
 
         console.log("API response COMPLETE:", res.data);
-        alert("Hoàn tất yêu cầu thành công!");
+        setMessageAndColor({ message: "Hoàn tất yêu cầu thành công!", color: "green" }); // Cập nhật message cho popup
+        setShowPopup(true); // Đảm bảo popup được reset trước khi hiển thị lại
+        setTimeout(() => setShowPopup(false), 3000); // Hiển thị popup thông báo thành công
 
         // Load lại dữ liệu để cập nhật UI
         if (fetchOrderDetail) fetchOrderDetail();

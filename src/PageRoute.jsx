@@ -44,6 +44,8 @@ import InventoryOrder from "./views/Dashboard/SalesStaff/ui/InventoryOrder";
 import CancelledTable from "./views/Dashboard/SalesStaff/containers/CancelledTable";
 import CancelledDetail from "./views/Dashboard/SalesStaff/ui/CancelledDetail";
 
+
+import NotFoundPage from "./views/NotFoundPage";
 export default function PageRoute() {
     return (
         <ShoppingContextProvider>
@@ -105,7 +107,11 @@ export default function PageRoute() {
                     <Route path="policies" element={<ManagerPoliciesView />} />
                     <Route path="sales" element={<ManagerSalesView />} />
                     <Route path="static" element={<ManagerStatisticView />} />
+                    {/* Route cho trang không tồn tại */}
+                    <Route path="*" element={<NotFoundPage />} />
                 </Route>
+
+                <Route path="*" element={<NotFoundPage />} />
 
             </Routes>
 

@@ -16,6 +16,7 @@ import CustomerRefundAccount from "./common/CancelAndReturn/CustomerRefundAccoun
 import ActionPendingGroup from "./common/CancelAndReturn/ActionPendingGroup";
 import ActionCompleteGroup from "./common/CancelAndReturn/ActionCompleteGroup";
 import SidebarStatusCard from "./common/CancelAndReturn/SidebarStatusCard";
+import TopCenterPopup from "../../../../components/TopCenterPopup.jsx";
 
 import {
     mapOrderStatus,
@@ -38,6 +39,11 @@ export default function ReturnOrderDetail() {
     const [openPrescriptionRows, setOpenPrescriptionRows] = useState({});
     const [rejectReason, setRejectReason] = useState("");
     const [evidenceFile, setEvidenceFile] = useState(null);
+    const [showPopup, setShowPopup] = useState(false);
+    const [messageAndColor, setMessageAndColor] = useState({
+        message: "",
+        color: "green",
+    });
 
     const fetchOrderDetail = async () => {
         try {
@@ -96,6 +102,8 @@ export default function ReturnOrderDetail() {
 
     return (
         <div className="min-h-screen bg-gray-200">
+            {/* Popup thông báo thành công */}
+            <TopCenterPopup show={showPopup} onClose={() => setShowPopup(false)} message={messageAndColor.message} color={messageAndColor.color} />
             <HeaderDetail
                 totalAmount={formatCurrency(orderData.totalAmount)}
                 orderData={orderData}
@@ -194,6 +202,8 @@ export default function ReturnOrderDetail() {
                                                 handleApprove(
                                                     orderData.returnExchangeId,
                                                     fetchOrderDetail,
+                                                    setShowPopup,
+                                                    setMessageAndColor,
                                                 )
                                             }
                                             onReject={() =>
@@ -201,6 +211,8 @@ export default function ReturnOrderDetail() {
                                                     orderData.returnExchangeId,
                                                     rejectReason,
                                                     fetchOrderDetail,
+                                                    setShowPopup,
+                                                    setMessageAndColor,
                                                 )
                                             }
                                             disableApprove={
@@ -221,6 +233,8 @@ export default function ReturnOrderDetail() {
                                                     orderData.refundAmount,
                                                     evidenceFile,
                                                     fetchOrderDetail,
+                                                    setShowPopup,
+                                                    setMessageAndColor,
                                                 )
                                             }
                                         />
@@ -238,7 +252,9 @@ export default function ReturnOrderDetail() {
                                                     orderData.returnExchangeId,
                                                     orderData.refundAmount,
                                                     evidenceFile,
-                                                    fetchOrderDetail
+                                                    fetchOrderDetail,
+                                                    setShowPopup,
+                                                    setMessageAndColor,
                                                 ))}
 
                                         >
