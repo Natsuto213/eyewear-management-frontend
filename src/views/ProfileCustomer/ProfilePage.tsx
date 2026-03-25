@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { NavLink, Outlet, useMatch, useNavigate } from "react-router-dom";
-import { apiLogout } from "../../lib/userApi";
+import { apiLogout, apiGetMyInfo } from "../../lib/userApi";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { ChevronLeft, ChevronRight, Search, SlidersHorizontal, X } from "lucide-react";
@@ -36,23 +36,35 @@ const shippingOverride: Record<string, { label: string; color: string }> = {
   RETURNED:  { label: "Hoàn hàng",      color: "bg-orange-50 text-orange-700 border-orange-200" },
 };
 
-const STATUS_TABS = [
-  { key: "ALL",            label: "Tất cả" },
+const SHIPPING_KEYS = ["PACKING", "SHIPPING", "DELIVERED", "FAILED", "RETURNED"];
+
+const STATUS_OPTIONS = [
   { key: "PENDING",        label: "Chờ xác nhận" },
   { key: "PARTIALLY_PAID", label: "Đã đặt cọc" },
   { key: "PAID",           label: "Đã thanh toán" },
   { key: "CONFIRMED",      label: "Đã xác nhận" },
   { key: "PROCESSING",     label: "Đang gia công" },
-  { key: "SHIPPING",       label: "Đang giao" },
+  { key: "PACKING",        label: "Đang đóng gói" },
+  { key: "SHIPPING",       label: "Đang giao hàng" },
+  { key: "DELIVERED",      label: "Đã giao" },
+  { key: "FAILED",         label: "Giao thất bại" },
+  { key: "RETURNED",       label: "Hoàn hàng" },
   { key: "COMPLETED",      label: "Hoàn thành" },
   { key: "CANCELED",       label: "Đã hủy" },
 ];
 
+const TYPE_OPTIONS = [
+  { key: "DIRECT_ORDER",       label: "Thường",     icon: "🛍️" },
+  { key: "PRE_ORDER",          label: "Đặt trước",  icon: "🕐" },
+  { key: "PRESCRIPTION_ORDER", label: "Kính thuốc", icon: "👓" },
+  { key: "MIX_ORDER",          label: "Hỗn hợp",    icon: "📦" },
+];
+
 const SORT_OPTIONS = [
-  { key: "DATE_DESC",    label: "Mới nhất" },
-  { key: "DATE_ASC",     label: "Cũ nhất" },
-  { key: "AMOUNT_DESC",  label: "Giá cao → thấp" },
-  { key: "AMOUNT_ASC",   label: "Giá thấp → cao" },
+  { key: "DATE_DESC",   label: "Mới nhất" },
+  { key: "DATE_ASC",    label: "Cũ nhất" },
+  { key: "AMOUNT_DESC", label: "Giá cao → thấp" },
+  { key: "AMOUNT_ASC",  label: "Giá thấp → cao" },
 ];
 
 const formatDate = (str: string) => {
@@ -65,19 +77,19 @@ const formatCurrency = (v: number) =>
 
 const Profilepage: React.FC = () => {
   const isAccountPage = useMatch("/profile/account");
-  const navigate = useNavigate();
+  const navigate      = useNavigate();
 
-  const [orders, setOrders]   = useState<OrderRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState<string | null>(null);
+  const [orders,   setOrders]   = useState<OrderRow[]>([]);
+  const [loading,  setLoading]  = useState(true);
+  const [error,    setError]    = useState<string | null>(null);
+  const [userName, setUserName] = useState<string>("");
 
-  // Filter / Search / Sort
-  const [activeTab, setActiveTab]     = useState("ALL");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortKey, setSortKey]         = useState("DATE_DESC");
-  const [showSort, setShowSort]       = useState(false);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [selectedTypes,    setSelectedTypes]    = useState<string[]>([]);
+  const [searchQuery,      setSearchQuery]      = useState("");
+  const [sortKey,          setSortKey]          = useState("DATE_DESC");
+  const [showSort,         setShowSort]         = useState(false);
 
-  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const ordersPerPage = 10;
 
@@ -101,28 +113,40 @@ const Profilepage: React.FC = () => {
       }
     };
 
+    const fetchUserInfo = async () => {
+      try {
+        const res = await apiGetMyInfo();
+        const u   = res?.result ?? res;
+        if (u?.name) setUserName(u.name);
+      } catch (err) {
+        console.error("Lỗi lấy thông tin user:", err);
+      }
+    };
+
     fetchOrders();
+    fetchUserInfo();
   }, [navigate]);
 
-  // Filtered + sorted
   const filteredOrders = useMemo(() => {
     let result = [...orders];
 
-    // 1. Tab filter
-    if (activeTab !== "ALL") {
-      result = result.filter(o => {
-        if (activeTab === "SHIPPING") return o.shippingStatus === "SHIPPING" || o.shippingStatus === "PACKING";
-        return o.orderStatus === activeTab;
-      });
+    if (selectedStatuses.length > 0) {
+      result = result.filter(o =>
+        selectedStatuses.some(s =>
+          SHIPPING_KEYS.includes(s) ? o.shippingStatus === s : o.orderStatus === s
+        )
+      );
     }
 
-    // 2. Search by order code
+    if (selectedTypes.length > 0) {
+      result = result.filter(o => selectedTypes.includes(o.orderType));
+    }
+
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
       result = result.filter(o => o.orderCode.toLowerCase().includes(q));
     }
 
-    // 3. Sort
     result.sort((a, b) => {
       switch (sortKey) {
         case "DATE_ASC":    return new Date(a.orderDate).getTime() - new Date(b.orderDate).getTime();
@@ -134,12 +158,32 @@ const Profilepage: React.FC = () => {
     });
 
     return result;
-  }, [orders, activeTab, searchQuery, sortKey]);
+  }, [orders, selectedStatuses, selectedTypes, searchQuery, sortKey]);
 
-  const handleTabChange = (key: string) => { setActiveTab(key); setCurrentPage(1); };
-  const handleSearch    = (q: string)   => { setSearchQuery(q); setCurrentPage(1); };
-  const handleSort      = (key: string) => { setSortKey(key); setShowSort(false); setCurrentPage(1); };
-  const clearFilters    = ()            => { setActiveTab("ALL"); setSearchQuery(""); setCurrentPage(1); };
+  const toggleStatus = (key: string) => {
+    setSelectedStatuses(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
+    setCurrentPage(1);
+  };
+
+  const toggleType = (key: string) => {
+    setSelectedTypes(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
+    setCurrentPage(1);
+  };
+
+  const handleSearch = (q: string) => { setSearchQuery(q); setCurrentPage(1); };
+  const handleSort   = (key: string) => { setSortKey(key); setShowSort(false); setCurrentPage(1); };
+
+  const clearFilters = () => {
+    setSelectedStatuses([]);
+    setSelectedTypes([]);
+    setSearchQuery("");
+    setCurrentPage(1);
+  };
+
+  const isFiltering = selectedStatuses.length > 0 || selectedTypes.length > 0 || searchQuery.trim() !== "";
+
+  const countForStatus = (key: string) =>
+    orders.filter(o => SHIPPING_KEYS.includes(key) ? o.shippingStatus === key : o.orderStatus === key).length;
 
   const indexOfLastOrder  = currentPage * ordersPerPage;
   const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
@@ -154,13 +198,6 @@ const Profilepage: React.FC = () => {
   const totalOrders     = orders.length;
   const shippingOrders  = orders.filter(o => o.shippingStatus === "SHIPPING" || o.shippingStatus === "PACKING").length;
   const deliveredOrders = orders.filter(o => o.orderStatus === "COMPLETED").length;
-  const isFiltering     = activeTab !== "ALL" || searchQuery.trim() !== "";
-
-  const countForTab = (key: string) => {
-    if (key === "ALL") return orders.length;
-    if (key === "SHIPPING") return orders.filter(o => o.shippingStatus === "SHIPPING" || o.shippingStatus === "PACKING").length;
-    return orders.filter(o => o.orderStatus === key).length;
-  };
 
   return (
     <>
@@ -186,10 +223,14 @@ const Profilepage: React.FC = () => {
             {/* SIDEBAR */}
             <aside className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm h-fit">
               <div className="flex items-center gap-4">
-                <div className="h-14 w-14 rounded-2xl bg-teal-100 flex items-center justify-center text-teal-600 font-bold text-xl">K</div>
+                <div className="h-14 w-14 rounded-2xl bg-teal-100 flex items-center justify-center text-teal-600 font-bold text-xl shrink-0">
+                  {userName ? userName.charAt(0).toUpperCase() : "?"}
+                </div>
                 <div className="min-w-0">
-                  <div className="truncate text-sm font-semibold text-zinc-900">Xin chào, Kiên 👋</div>
-                  <div className="truncate text-xs text-zinc-500">Thành viên FPT University</div>
+                  <div className="truncate text-sm font-semibold text-zinc-900">
+                    Xin chào, {userName || "..."} 👋
+                  </div>
+                  <div className="truncate text-xs text-zinc-500">Thành viên</div>
                 </div>
               </div>
               <div className="my-5 h-px bg-zinc-200" />
@@ -248,7 +289,7 @@ const Profilepage: React.FC = () => {
                     ))}
                   </div>
 
-                  {/* ── Search + Sort ── */}
+                  {/* Search + Sort */}
                   <div className="flex gap-2 mb-3">
                     <div className="relative flex-1">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
@@ -265,8 +306,6 @@ const Profilepage: React.FC = () => {
                         </button>
                       )}
                     </div>
-
-                    {/* Sort */}
                     <div className="relative">
                       <button
                         onClick={() => setShowSort(p => !p)}
@@ -295,23 +334,23 @@ const Profilepage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* ── Status filter tabs ── */}
-                  <div className="flex gap-1.5 overflow-x-auto pb-2 mb-5 scrollbar-hide">
-                    {STATUS_TABS.map(tab => {
-                      const count  = countForTab(tab.key);
-                      const active = activeTab === tab.key;
-                      // Ẩn tab nếu không có đơn (trừ ALL)
-                      if (tab.key !== "ALL" && count === 0) return null;
+                  {/* Loại đơn filter */}
+                  <div className="flex gap-1.5 mb-3 flex-wrap">
+                    {TYPE_OPTIONS.map(t => {
+                      const active = selectedTypes.includes(t.key);
+                      const count  = orders.filter(o => o.orderType === t.key).length;
+                      if (count === 0) return null;
                       return (
                         <button
-                          key={tab.key}
-                          onClick={() => handleTabChange(tab.key)}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border transition shrink-0
+                          key={t.key}
+                          onClick={() => toggleType(t.key)}
+                          className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold border transition shrink-0
                             ${active
-                              ? "bg-teal-600 border-teal-600 text-white shadow-sm"
-                              : "bg-white border-zinc-200 text-zinc-600 hover:border-teal-300 hover:text-teal-600"}`}
+                              ? "bg-purple-600 border-purple-600 text-white shadow-sm"
+                              : "bg-white border-zinc-200 text-zinc-600 hover:border-purple-300 hover:text-purple-600"}`}
                         >
-                          {tab.label}
+                          <span style={{ fontSize: "13px" }}>{t.icon}</span>
+                          {t.label}
                           <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none min-w-[16px] text-center
                             ${active ? "bg-white/25 text-white" : "bg-zinc-100 text-zinc-500"}`}>
                             {count}
@@ -321,7 +360,64 @@ const Profilepage: React.FC = () => {
                     })}
                   </div>
 
-                  {/* ── Orders list ── */}
+                  {/* Trạng thái filter */}
+                  <div className="flex gap-1.5 overflow-x-auto pb-2 mb-5 scrollbar-hide flex-wrap">
+                    {STATUS_OPTIONS.map(s => {
+                      const active = selectedStatuses.includes(s.key);
+                      const count  = countForStatus(s.key);
+                      if (count === 0) return null;
+                      return (
+                        <button
+                          key={s.key}
+                          onClick={() => toggleStatus(s.key)}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap border transition shrink-0
+                            ${active
+                              ? "bg-teal-600 border-teal-600 text-white shadow-sm"
+                              : "bg-white border-zinc-200 text-zinc-600 hover:border-teal-300 hover:text-teal-600"}`}
+                        >
+                          {s.label}
+                          <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none min-w-[16px] text-center
+                            ${active ? "bg-white/25 text-white" : "bg-zinc-100 text-zinc-500"}`}>
+                            {count}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Active filters summary */}
+                  {isFiltering && (
+                    <div className="flex items-center gap-2 mb-4 flex-wrap">
+                      <span className="text-xs text-zinc-500">Đang lọc:</span>
+                      {selectedTypes.map(k => {
+                        const t = TYPE_OPTIONS.find(o => o.key === k);
+                        return (
+                          <span key={k} className="flex items-center gap-1 px-2 py-1 bg-purple-50 text-purple-700 border border-purple-200 rounded-full text-xs font-semibold">
+                            {t?.icon} {t?.label}
+                            <button onClick={() => toggleType(k)} className="ml-0.5 hover:text-purple-900">
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        );
+                      })}
+                      {selectedStatuses.map(k => {
+                        const s = STATUS_OPTIONS.find(o => o.key === k);
+                        return (
+                          <span key={k} className="flex items-center gap-1 px-2 py-1 bg-teal-50 text-teal-700 border border-teal-200 rounded-full text-xs font-semibold">
+                            {s?.label}
+                            <button onClick={() => toggleStatus(k)} className="ml-0.5 hover:text-teal-900">
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        );
+                      })}
+                      <button onClick={clearFilters} className="text-xs text-red-500 font-semibold hover:underline ml-1">
+                        Xóa tất cả
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Orders list */}
                   <div className="space-y-3">
                     {loading ? (
                       <div className="flex items-center justify-center py-12">
@@ -343,9 +439,10 @@ const Profilepage: React.FC = () => {
                     ) : (
                       <>
                         {currentOrders.map(order => {
-                          const display = shippingOverride[order.shippingStatus]
-                            || orderStatusConfig[order.orderStatus]
-                            || { label: order.orderStatus, color: "bg-zinc-100 text-zinc-700 border-zinc-200" };
+                          const display =
+                            shippingOverride[order.shippingStatus] ||
+                            orderStatusConfig[order.orderStatus] ||
+                            { label: order.orderStatus, color: "bg-zinc-100 text-zinc-700 border-zinc-200" };
                           return (
                             <div
                               key={order.orderId}
@@ -369,7 +466,6 @@ const Profilepage: React.FC = () => {
                           );
                         })}
 
-                        {/* Pagination */}
                         {totalPages > 1 && (
                           <div className="mt-6 flex items-center justify-center gap-2 pt-2">
                             <button onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} className="p-2 rounded-lg border border-zinc-200 hover:bg-zinc-50 disabled:opacity-30 transition">

@@ -20,7 +20,7 @@ const ConfirmPage: React.FC = () => {
   const [previewData, setPreviewData] = useState<any>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [payment, setPayment] = useState<PaymentMethodType>("COD");
+  const [payment, setPayment] = useState<PaymentMethodType>("VNPAY");
   const [orderNote, setOrderNote] = useState(""); 
   const [selectedCodes, setSelectedCodes] = useState<{
     provinceCode?: string, provinceName?: string,
@@ -133,7 +133,7 @@ const ConfirmPage: React.FC = () => {
 
       if (needsDeposit) {
         if (isDepositOnly) {
-          // Thanh toán cọc 30%
+          // Thanh toán cọc 20%
           payload.payStrategy = "DEPOSIT";
           payload.depositPaymentMethod = payment === "COD" ? "VNPAY" : payment;
         } else {

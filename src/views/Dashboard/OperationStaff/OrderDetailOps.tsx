@@ -67,8 +67,11 @@ function getTimelineStatus(step: any, order: any): "done" | "active" | "pending"
 
   if (step.shippingStatus) {
     const stepIdx = shippingStatusOrder.indexOf(step.shippingStatus);
-    if (step.shippingStatus === order.shippingStatus) return "active";
+    // ✅ Fix: nếu step này < current → done; bằng current → active; > current → pending
+    // Thêm: nếu order đã COMPLETED thì tất cả shipping step đều "done"
+    if (order.orderStatus === "COMPLETED") return "done";
     if (stepIdx < currentShippingIdx) return "done";
+    if (stepIdx === currentShippingIdx) return "active";
     return "pending";
   }
 
@@ -213,7 +216,10 @@ export default function OrderDetail() {
     READY:          { bg: "bg-gradient-to-r from-violet-100 to-purple-100",  text: "text-violet-800",  icon: CheckCircle2, label: "Đã bàn giao GHN" },
     PARTIALLY_PAID: { bg: "bg-gradient-to-r from-orange-100 to-amber-100",   text: "text-orange-800",  icon: Clock,        label: "Thanh toán 1 phần" },
     PAID:           { bg: "bg-gradient-to-r from-teal-100 to-cyan-100",      text: "text-teal-800",    icon: CheckCircle2, label: "Đã thanh toán" },
-  };
+    DELIVERED:      { bg: "bg-gradient-to-r from-green-100 to-emerald-100",  text: "text-green-800",   icon: CheckCircle2, label: "Đã giao" },
+    FAILED:         { bg: "bg-gradient-to-r from-red-100 to-rose-100",       text: "text-red-800",     icon: XCircle,      label: "Giao thất bại" },
+    RETURNED:       { bg: "bg-gradient-to-r from-orange-100 to-amber-100",   text: "text-orange-800",  icon: XCircle,      label: "Hoàn hàng" },
+};
 
   // ── Shipping config đầy đủ với bg + text + icon để render badge màu ──
   const shippingConfig: Record<string, { bg: string; text: string; icon: any; label: string }> = {
@@ -268,7 +274,7 @@ export default function OrderDetail() {
   const isReturned = order.shippingStatus === "RETURNED";
 
   const statusInfo   = statusConfig[order.orderStatus]     || { bg: "bg-gray-100", text: "text-gray-800", icon: Package,      label: order.orderStatus };
-  const shippingInfo = shippingConfig[order.shippingStatus] || { bg: "bg-gray-100", text: "text-gray-800", icon: Truck,        label: order.shippingStatus };
+const shippingInfo = shippingConfig[order.shippingStatus] || { bg: "bg-gray-100", text: "text-gray-800", icon: Truck,        label: order.shippingStatus };
   const StatusIcon   = statusInfo.icon;
   const ShippingIcon = shippingInfo.icon;
   const timeline = order.hasPrescriptionItem ? prescriptionTimeline : normalTimeline;

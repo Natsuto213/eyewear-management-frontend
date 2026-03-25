@@ -1,19 +1,18 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useLocation } from "react-router";
 import { motion } from "framer-motion";
 import { RefreshCcw, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import OrderToolbar from "./OrderToolbar";
 import OrderTable from "./OrderTableOps";
 
+const PAGE_SIZE = 10;
+
 export default function OrderPage() {
-  const [orders, setOrders] = useState<any[]>([]);
+  const [allOrders, setAllOrders] = useState<any[]>([]);
   const [statusData, setStatusData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalElements, setTotalElements] = useState(0);
-  const PAGE_SIZE = 10;
 
   const location = useLocation();
 
@@ -27,7 +26,7 @@ export default function OrderPage() {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
 
-  // ✅ Fetch status options 1 lần duy nhất
+  // Fetch status options 1 lần duy nhất
   useEffect(() => {
     if (!token) return;
     fetch("https://api-eyewear.purintech.id.vn/api/operation-staff/orders/status-options", {
@@ -40,86 +39,103 @@ export default function OrderPage() {
       .catch(() => {});
   }, [token]);
 
-  // ✅ loadData chỉ phụ thuộc token và filters, không phụ thuộc statusData
-  const loadData = useCallback(
-    async (page = 0) => {
-      if (!token) {
-        setError("Phiên đăng nhập hết hạn.");
-        setLoading(false);
-        return;
-      }
+  // Load toàn bộ data, không gửi filter lên server
+  const loadData = useCallback(async () => {
+  if (!token) {
+    setError("Phiên đăng nhập hết hạn.");
+    setLoading(false);
+    return;
+  }
 
-      try {
-        setLoading(true);
+  try {
+    setLoading(true);
 
-        const body: any = {
-          page,
-          size: PAGE_SIZE,
-          sortBy: "orderDate",
-          sortDir: "desc",
-        };
+    const BATCH_SIZE = 50; // mỗi lần fetch 50 đơn
+    let page = 0;
+    let allData: any[] = [];
+    let totalPages = 1;
 
-        
-        if (filters.status !== "Tất cả") body.orderStatus = filters.status;
-        if (filters.orderType !== "Tất cả") body.orderType = filters.orderType;
-        if (filters.orderDate) body.orderDate = filters.orderDate;
+    // ✅ Loop cho đến khi lấy hết tất cả trang
+    do {
+      const res = await fetch(
+        "https://api-eyewear.purintech.id.vn/api/operation-staff/orders/search",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            page,
+            size: BATCH_SIZE,
+            sortBy: "orderDate",
+            sortDir: "desc",
+          }),
+        }
+      );
 
-        const res = await fetch(
-          "https://api-eyewear.purintech.id.vn/api/operation-staff/orders/search",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(body),
-          }
-        );
+      const data = await res.json();
+      const result = data?.result;
 
-        const data = await res.json();
-        const result = data?.result;
+      allData = [...allData, ...(result?.content || [])];
+      totalPages = result?.totalPages || 1;
+      page++;
+    } while (page < totalPages);
 
-        const rawContent = result?.content || [];
-        const q = filters.searchQuery.trim().toLowerCase();
-        const filtered = q
-          ? rawContent.filter((o: any) =>
-              o.customerName?.toLowerCase().includes(q) ||
-              o.orderCode?.toLowerCase().includes(q)
-            )
-          : rawContent;
+    setAllOrders(allData);
+    setError(null);
+  } catch (err: any) {
+    setError(err.message || "Không thể tải đơn hàng");
+  } finally {
+    setLoading(false);
+  }
+}, [token]);
 
-        setOrders(filtered);
-        setTotalPages(result?.totalPages || 1);
-        setTotalElements(result?.totalElements || 0);
-        setCurrentPage(result?.number || 0);
-        setError(null);
-      } catch (err: any) {
-        setError(err.message || "Không thể tải đơn hàng");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [token, filters] // ✅ bỏ statusData.length
-  );
-
-  // ✅ Chạy lại loadData mỗi khi filters thay đổi (bao gồm cả lần mount đầu)
+  // Load lần đầu
   useEffect(() => {
-    loadData(0);
+    loadData();
   }, [loadData]);
 
-  // ✅ Reload khi quay lại từ OrderDetail
+  // Reload khi quay lại từ OrderDetail
   useEffect(() => {
     if (location.state?.refresh) {
-      loadData(currentPage);
+      loadData();
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
+
+  // ✅ Filter hoàn toàn trên FE
+  const filteredOrders = useMemo(() => {
+    const q = filters.searchQuery.trim().toLowerCase();
+    return allOrders.filter((o) => {
+      const matchSearch =
+        !q ||
+        o.customerName?.toLowerCase().includes(q) ||
+        o.orderCode?.toLowerCase().includes(q);
+      const matchStatus =
+        filters.status === "Tất cả" || o.orderStatus === filters.status;
+      const matchType =
+        filters.orderType === "Tất cả" || o.orderType === filters.orderType;
+      const matchDate =
+        !filters.orderDate || o.orderDate?.startsWith(filters.orderDate);
+      return matchSearch && matchStatus && matchType && matchDate;
+    });
+  }, [allOrders, filters]);
+
+  // ✅ Paginate trên FE
+  const totalElements = filteredOrders.length;
+  const totalPages = Math.max(1, Math.ceil(totalElements / PAGE_SIZE));
+  const orders = filteredOrders.slice(
+    currentPage * PAGE_SIZE,
+    (currentPage + 1) * PAGE_SIZE
+  );
 
   const handleFilterChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setFilters((prev) => ({ ...prev, [name]: value }));
+    setCurrentPage(0);
   };
 
   const handleResetFilter = () => {
@@ -129,14 +145,14 @@ export default function OrderPage() {
       orderType: "Tất cả",
       orderDate: "",
     });
+    setCurrentPage(0);
   };
 
   const handlePageChange = (page: number) => {
     if (page < 0 || page >= totalPages) return;
-    loadData(page);
+    setCurrentPage(page);
   };
 
-  // Tạo danh sách số trang hiển thị (tối đa 5 trang xung quanh trang hiện tại)
   const pageNumbers = () => {
     const pages: (number | "...")[] = [];
     if (totalPages <= 7) {
@@ -181,7 +197,7 @@ export default function OrderPage() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => loadData(currentPage)}
+            onClick={() => loadData()}
             disabled={loading}
             className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl font-semibold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -246,7 +262,6 @@ export default function OrderPage() {
 
               {/* Buttons */}
               <div className="flex items-center gap-2">
-                {/* Nút Trước */}
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -257,7 +272,6 @@ export default function OrderPage() {
                   <ChevronLeft className="w-4 h-4" /> Trước
                 </motion.button>
 
-                {/* Số trang */}
                 <div className="flex items-center gap-1">
                   {pageNumbers().map((page, idx) =>
                     page === "..." ? (
@@ -286,7 +300,6 @@ export default function OrderPage() {
                   )}
                 </div>
 
-                {/* Nút Tiếp */}
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}

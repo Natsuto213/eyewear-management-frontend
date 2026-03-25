@@ -36,7 +36,11 @@ const ShippingForm: React.FC<ShippingFormProps> = ({ form, setForm, onOpenModal 
         </div>
         <div className="sm:col-span-2">
           <label className="mb-2 block text-sm font-medium">Email</label>
-          <input className={`${inputBase} bg-zinc-50 cursor-not-allowed`} value={form.email} readOnly />
+          <input 
+            className={inputBase} 
+            value={form.email}  
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+          />
         </div>
         <div className="sm:col-span-2">
           <label className="mb-2 block text-sm font-medium">Địa chỉ nhận hàng</label>
