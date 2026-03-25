@@ -5,11 +5,17 @@ const statusVN = {
     COMPLETED: 'Hoàn tất'
 };
 
-const CancelledFilter = ({ filters, onFilterChange, onResetFilter, statusList, methodList }) => {
+const returnTypeVN = {
+    WARRANTY: 'Bảo hành',
+    REFUND: 'Trả hàng hoàn tiền theo đơn',
+    RETURN: 'Trả hàng hoàn tiền theo sản phẩm',
+    CANCEL_ORDER: 'Đơn huỷ không cần hoàn tiền',
+};
+const CancelledFilter = ({ filters, onFilterChange, onResetFilter, statusList, methodList, returnTypeList }) => {
     return (
         <div className="mb-5 rounded-xl bg-white p-5 shadow">
             <h3 className="mb-4 text-base font-semibold text-gray-700">Bộ lọc yêu cầu</h3>
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-5">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-6">
                 <div>
                     <label className="mb-1 block text-sm font-medium text-gray-600">Tìm kiếm</label>
                     <input
@@ -53,6 +59,18 @@ const CancelledFilter = ({ filters, onFilterChange, onResetFilter, statusList, m
                     >
                         <option value="">-- Tất cả --</option>
                         {methodList.map(m => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                </div>
+                <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-600">Loại hoàn tiền</label>
+                    <select
+                        name="returnType"
+                        value={filters.returnType}
+                        onChange={onFilterChange}
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    >
+                        <option value="">-- Tất cả --</option>
+                        {returnTypeList.map(m => <option key={m} value={m}>{returnTypeVN[m] || m}</option>)}
                     </select>
                 </div>
                 <div className="flex items-end">

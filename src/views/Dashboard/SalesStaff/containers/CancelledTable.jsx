@@ -45,7 +45,8 @@ const CancelledTable = () => {
             search: "",      // Tìm theo mã RF, mã đơn, hoặc SĐT
             status: "",      // PENDING, APPROVED, REJECTED, COMPLETED
             method: "",      // MOMO, VCB...
-            requestDate: ""  // Lọc theo ngày
+            requestDate: "", // Lọc theo ngày
+            returnType: ""
         };
     });
 
@@ -79,13 +80,14 @@ const CancelledTable = () => {
     };
 
     const handleResetFilter = () => {
-        setFilters({ search: "", status: "", method: "", requestDate: "" });
+        setFilters({ search: "", status: "", method: "", requestDate: "", returnType: "" });
         setCurrentPage(1);
     };
 
     // Chuẩn bị dữ liệu cho Dropdown
     const statusList = getUniqueList(requests, "returnExchangeStatus");
     const methodList = getUniqueList(requests, "refundMethod");
+    const returnTypeList = getUniqueList(requests, "returnType")
 
     // Logic lọc dữ liệu
     const filteredData = requests.filter((req) => {
@@ -95,8 +97,8 @@ const CancelledTable = () => {
         const matchStatus = isExactMatch(req.returnExchangeStatus, filters.status);
         const matchMethod = isExactMatch(req.refundMethod, filters.method);
         const matchDate = isMatch(req.requestDate?.slice(0, 10), filters.requestDate);
-
-        return matchSearch && matchStatus && matchMethod && matchDate;
+        const matchReturnType = isExactMatch(req.returnType, filters.returnType);
+        return matchSearch && matchStatus && matchMethod && matchDate && matchReturnType;
     });
 
     // Tính toán phân trang
@@ -111,7 +113,7 @@ const CancelledTable = () => {
 
     return (
         <div className="min-h-screen bg-gray-200 p-6">
-            <h2 className="mb-5 text-2xl font-bold text-gray-800">Quản lý Hoàn tiền Hủy đơn</h2>
+            <h2 className="mb-5 text-2xl font-bold text-gray-800">Quản lý đơn HUỶ</h2>
 
             <CancelledFilter
                 filters={filters}
@@ -119,6 +121,7 @@ const CancelledTable = () => {
                 onResetFilter={handleResetFilter}
                 statusList={statusList}
                 methodList={methodList}
+                returnTypeList={returnTypeList}
             />
 
             <div className="overflow-hidden rounded-xl bg-white shadow">
@@ -136,6 +139,7 @@ const CancelledTable = () => {
                                 <th className="px-4 py-3 text-center font-semibold">Tiền hoàn</th>
                                 <th className="px-4 py-3 text-center font-semibold">Phương thức</th>
                                 <th className="px-4 py-3 text-center font-semibold">Trạng thái</th>
+                                <th className="px-4 py-3 text-center font-semibold">Trạng thái RETURN</th>
                                 <th className="px-4 py-3 text-center font-semibold">Thao tác</th>
                             </tr>
                         </thead>
