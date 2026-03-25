@@ -84,14 +84,26 @@ const Profilepage: React.FC = () => {
   const [error,    setError]    = useState<string | null>(null);
   const [userName, setUserName] = useState<string>("");
 
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
-  const [selectedTypes,    setSelectedTypes]    = useState<string[]>([]);
-  const [searchQuery,      setSearchQuery]      = useState("");
-  const [sortKey,          setSortKey]          = useState("DATE_DESC");
-  const [showSort,         setShowSort]         = useState(false);
+  const FILTER_KEY = "profile_order_filters";
 
-  const [currentPage, setCurrentPage] = useState(1);
+  const savedFilters = (() => {
+    try { return JSON.parse(sessionStorage.getItem(FILTER_KEY) || "{}"); } catch { return {}; }
+  })();
+
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(savedFilters.statuses || []);
+  const [selectedTypes,    setSelectedTypes]    = useState<string[]>(savedFilters.types    || []);
+  const [searchQuery,      setSearchQuery]      = useState<string>(savedFilters.search     || "");
+  const [sortKey,          setSortKey]          = useState<string>(savedFilters.sort       || "DATE_DESC");
+  const [showSort,         setShowSort]         = useState(false);
+  const [currentPage,      setCurrentPage]      = useState<number>(savedFilters.page       || 1);
   const ordersPerPage = 10;
+
+  const saveFilters = (patch: Record<string, any>) => {
+    try {
+      const current = JSON.parse(sessionStorage.getItem(FILTER_KEY) || "{}");
+      sessionStorage.setItem(FILTER_KEY, JSON.stringify({ ...current, ...patch }));
+    } catch {}
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -161,23 +173,48 @@ const Profilepage: React.FC = () => {
   }, [orders, selectedStatuses, selectedTypes, searchQuery, sortKey]);
 
   const toggleStatus = (key: string) => {
-    setSelectedStatuses(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
+    setSelectedStatuses(prev => {
+      const next = prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key];
+      saveFilters({ statuses: next, page: 1 });
+      return next;
+    });
     setCurrentPage(1);
   };
 
   const toggleType = (key: string) => {
-    setSelectedTypes(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
+    setSelectedTypes(prev => {
+      const next = prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key];
+      saveFilters({ types: next, page: 1 });
+      return next;
+    });
     setCurrentPage(1);
   };
 
-  const handleSearch = (q: string) => { setSearchQuery(q); setCurrentPage(1); };
-  const handleSort   = (key: string) => { setSortKey(key); setShowSort(false); setCurrentPage(1); };
+  const handleSearch = (q: string) => {
+    setSearchQuery(q);
+    saveFilters({ search: q, page: 1 });
+    setCurrentPage(1);
+  };
+
+  const handleSort = (key: string) => {
+    setSortKey(key);
+    saveFilters({ sort: key, page: 1 });
+    setShowSort(false);
+    setCurrentPage(1);
+  };
 
   const clearFilters = () => {
     setSelectedStatuses([]);
     setSelectedTypes([]);
     setSearchQuery("");
     setCurrentPage(1);
+    sessionStorage.removeItem(FILTER_KEY);
+  };
+
+  const paginate = (n: number) => {
+    setCurrentPage(n);
+    saveFilters({ page: n });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const isFiltering = selectedStatuses.length > 0 || selectedTypes.length > 0 || searchQuery.trim() !== "";
@@ -189,7 +226,6 @@ const Profilepage: React.FC = () => {
   const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
   const currentOrders     = filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder);
   const totalPages        = Math.ceil(filteredOrders.length / ordersPerPage);
-  const paginate          = (n: number) => { setCurrentPage(n); window.scrollTo({ top: 0, behavior: "smooth" }); };
 
   const navBase     = "group flex items-center justify-between rounded-xl px-3 py-2 text-sm font-medium transition";
   const navInactive = "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900";

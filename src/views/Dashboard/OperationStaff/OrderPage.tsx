@@ -12,15 +12,26 @@ export default function OrderPage() {
   const [statusData, setStatusData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(0);
+
+  // ✅ Restore currentPage từ sessionStorage
+  const [currentPage, setCurrentPage] = useState(() => {
+    const saved = sessionStorage.getItem("orderPage");
+    return saved ? parseInt(saved) : 0;
+  });
 
   const location = useLocation();
 
-  const [filters, setFilters] = useState({
-    searchQuery: "",
-    status: "Tất cả",
-    orderType: "Tất cả",
-    orderDate: "",
+  // ✅ Restore filters từ sessionStorage
+  const [filters, setFilters] = useState(() => {
+    const saved = sessionStorage.getItem("orderFilters");
+    return saved
+      ? JSON.parse(saved)
+      : {
+          searchQuery: "",
+          status: "Tất cả",
+          orderType: "Tất cả",
+          orderDate: "",
+        };
   });
 
   const token =
@@ -39,57 +50,55 @@ export default function OrderPage() {
       .catch(() => {});
   }, [token]);
 
-  // Load toàn bộ data, không gửi filter lên server
+  // ✅ Batch fetch toàn bộ data
   const loadData = useCallback(async () => {
-  if (!token) {
-    setError("Phiên đăng nhập hết hạn.");
-    setLoading(false);
-    return;
-  }
+    if (!token) {
+      setError("Phiên đăng nhập hết hạn.");
+      setLoading(false);
+      return;
+    }
 
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const BATCH_SIZE = 50; // mỗi lần fetch 50 đơn
-    let page = 0;
-    let allData: any[] = [];
-    let totalPages = 1;
+      const BATCH_SIZE = 50;
+      let page = 0;
+      let allData: any[] = [];
+      let totalPages = 1;
 
-    // ✅ Loop cho đến khi lấy hết tất cả trang
-    do {
-      const res = await fetch(
-        "https://api-eyewear.purintech.id.vn/api/operation-staff/orders/search",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            page,
-            size: BATCH_SIZE,
-            sortBy: "orderDate",
-            sortDir: "desc",
-          }),
-        }
-      );
+      do {
+        const res = await fetch(
+          "https://api-eyewear.purintech.id.vn/api/operation-staff/orders/search",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              page,
+              size: BATCH_SIZE,
+              sortBy: "orderDate",
+              sortDir: "desc",
+            }),
+          }
+        );
 
-      const data = await res.json();
-      const result = data?.result;
+        const data = await res.json();
+        const result = data?.result;
+        allData = [...allData, ...(result?.content || [])];
+        totalPages = result?.totalPages || 1;
+        page++;
+      } while (page < totalPages);
 
-      allData = [...allData, ...(result?.content || [])];
-      totalPages = result?.totalPages || 1;
-      page++;
-    } while (page < totalPages);
-
-    setAllOrders(allData);
-    setError(null);
-  } catch (err: any) {
-    setError(err.message || "Không thể tải đơn hàng");
-  } finally {
-    setLoading(false);
-  }
-}, [token]);
+      setAllOrders(allData);
+      setError(null);
+    } catch (err: any) {
+      setError(err.message || "Không thể tải đơn hàng");
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
 
   // Load lần đầu
   useEffect(() => {
@@ -103,6 +112,16 @@ export default function OrderPage() {
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
+
+  // ✅ Lưu filters vào sessionStorage mỗi khi thay đổi
+  useEffect(() => {
+    sessionStorage.setItem("orderFilters", JSON.stringify(filters));
+  }, [filters]);
+
+  // ✅ Lưu page vào sessionStorage mỗi khi thay đổi
+  useEffect(() => {
+    sessionStorage.setItem("orderPage", String(currentPage));
+  }, [currentPage]);
 
   // ✅ Filter hoàn toàn trên FE
   const filteredOrders = useMemo(() => {
@@ -146,6 +165,9 @@ export default function OrderPage() {
       orderDate: "",
     });
     setCurrentPage(0);
+    // ✅ Xóa khỏi sessionStorage
+    sessionStorage.removeItem("orderFilters");
+    sessionStorage.removeItem("orderPage");
   };
 
   const handlePageChange = (page: number) => {
