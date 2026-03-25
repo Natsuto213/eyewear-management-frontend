@@ -44,8 +44,6 @@ import InventoryOrder from "./views/Dashboard/SalesStaff/ui/InventoryOrder";
 import CancelledTable from "./views/Dashboard/SalesStaff/containers/CancelledTable";
 import CancelledDetail from "./views/Dashboard/SalesStaff/ui/CancelledDetail";
 
-
-
 export default function PageRoute() {
     return (
         <ShoppingContextProvider>
