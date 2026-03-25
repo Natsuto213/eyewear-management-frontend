@@ -24,6 +24,13 @@ const mapShippingStatus = (status) => {
     }
 };
 
+const returnTypeVN = {
+    WARRANTY: 'Bảo hành',
+    REFUND: 'Trả hàng hoàn tiền theo đơn',
+    RETURN: 'Trả hàng hoàn tiền theo sản phẩm',
+    CANCEL_ORDER: 'Đơn huỷ không cần hoàn tiền',
+};
+
 const CustomerAndOrderInfo = ({ orderData, mapOrderStatus, mapOrderType, formatCurrency, formatDateTime }) => {
     return (
         <div className="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
@@ -75,7 +82,14 @@ const CustomerAndOrderInfo = ({ orderData, mapOrderStatus, mapOrderType, formatC
                                 </span>
                             </div>
 
-
+                            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                <span className="text-sm font-semibold text-gray-500 w-32">
+                                    Loại đơn trả hàng:
+                                </span>
+                                <span className="text-sm text-gray-800 font-medium">
+                                    {returnTypeVN[orderData.returnType]}
+                                </span>
+                            </div>
 
                             <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
                                 <span className="text-sm font-semibold text-gray-500 w-32">

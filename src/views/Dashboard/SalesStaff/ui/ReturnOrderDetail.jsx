@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CheckCircle } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 
@@ -90,6 +90,8 @@ export default function ReturnOrderDetail() {
     const isApproved = orderData.returnExchangeStatus === "APPROVED";
     const isPending = orderData.returnExchangeStatus === "PENDING";
     const isRejected = orderData.returnExchangeStatus === "REJECTED";
+    const isWARRANTY = orderData.returnType === "WARRANTY";
+
 
 
     return (
@@ -141,10 +143,12 @@ export default function ReturnOrderDetail() {
                             />
                         )}
 
-                        <TotalRefundBanner
-                            totalAmount={orderData.totalAmount}
-                            formatCurrency={formatCurrency}
-                        />
+                        {!isWARRANTY && (
+                            <TotalRefundBanner
+                                totalAmount={orderData.totalAmount}
+                                formatCurrency={formatCurrency}
+                            />
+                        )}
 
                         <ShippingInfo
                             orderData={orderData}
@@ -176,7 +180,7 @@ export default function ReturnOrderDetail() {
                                         isRejected={isRejected}
                                     />
 
-                                    {isApproved && (
+                                    {isApproved && !isWARRANTY && (
                                         <CustomerRefundAccount
                                             orderData={orderData}
                                         />
@@ -206,10 +210,11 @@ export default function ReturnOrderDetail() {
                                         />
                                     )}
 
-                                    {isApproved && (
+                                    {isApproved && !isWARRANTY && (
                                         <ActionCompleteGroup
                                             evidenceFile={evidenceFile}
                                             setEvidenceFile={setEvidenceFile}
+
                                             onComplete={() =>
                                                 handleComplete(
                                                     orderData.returnExchangeId,
@@ -219,6 +224,27 @@ export default function ReturnOrderDetail() {
                                                 )
                                             }
                                         />
+                                    )}
+
+                                    {isWARRANTY && isApproved && (
+                                        <button
+                                            className={`w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl transition-all font-bold shadow 
+                                                bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white
+                                                `}
+                                            type="button"
+
+                                            onClick={() => (
+                                                handleComplete(
+                                                    orderData.returnExchangeId,
+                                                    orderData.refundAmount,
+                                                    evidenceFile,
+                                                    fetchOrderDetail
+                                                ))}
+
+                                        >
+                                            <CheckCircle className="w-5 h-5" />
+                                            XÁC NHẬN HOÀN THÀNH
+                                        </button>
                                     )}
                                 </div>
                             </div>

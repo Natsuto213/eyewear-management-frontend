@@ -126,7 +126,7 @@ const OrderTable = () => {
 
     return (
         <div className="min-h-screen bg-gray-200 p-6">
-            <h2 className="mb-5 text-2xl font-bold text-gray-800">Quản lý Đơn hàng</h2>
+            <h2 className="mb-5 text-2xl font-bold text-gray-800">Quản lý toàn bộ đơn hàng</h2>
 
             <OrderFilter
                 filters={filters}
