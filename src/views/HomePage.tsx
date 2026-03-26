@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
-import { api } from "@/lib/api";
+import { api } from "@/lib/ApiService";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 
 import banner1 from "@/assets/Sale_banner_01.png";

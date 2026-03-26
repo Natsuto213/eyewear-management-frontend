@@ -1,6 +1,6 @@
 // ManagerProductView.tsx
 import { useEffect, useState } from 'react';
-import { api } from '@/lib/api';
+import { api } from '@/lib/ApiService';
 import { Product } from './ManagerProductView/ProductConfig';
 import { ProductHeader } from './ManagerProductView/ProductHeader';
 import { ProductTable } from './ManagerProductView/ProductTable';

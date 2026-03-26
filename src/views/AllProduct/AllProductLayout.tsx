@@ -3,7 +3,7 @@ import { Outlet, useSearchParams, useLocation } from "react-router-dom";
 import { Filter, SlidersHorizontal } from "lucide-react";
 
 
-import { api } from "@/lib/api";
+import { api } from "@/lib/ApiService";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 

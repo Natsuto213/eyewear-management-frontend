@@ -1,11 +1,10 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { NavLink, Outlet, useMatch, useNavigate } from "react-router-dom";
-import { apiLogout, apiGetMyInfo } from "../../lib/userApi";
+import { api, apiLogout, apiGetMyInfo } from "@/lib/ApiService";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { ChevronLeft, ChevronRight, Search, SlidersHorizontal, X } from "lucide-react";
 
-const BASE_URL = "https://api-eyewear.purintech.id.vn";
 
 interface OrderRow {
   orderId: number;
@@ -106,24 +105,22 @@ const Profilepage: React.FC = () => {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    if (!token) { navigate("/login", { replace: true }); return; }
+    
+    
 
     const fetchOrders = async () => {
-      try {
-        setLoading(true);
-        const res  = await fetch(`${BASE_URL}/orders/history`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        if (data.code === 1000) setOrders(data.result || []);
-        else setError("Không thể tải đơn hàng");
-      } catch {
-        setError("Lỗi kết nối server");
-      } finally {
-        setLoading(false);
-      }
-    };
+  try {
+    setLoading(true);
+    
+    const res = await api.get("/orders/history");
+    if (res.data.code === 1000) setOrders(res.data.result || []);
+    else setError("Không thể tải đơn hàng");
+  } catch {
+    setError("Lỗi kết nối server");
+  } finally {
+    setLoading(false);
+  }
+};
 
     const fetchUserInfo = async () => {
       try {

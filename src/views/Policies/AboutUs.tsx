@@ -18,7 +18,7 @@ const VALUES = [
 
 const TEAM = [
   { name: "Hương xinh gái",  role: "Founder & CEO",        emoji: "👓" },
-  { name: "Pé Ân",           role: "Head of Design",       emoji: "✨" },
+  { name: "Pé Ân",           role: "SystemDatabase",       emoji: "✨" },
   { name: "Pé Huy",          role: "AdminSystem",          emoji: "🛡️" },
   { name: "Pé Quang",        role: "SaleStaff",            emoji: "🛒" },
   { name: "Pé Phát",         role: "Manager",              emoji: "👔" },
@@ -111,7 +111,7 @@ export default function AboutPage() {
               rất thật.
             </h2>
             <div className="space-y-5 text-gray-500 text-base leading-relaxed">
-              <p>Năm 2018, founder Minh Tuấn — người cận 5 đi-ốp — không thể tìm được cặp kính vừa đẹp, vừa tốt, vừa giá hợp lý. Toàn bộ thị trường chỉ có hai lựa chọn: <span className="text-gray-900 font-medium">rẻ nhưng kém</span>, hoặc <span className="text-gray-900 font-medium">đẹp nhưng đắt vô lý.</span></p>
+              <p>Năm 2018, founder Minh Tuấn — người cận  — không thể tìm được cặp kính vừa đẹp, vừa tốt, vừa giá hợp lý. Toàn bộ thị trường chỉ có hai lựa chọn: <span className="text-gray-900 font-medium">rẻ nhưng kém</span>, hoặc <span className="text-gray-900 font-medium">đẹp nhưng đắt vô lý.</span></p>
               <p>Thế là chúng tôi tự làm. Từ cửa hàng nhỏ 15m² ở Quận 3, đến nay đã phục vụ hơn <span className="text-teal-600 font-semibold">50,000 khách hàng</span> trên toàn quốc.</p>
               <p>Triết lý vẫn vậy: <span className="text-gray-900 font-medium">kính đẹp không nên là đặc quyền của người giàu.</span></p>
             </div>

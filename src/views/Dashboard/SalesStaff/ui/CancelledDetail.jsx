@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
-import { api } from "@/lib/api";
+import { api } from "@/lib/ApiService";
 
 import NormalProducts from "./common/NormalProducts";
 import PrescriptionProducts from "./common/PrescriptionProducts";

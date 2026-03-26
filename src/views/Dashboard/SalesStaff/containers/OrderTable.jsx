@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import OrderFilter from '../ui/OrderFilter'
 import OrderRow from '../ui/OrderRow'
-import { api } from '../../../../lib/api'
+import { api } from '../../../../lib/ApiService'
 import Pagination from '../ui/Pagination'
 
 // Hàm kiểm tra: giá trị có chứa từ khóa không

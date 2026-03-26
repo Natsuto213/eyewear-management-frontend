@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { apiSignup } from "../lib/userApi";
+import { apiSignup } from "../lib/ApiService";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import loginImg from "@/assets/login.png";

@@ -1,6 +1,6 @@
 // ManagerStaffView.tsx
 import { useState, useEffect } from 'react';
-import { api } from '@/lib/api';
+import { api } from '@/lib/ApiService';
 import { Staff } from './ManagerStaffView/StaffConfig';
 import { StaffHeader } from './ManagerStaffView/StaffHeader';
 import { StaffTable } from './ManagerStaffView/StaffTable';

@@ -6,7 +6,7 @@ import { Separator } from '../ui/separator';
 import { cn } from '../ui/utils';
 import { type Role, type TabItem, getTabsByRole, getRoleDisplayName } from './navigation';
 import { ChevronLeft, ChevronRight, LogOut } from 'lucide-react';
-import { apiLogout } from "../../lib/userApi";
+import { apiLogout } from "../../lib/ApiService";
 
 interface SidebarProps {
   role: Role;

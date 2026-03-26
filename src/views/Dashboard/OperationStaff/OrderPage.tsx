@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { RefreshCcw, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import OrderToolbar from "./OrderToolbar";
 import OrderTable from "./OrderTableOps";
+import { api } from "@/lib/ApiService";
 
 const PAGE_SIZE = 10;
 
@@ -34,8 +35,7 @@ export default function OrderPage() {
         };
   });
 
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+  const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
 
   // Fetch status options 1 lần duy nhất
   useEffect(() => {
@@ -52,53 +52,44 @@ export default function OrderPage() {
 
   // ✅ Batch fetch toàn bộ data
   const loadData = useCallback(async () => {
-    if (!token) {
-      setError("Phiên đăng nhập hết hạn.");
-      setLoading(false);
-      return;
-    }
+  try {
+    setLoading(true);
+    const BATCH_SIZE = 50;
+    let page = 0;
+    let allData: any[] = [];
+    let totalPages = 1;
 
-    try {
-      setLoading(true);
+    do {
+      // ✅ Bỏ token + headers thủ công
+      const res = await api.post("/api/operation-staff/orders/search", {
+        page,
+        size: BATCH_SIZE,
+        sortBy: "orderDate",
+        sortDir: "desc",
+      });
+      const result = res.data?.result;
+      allData = [...allData, ...(result?.content || [])];
+      totalPages = result?.totalPages || 1;
+      page++;
+    } while (page < totalPages);
 
-      const BATCH_SIZE = 50;
-      let page = 0;
-      let allData: any[] = [];
-      let totalPages = 1;
+    setAllOrders(allData);
+    setError(null);
+  } catch (err: any) {
+    setError(err.message || "Không thể tải đơn hàng");
+  } finally {
+    setLoading(false);
+  }
+}, []); 
 
-      do {
-        const res = await fetch(
-          "https://api-eyewear.purintech.id.vn/api/operation-staff/orders/search",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              page,
-              size: BATCH_SIZE,
-              sortBy: "orderDate",
-              sortDir: "desc",
-            }),
-          }
-        );
-
-        const data = await res.json();
-        const result = data?.result;
-        allData = [...allData, ...(result?.content || [])];
-        totalPages = result?.totalPages || 1;
-        page++;
-      } while (page < totalPages);
-
-      setAllOrders(allData);
-      setError(null);
-    } catch (err: any) {
-      setError(err.message || "Không thể tải đơn hàng");
-    } finally {
-      setLoading(false);
-    }
-  }, [token]);
+// Thay fetch status-options:
+useEffect(() => {
+  api.get("/api/operation-staff/orders/status-options")
+    .then(res => {
+      if (res.data.code === 1000) setStatusData(res.data.result || []);
+    })
+    .catch(() => {});
+}, []);
 
   // Load lần đầu
   useEffect(() => {

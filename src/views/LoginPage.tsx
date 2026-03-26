@@ -2,7 +2,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { apiLogin } from "../lib/userApi";
+import { apiLogin } from "../lib/ApiService";
 import loginImg from "@/assets/login.png";
 import { useShoppingContext } from "./Cart/contexts/ShoppingContext";
 
@@ -35,7 +35,7 @@ const LoginPage: React.FC = () => {
             case "MANAGER":
                 return "/manager";
             case "SALES STAFF":
-            case "SALES_STAFF": // Phòng trường hợp API dùng snake_case
+            case "SALES_STAFF": 
                 return "/sales";
             case "OPERATIONS STAFF":
             case "OPERATIONS_STAFF":
