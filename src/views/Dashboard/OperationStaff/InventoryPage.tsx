@@ -140,8 +140,8 @@ function QuantityCell({ product }: { product: Product }) {
   const pct = onHand > 0 ? Math.min(100, Math.round((available / onHand) * 100)) : 0;
   const color =
     available > 50 ? "bg-green-500" :
-    available > 10 ? "bg-amber-400" :
-    available > 0  ? "bg-red-400"   : "bg-gray-300";
+      available > 10 ? "bg-amber-400" :
+        available > 0 ? "bg-red-400" : "bg-gray-300";
 
   return (
     <div className="text-right space-y-1">
@@ -427,9 +427,8 @@ export default function InventoryPage() {
                       pagedProducts.map((product) => (
                         <tr
                           key={product.productId}
-                          className={`hover:bg-indigo-50/40 transition-colors ${
-                            (product.availableQuantity ?? 0) === 0 ? "bg-red-50/30" : ""
-                          }`}
+                          className={`hover:bg-indigo-50/40 transition-colors ${(product.availableQuantity ?? 0) === 0 ? "bg-red-50/30" : ""
+                            }`}
                         >
                           <td className="px-5 py-4">
                             <p className="font-medium text-gray-900 leading-snug">{product.productName}</p>

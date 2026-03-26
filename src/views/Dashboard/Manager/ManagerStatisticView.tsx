@@ -58,7 +58,6 @@ export default function ManagerStatisticView() {
     };
 
     const fetchDashboardData = async (start = startDate, end = endDate) => {
-        // THAY THẾ ALERT 1
         if (start > end) {
             showPopup("Ngày bắt đầu không được lớn hơn ngày kết thúc!", "error", "Lỗi chọn ngày");
             return; 
@@ -74,7 +73,6 @@ export default function ManagerStatisticView() {
             setData(response.data);
         } catch (error) {
             console.error("Lỗi lấy dữ liệu Thống Kê:", error);
-            // THAY THẾ ALERT 2
             showPopup("Không thể kết nối đến máy chủ. Vui lòng thử lại!", "error", "Lỗi tải dữ liệu");
         } finally {
             setLoading(false);
