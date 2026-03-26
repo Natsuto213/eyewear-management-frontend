@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { RefreshCw, Calendar, FileText, Loader2 } from 'lucide-react';
 import { api } from '@/lib/ApiService'; // Import api từ config của bạn
 import { useNavigate } from 'react-router-dom';
+
 // HÀM RENDER NHÃN TRẠNG THÁI (BADGE) DỰA THEO DATA BACKEND
 const getStatusBadge = (status: string) => {
     switch (status) {
@@ -18,7 +19,7 @@ const getStatusBadge = (status: string) => {
     }
 };
 
-// HÀM FORMAT NGÀY THÁNG (Từ 2026-03-15T... -> 15/03/2026)
+// HÀM FORMAT NGÀY THÁNG
 const formatDate = (dateString: string | null) => {
     if (!dateString) return <span className="italic text-gray-400">Chưa nhận</span>;
     const date = new Date(dateString);

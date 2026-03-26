@@ -105,20 +105,6 @@ export default function Navbar() {
                 </ul>
 
                 <div className="flex items-center gap-4">
-                    {/* Search */}
-                    <div className="flex items-center relative">
-                        <input
-                            type="text"
-                            placeholder="Tìm kiếm..."
-                            className={`transition-all duration-300 ease-in-out border border-gray-300 rounded-lg px-3 py-1 text-sm outline-none
-                                ${showSearch ? "w-48 opacity-100 mr-2" : "w-0 opacity-0 mr-0 pointer-events-none"}
-                            `}
-                        />
-                        <button onClick={() => setShowSearch(!showSearch)} className="p-2 hover:bg-gray-100 rounded-lg transition group">
-                            <Search className="size-5 text-gray-600 group-hover:text-black transition" />
-                        </button>
-                    </div>
-
                     {/* Cart Dropdown */}
                     <div className="relative group">
                         <div className="p-2 hover:bg-gray-100 rounded-lg transition flex items-center relative cursor-pointer">

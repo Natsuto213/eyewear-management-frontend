@@ -1,15 +1,23 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Truck, Search, PlusCircle, Trash2, Calendar, ShoppingBag, Plus, Minus, Upload } from 'lucide-react';
 import { api } from '@/lib/ApiService';
+import { Popup } from "@/components/Popup";
 
 const PurchaseCard = () => {
+    // --- STATE CHO POPUP --- 
+    const [popup, setPopup] = useState({ isOpen: false, title: '', message: '', type: 'success' as 'success' | 'error' });
+
+    const showCustomPopup = (message: string, type: 'success' | 'error', title: string = '') => {
+        setPopup({ isOpen: true, title, message, type });
+    };
+
     // --- STATE: DANH SÁCH NHÀ CUNG CẤP (TỪ API) ---
     const [suppliers, setSuppliers] = useState<any[]>([]);
 
     // --- STATE: THÔNG TIN CHUNG ---
     const [selectedSupplierId, setSelectedSupplierId] = useState("");
     const [orderDate, setOrderDate] = useState("");
-    const [orderNote, setOrderNote] = useState(""); // State mới: Ghi chú phiếu nhập
+    const [orderNote, setOrderNote] = useState("");
 
     // 1. GỌI API LẤY DANH SÁCH NHÀ CUNG CẤP VÀ SETUP NGÀY
     useEffect(() => {
@@ -85,7 +93,7 @@ const PurchaseCard = () => {
 
     // --- STATE: GIỎ HÀNG ĐẶT MUA ---
     const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
-    const [isSubmitting, setIsSubmitting] = useState(false); // State mới: Đang gửi API
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Xóa sạch giỏ hàng nếu đổi nhà cung cấp
     useEffect(() => {
@@ -155,7 +163,7 @@ const PurchaseCard = () => {
     // 4. HÀM GỌI API SUBMIT TẠO PHIẾU
     const handleSubmitOrder = async () => {
         if (!selectedSupplierId || selectedProducts.length === 0) {
-            alert("Vui lòng chọn nhà cung cấp và ít nhất 1 sản phẩm!");
+            showCustomPopup("Vui lòng chọn nhà cung cấp và ít nhất 1 sản phẩm!", "error", "Thiếu thông tin");
             return;
         }
 
@@ -185,17 +193,15 @@ const PurchaseCard = () => {
             await api.post('/api/inventory-receipts', payload);
 
             // Báo thành công và Reset form
-            alert("🎉 Đã tạo Phiếu Đặt Hàng thành công!");
+            showCustomPopup("Đã tạo Phiếu Đặt Hàng thành công!", "success", "Thành công!");
             setSelectedProducts([]);
             setSearchQuery("");
             setOrderNote("");
-
-            // Tuỳ chọn: Có thể redirect user về trang danh sách phiếu (PurchaseList) ở đây
-
+            
         } catch (error: any) {
             console.error("Lỗi khi tạo phiếu đặt hàng:", error);
             const errorMsg = error.response?.data?.message || "Có lỗi xảy ra khi tạo phiếu!";
-            alert("❌ Lỗi: " + errorMsg);
+            showCustomPopup(errorMsg, "error", "Tạo phiếu thất bại!");
         } finally {
             setIsSubmitting(false);
         }
@@ -427,7 +433,7 @@ const PurchaseCard = () => {
                     </table>
                 </div>
 
-                {/* GHI CHÚ PHIẾU NHẬP (Thêm vào đây để chuẩn bị gửi xuống DB) */}
+                {/* GHI CHÚ PHIẾU NHẬP */}
                 <div className="p-6 border-t border-gray-200 bg-white">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Ghi chú chung cho Phiếu đặt hàng</label>
                     <textarea
@@ -458,6 +464,15 @@ const PurchaseCard = () => {
                     Xác nhận tạo phiếu đặt hàng
                 </button>
             </div>
+
+            {/* COMPONENT POPUP ĐỂ HIỂN THỊ DƯỚI CÙNG */}
+            <Popup
+                isOpen={popup.isOpen}
+                title={popup.title}
+                message={popup.message}
+                type={popup.type}
+                onClose={() => setPopup({ ...popup, isOpen: false })}
+            />
         </main>
     );
 };
