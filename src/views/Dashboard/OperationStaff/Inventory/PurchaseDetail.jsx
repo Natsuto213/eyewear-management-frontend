@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CheckCircle, AlertCircle, Loader2, ArrowLeft } from 'lucide-react';
 import { api } from '../../../../lib/api';
+import ConfirmModal from './ConfirmModal';
 
 // Import các component con
 import OrderHeader from './OrderHeader';
@@ -19,6 +20,10 @@ const PurchaseDetail = () => {
     const [status, setStatus] = useState("Pending Verification");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 12;
+
+    // 1. Thêm State quản lý Popup
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [discrepancyItems, setDiscrepancyItems] = useState([]);
 
     const fetchOrderDetail = () => {
         setLoading(true);
@@ -73,23 +78,31 @@ const PurchaseDetail = () => {
             alert("Vui lòng nhập đầy đủ số lượng!");
             return;
         }
-        if (window.confirm("Xác nhận nhập kho phiếu này?")) {
-            const payload = {
-                inventoryReceiptId: parseInt(id),
-                totalAmount: totalActualAmount,
-                details: products.map(p => ({
-                    productId: p.productId,
-                    receiptDetailId: p.receiptDetailId,
-                    receivedQuantity: parseInt(p.actualQty),
-                    unitCost: p.unitCost,
-                    totalPrice: p.unitCost * parseInt(p.actualQty) * (1 + p.vatRate / 100),
-                    note: p.note
-                }))
-            };
-            api.put(`api/inventory-receipts/${id}/receive`, payload)
-                .then(() => { alert("Thành công!"); fetchOrderDetail(); })
-                .catch(() => alert("Lỗi xác nhận!"));
-        }
+
+        const itemsWithDiscrepancy = products.filter(p => parseInt(p.actualQty) !== p.orderedQuantity);
+
+        setDiscrepancyItems(itemsWithDiscrepancy);
+        setIsModalOpen(true); // Mở popup ở đây
+    };
+
+    const executeSubmit = () => {
+        setIsModalOpen(false);
+        const payload = {
+            inventoryReceiptId: parseInt(id),
+            totalAmount: totalActualAmount,
+            details: products.map(p => ({
+                productId: p.productId,
+                receiptDetailId: p.receiptDetailId,
+                receivedQuantity: parseInt(p.actualQty),
+                unitCost: p.unitCost,
+                totalPrice: p.unitCost * parseInt(p.actualQty) * (1 + p.vatRate / 100),
+                note: p.note
+            }))
+        };
+
+        api.put(`api/inventory-receipts/${id}/receive`, payload)
+            .then(() => { fetchOrderDetail(); })
+            .catch(() => alert("Lỗi xác nhận!"));
     };
 
     const formatCurrency = (val) => new Intl.NumberFormat('vi-VN').format(val);
@@ -101,6 +114,16 @@ const PurchaseDetail = () => {
 
     return (
         <main className="max-w-7xl mx-auto py-8 px-4 space-y-6">
+            <ConfirmModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onConfirm={executeSubmit}
+                title={discrepancyItems.length > 0 ? "Cảnh Báo Sai Lệch" : "Xác Nhận Nhập Kho"}
+                message={discrepancyItems.length > 0
+                    ? "Phát hiện có sự sai lệch giữa số lượng đặt và thực tế. Bạn vẫn muốn tiếp tục?"
+                    : "Bạn có chắc chắn muốn hoàn tất nhập kho cho phiếu này?"}
+                items={discrepancyItems}
+            />
             <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-600 hover:text-blue-700 font-semibold transition-colors">
                 <ArrowLeft size={20} /> Quay lại
             </button>
@@ -147,9 +170,18 @@ const PurchaseDetail = () => {
                                 <CheckCircle /> XÁC NHẬN NHẬP KHO
                             </button>
                         ) : (
-                            <div className="text-center font-bold text-green-700 bg-green-50 p-4 rounded-lg border border-green-200 uppercase">
-                                Phiếu này đã hoàn tất xử lý
+                            <div className="text-center">
+                                <div className="text-center font-bold text-green-700 bg-green-50 p-4 rounded-lg border border-green-200 uppercas">PHIẾU ĐÃ ĐƯỢC XỬ LÝ: {getStatusVN(status).toUpperCase()}</div>
+                                <div className='mt-4'>
+                                    <button
+                                        className="text-blue-600 hover:underline font-medium"
+                                        onClick={() => navigate('/operation-staff/purchase-list')}
+                                    >
+                                        Quay lại danh sách phiếu nhập
+                                    </button>
+                                </div>
                             </div>
+
                         )}
                     </div>
                 </div>
