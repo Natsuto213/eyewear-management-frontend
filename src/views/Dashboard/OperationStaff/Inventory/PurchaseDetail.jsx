@@ -2,6 +2,10 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CheckCircle, AlertCircle, Truck, ClipboardList, Loader2, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
 import { api } from '../../../../lib/ApiService';
+import OrderHeader from './OrderHeader';
+import ProductTable from './ProductTable';
+import Pagination from './Pagination';
+import ConfirmModal from './ConfirmModal';
 
 const PurchaseDetail = () => {
     const { inventoryReceiptId: id } = useParams();
