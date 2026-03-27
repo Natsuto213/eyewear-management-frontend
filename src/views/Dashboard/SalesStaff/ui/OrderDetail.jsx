@@ -4,7 +4,7 @@ import {
     ArrowLeft
 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
-import { api } from "@/lib/api";
+import { api } from "@/lib/ApiService";
 import HeaderDetail from "./common/HeaderDetail";
 import CustomerAndOrderInfo from "./common/CustomerAndOrderInfo";
 import NormalProducts from "./common/NormalProducts";

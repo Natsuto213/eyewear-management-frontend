@@ -1,13 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { CheckCircle, AlertCircle, Loader2, ArrowLeft } from 'lucide-react';
-import { api } from '../../../../lib/api';
-import ConfirmModal from './ConfirmModal';
-
-// Import các component con
-import OrderHeader from './OrderHeader';
-import ProductTable from './ProductTable';
-import Pagination from './Pagination';
+import { CheckCircle, AlertCircle, Truck, ClipboardList, Loader2, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
+import { api } from '../../../../lib/ApiService';
 
 const PurchaseDetail = () => {
     const { inventoryReceiptId: id } = useParams();

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { ArrowLeft, Phone, Mail, MapPin, User, Package, CheckCircle2, Clock, XCircle, Truck, Eye, AlertCircle, AlertTriangle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { api } from "@/lib/ApiService";
 
 const actionLabels: Record<string, string> = {
   START_PROCESSING: "Bắt đầu gia công",
@@ -133,19 +134,14 @@ export default function OrderDetail() {
   const [updateSuccess, setUpdateSuccess] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<string | null>(null);
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+  
 
   useEffect(() => {
     const fetchOrder = async () => {
-      if (!token) { setError("Phiên đăng nhập hết hạn."); setLoading(false); return; }
       try {
         setLoading(true);
-        const res = await fetch(
-          `https://api-eyewear.purintech.id.vn/api/operation-staff/orders/${orderId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        const data = await res.json();
-        if (data.code === 1000) setOrder(data.result);
+        const res = await api.get(`/api/operation-staff/orders/${orderId}`);
+        if (res.data.code === 1000) setOrder(res.data.result);
         else setError("Không tìm thấy đơn hàng.");
       } catch (err: any) {
         setError(err.message || "Không thể tải chi tiết đơn hàng.");
@@ -154,42 +150,34 @@ export default function OrderDetail() {
       }
     };
     fetchOrder();
-  }, [orderId, token]);
+  }, [orderId]);
 
   const executeAction = async (action: string) => {
-    if (!token) return;
     try {
-      setUpdating(true);
-      setUpdateError(null);
-      setUpdateSuccess(null);
-      setConfirmAction(null);
-
-      const res = await fetch(
-        `https://api-eyewear.purintech.id.vn/api/operation-staff/orders/${orderId}/status`,
-        {
-          method: "PUT",
-          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ action }),
-        }
-      );
-      const data = await res.json();
-
-      if (data.code === 1000) {
-        setOrder(data.result);
-        setUpdateSuccess(`✅ ${actionLabels[action]} thành công!`);
-        setTimeout(() => setUpdateSuccess(null), 3000);
-      } else if (data.code === 1032) {
-        setUpdateError("⏰ Chưa đến thời điểm dự kiến giao hàng.");
-      } else if (data.code === 1003) {
-        setUpdateError("❌ Thao tác không hợp lệ với trạng thái hiện tại.");
-      } else {
-        setUpdateError(data.message || "Cập nhật thất bại.");
-      }
-    } catch (err: any) {
-      setUpdateError(err.message || "Lỗi kết nối.");
-    } finally {
-      setUpdating(false);
+    setUpdating(true);
+    setUpdateError(null);
+    setUpdateSuccess(null);
+    setConfirmAction(null);
+    const res = await api.put(
+      `/api/operation-staff/orders/${orderId}/status`,
+      { action }
+    );
+    if (res.data.code === 1000) {
+      setOrder(res.data.result);
+      setUpdateSuccess(`✅ ${actionLabels[action]} thành công!`);
+      setTimeout(() => setUpdateSuccess(null), 3000);
+    } else if (res.data.code === 1032) {
+      setUpdateError("⏰ Chưa đến thời điểm dự kiến giao hàng.");
+    } else if (res.data.code === 1003) {
+      setUpdateError("❌ Thao tác không hợp lệ với trạng thái hiện tại.");
+    } else {
+      setUpdateError(res.data.message || "Cập nhật thất bại.");
     }
+  } catch (err: any) {
+    setUpdateError(err.message || "Lỗi kết nối.");
+  } finally {
+    setUpdating(false);
+  }
   };
 
   const handleActionClick = (action: string) => {

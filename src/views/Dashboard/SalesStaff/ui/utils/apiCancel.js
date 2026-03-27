@@ -1,4 +1,4 @@
-import { api } from "@/lib/api";
+import { api } from "@/lib/ApiService";
 export const handleReject = async (returnExchangeId, reason, fetchOrderDetail, setShowPopup, setMessageAndColor) => {
     try {
         const res = await api.put(`/api/staff/return-exchange/cancel-refund-requests/${returnExchangeId}/status`, {

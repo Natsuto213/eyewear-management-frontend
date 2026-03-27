@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Truck, Search, PlusCircle, Trash2, Calendar, ShoppingBag, Plus, Minus, Upload } from 'lucide-react';
-import { api } from '@/lib/api';
+import { api } from '@/lib/ApiService';
 import { Popup } from "@/components/Popup";
 
 const PurchaseCard = () => {

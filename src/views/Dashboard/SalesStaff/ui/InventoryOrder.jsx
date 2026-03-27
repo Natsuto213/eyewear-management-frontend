@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { api } from '../../../../lib/api'; // Đảm bảo đường dẫn này đúng với dự án của bạn
+import { api } from '../../../../lib/ApiService'; // Đảm bảo đường dẫn này đúng với dự án của bạn
 
 const InventoryOrder = () => {
     const [inventory, setInventory] = useState([]);

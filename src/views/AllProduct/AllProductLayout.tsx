@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { Outlet, useSearchParams, useLocation } from "react-router-dom";
-import { Filter, SlidersHorizontal, Search } from "lucide-react"; // Đã thêm icon Search
+import { Filter, SlidersHorizontal } from "lucide-react";
 
-import { api } from "@/lib/api";
+
+import { api } from "@/lib/ApiService";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+
 
 export default function AllProductLayout() {
     const [allProducts, setAllProducts] = useState<any[]>([]);
@@ -21,9 +23,6 @@ export default function AllProductLayout() {
     const [priceRange, setPriceRange] = useState<string>("all");
     const [sortBy, setSortBy] = useState<string>("newest");
     const [showMobileFilter, setShowMobileFilter] = useState(false);
-    
-    // 👇 THÊM STATE CHO TÌM KIẾM
-    const [searchQuery, setSearchQuery] = useState("");
 
     const location = useLocation();
 
@@ -53,6 +52,9 @@ export default function AllProductLayout() {
             });
 
             setAllProducts(mapped);
+
+            console.log("API raw:", res.data);
+            console.log("Mapped:", mapped);
         } catch (err) {
             console.error("Fetch products error:", err);
             setError("Không thể tải danh sách sản phẩm");
@@ -82,14 +84,6 @@ export default function AllProductLayout() {
 
     // Filter products
     const filteredProducts = allProducts.filter((product) => {
-        // 👇 TÍCH HỢP LOGIC TÌM KIẾM THEO TÊN SẢN PHẨM
-        if (
-            searchQuery.trim() !== "" &&
-            !product.name.toLowerCase().includes(searchQuery.toLowerCase().trim())
-        ) {
-            return false;
-        }
-
         // Category filter
         if (
             selectedCategory.length > 0 &&
@@ -147,7 +141,6 @@ export default function AllProductLayout() {
         setSelectedCategory([]);
         setSelectedBrands([]);
         setPriceRange("all");
-        setSearchQuery(""); // Xóa luôn cả thanh tìm kiếm
     };
 
     const FilterSidebar = () => (
@@ -264,9 +257,8 @@ export default function AllProductLayout() {
 
                     {/* Main Content */}
                     <div className="flex-1">
-                        {/* 🌟 ĐÃ CẬP NHẬT: Search Bar & Mobile Filter & Sort */}
-                        <div className="flex flex-wrap items-center justify-between gap-4 mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-                            
+                        {/* Mobile Filter Button & Sort */}
+                        <div className="flex items-center justify-between mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
                             <button
                                 onClick={() => setShowMobileFilter(true)}
                                 className="lg:hidden flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
@@ -275,48 +267,29 @@ export default function AllProductLayout() {
                                 Bộ Lọc
                             </button>
 
-                            {/* Cụm Search và Sort */}
-                            <div className="flex items-center gap-4 ml-auto w-full md:w-auto">
-                                {/* 👇 KHUNG SEARCH CHUYỂN TỪ NAVBAR XUỐNG */}
-                                <div className="relative flex-1 md:w-64">
-                                    <input
-                                        type="text"
-                                        placeholder="Tìm kiếm sản phẩm..."
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all bg-gray-50 hover:bg-white"
-                                    />
-                                    <Search className="size-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                                </div>
-
-                                <div className="flex items-center gap-2 shrink-0">
-                                    <label className="text-sm text-gray-600 hidden sm:block">
-                                        Sắp xếp:
-                                    </label>
-                                    <select
-                                        value={sortBy}
-                                        onChange={(e) => setSortBy(e.target.value)}
-                                        className="px-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white transition-all cursor-pointer"
-                                    >
-                                        <option value="newest">Mới nhất</option>
-                                        <option value="price-asc">
-                                            Giá: Thấp → Cao
-                                        </option>
-                                        <option value="price-desc">
-                                            Giá: Cao → Thấp
-                                        </option>
-                                    </select>
-                                </div>
+                            <div className="flex items-center gap-2">
+                                <label className="text-sm text-gray-600">
+                                    Sắp xếp:
+                                </label>
+                                <select
+                                    value={sortBy}
+                                    onChange={(e) => setSortBy(e.target.value)}
+                                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                >
+                                    <option value="newest">Mới nhất</option>
+                                    <option value="price-asc">
+                                        Giá: Thấp → Cao
+                                    </option>
+                                    <option value="price-desc">
+                                        Giá: Cao → Thấp
+                                    </option>
+                                </select>
                             </div>
                         </div>
 
                         {/* Results Count */}
-                        <div className="mb-4 text-gray-600 text-sm">
-                            {searchQuery.trim() !== "" ? (
-                                <span>Tìm thấy <b>{sortedProducts.length}</b> sản phẩm cho "{searchQuery}"</span>
-                            ) : (
-                                <span>Hiển thị <b>{sortedProducts.length}</b> sản phẩm</span>
-                            )}
+                        <div className="mb-4 text-gray-600">
+                            Hiển thị {sortedProducts.length} sản phẩm
                         </div>
 
                         {loading && <div>Đang tải sản phẩm...</div>}

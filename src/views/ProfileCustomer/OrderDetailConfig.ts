@@ -1,6 +1,6 @@
 import {
   Clock, CheckCircle2, XCircle, Truck, Package,
-  CreditCard, Ban, CheckCheck, RotateCcw,
+  CreditCard, Ban, CheckCheck, RotateCcw, ShieldAlert,
 } from "lucide-react";
 
 export const BASE_URL = "https://api-eyewear.purintech.id.vn";
@@ -18,30 +18,30 @@ export const orderStatusConfig: Record<string, { label: string; bg: string; text
   CONFIRMED:      { label: "Đã xác nhận",       bg: "bg-blue-100",    text: "text-blue-800",    icon: CheckCircle2 },
   PROCESSING:     { label: "Đang gia công",     bg: "bg-amber-100",   text: "text-amber-800",   icon: Package },
   READY:          { label: "Chờ vận chuyển",    bg: "bg-purple-100",  text: "text-purple-800",  icon: Package },
-  COMPLETED:      { label: "Hoàn thành đơn",        bg: "bg-green-100",   text: "text-green-800",   icon: CheckCircle2 },
-  CANCELED:       { label: "Đã hủy đơn",            bg: "bg-red-100",     text: "text-red-800",     icon: XCircle },
+  COMPLETED:      { label: "Hoàn thành đơn",    bg: "bg-green-100",   text: "text-green-800",   icon: CheckCircle2 },
+  CANCELED:       { label: "Đã hủy đơn",        bg: "bg-red-100",     text: "text-red-800",     icon: XCircle },
 };
 
 export const shippingConfig: Record<string, { label: string; bg: string; text: string; icon: any }> = {
-  PENDING:   { label: "Chờ xử lý",      bg: "bg-zinc-100",   text: "text-zinc-700",   icon: Clock },
-  PACKING:   { label: "Đang đóng gói",  bg: "bg-blue-100",   text: "text-blue-800",   icon: Package },
-  SHIPPING:  { label: "Đang giao hàng", bg: "bg-indigo-100", text: "text-indigo-800", icon: Truck },
-  DELIVERED: { label: "Giao thành công",        bg: "bg-green-100",  text: "text-green-800",  icon: CheckCircle2 },
-  FAILED:    { label: "Giao thất bại",  bg: "bg-red-100",    text: "text-red-800",    icon: XCircle },
-  RETURNED:  { label: "Hoàn hàng giao hàng",      bg: "bg-orange-100", text: "text-orange-800", icon: XCircle },
-  CANCELED:  { label: "Đã hủy giao hàng",         bg: "bg-red-100",    text: "text-red-800",    icon: XCircle },
+  PENDING:   { label: "Chờ xử lý",       bg: "bg-zinc-100",   text: "text-zinc-700",   icon: Clock },
+  PACKING:   { label: "Đang đóng gói",   bg: "bg-blue-100",   text: "text-blue-800",   icon: Package },
+  SHIPPING:  { label: "Đang giao hàng",  bg: "bg-indigo-100", text: "text-indigo-800", icon: Truck },
+  DELIVERED: { label: "Giao thành công", bg: "bg-green-100",  text: "text-green-800",  icon: CheckCircle2 },
+  FAILED:    { label: "Giao thất bại",   bg: "bg-red-100",    text: "text-red-800",    icon: XCircle },
+  RETURNED:  { label: "Hoàn hàng",       bg: "bg-orange-100", text: "text-orange-800", icon: XCircle },
+  CANCELED:  { label: "Đã hủy giao",     bg: "bg-red-100",    text: "text-red-800",    icon: XCircle },
 };
 
 export const refundStatusConfig: Record<string, {
   label: string; bg: string; text: string; border: string; icon: any; desc: string
 }> = {
-  PENDING:   {
+  PENDING: {
     label: "Đang chờ xử lý",
     bg: "bg-yellow-50", text: "text-yellow-800", border: "border-yellow-200",
     icon: Clock,
     desc: "Yêu cầu hủy đơn của bạn đang chờ nhân viên xem xét.",
   },
-  APPROVED:  {
+  APPROVED: {
     label: "Đã chấp thuận",
     bg: "bg-blue-50", text: "text-blue-800", border: "border-blue-200",
     icon: CheckCircle2,
@@ -53,7 +53,7 @@ export const refundStatusConfig: Record<string, {
     icon: CheckCheck,
     desc: "Tiền đã được hoàn trả về tài khoản của bạn.",
   },
-  REJECTED:  {
+  REJECTED: {
     label: "Bị từ chối",
     bg: "bg-red-50", text: "text-red-800", border: "border-red-200",
     icon: Ban,
@@ -61,21 +61,50 @@ export const refundStatusConfig: Record<string, {
   },
 };
 
+export const warrantyStatusConfig: Record<string, {
+  label: string; bg: string; text: string; border: string; icon: any; desc: string
+}> = {
+  PENDING: {
+    label: "Đang chờ xử lý",
+    bg: "bg-yellow-50", text: "text-yellow-800", border: "border-yellow-200",
+    icon: Clock,
+    desc: "Yêu cầu bảo hành của bạn đang chờ nhân viên xem xét.",
+  },
+  APPROVED: {
+    label: "Đã chấp thuận",
+    bg: "bg-blue-50", text: "text-blue-800", border: "border-blue-200",
+    icon: CheckCircle2,
+    desc: "Yêu cầu đã được duyệt. Chúng tôi đang tiến hành xử lý bảo hành.",
+  },
+  COMPLETED: {
+    label: "Bảo hành hoàn tất",
+    bg: "bg-green-50", text: "text-green-800", border: "border-green-200",
+    icon: CheckCheck,
+    desc: "Bảo hành đã hoàn tất thành công.",
+  },
+  REJECTED: {
+    label: "Bị từ chối",
+    bg: "bg-red-50", text: "text-red-800", border: "border-red-200",
+    icon: Ban,
+    desc: "Yêu cầu bảo hành của bạn đã bị từ chối.",
+  },
+};
+
 export const prescriptionTimeline = [
-  { key: "CONFIRMED",  label: "Đã xác nhận",      orderStatus: "CONFIRMED" },
-  { key: "PROCESSING", label: "Đang gia công",     orderStatus: "PROCESSING" },
-  { key: "PACKING",    label: "Đóng gói",          shippingStatus: "PACKING" },
-  { key: "SHIPPING",   label: "Đang vận chuyển",   shippingStatus: "SHIPPING" },
-  { key: "DELIVERED",  label: "Đã giao",           shippingStatus: "DELIVERED" },
-  { key: "COMPLETED",  label: "Hoàn thành",        orderStatus: "COMPLETED" },
+  { key: "CONFIRMED",  label: "Đã xác nhận",    orderStatus: "CONFIRMED" },
+  { key: "PROCESSING", label: "Đang gia công",   orderStatus: "PROCESSING" },
+  { key: "PACKING",    label: "Đóng gói",        shippingStatus: "PACKING" },
+  { key: "SHIPPING",   label: "Đang vận chuyển", shippingStatus: "SHIPPING" },
+  { key: "DELIVERED",  label: "Đã giao",         shippingStatus: "DELIVERED" },
+  { key: "COMPLETED",  label: "Hoàn thành",      orderStatus: "COMPLETED" },
 ];
 
 export const normalTimeline = [
-  { key: "CONFIRMED",  label: "Đã xác nhận",      orderStatus: "CONFIRMED" },
-  { key: "PACKING",    label: "Đóng gói",          shippingStatus: "PACKING" },
-  { key: "SHIPPING",   label: "Đang vận chuyển",   shippingStatus: "SHIPPING" },
-  { key: "DELIVERED",  label: "Đã giao",           shippingStatus: "DELIVERED" },
-  { key: "COMPLETED",  label: "Hoàn thành",        orderStatus: "COMPLETED" },
+  { key: "CONFIRMED",  label: "Đã xác nhận",    orderStatus: "CONFIRMED" },
+  { key: "PACKING",    label: "Đóng gói",        shippingStatus: "PACKING" },
+  { key: "SHIPPING",   label: "Đang vận chuyển", shippingStatus: "SHIPPING" },
+  { key: "DELIVERED",  label: "Đã giao",         shippingStatus: "DELIVERED" },
+  { key: "COMPLETED",  label: "Hoàn thành",      orderStatus: "COMPLETED" },
 ];
 
 export const formatCurrency = (v: number) =>
@@ -95,7 +124,6 @@ export function getTimelineStatus(
   const currentOrderIdx     = orderStatusOrder.indexOf(order.orderStatus);
   const currentShippingIdx  = shippingStatusOrder.indexOf(order.shippingStatus);
 
-  // Nếu đơn đã COMPLETED → tất cả các bước đều done
   if (order.orderStatus === "COMPLETED") return "done";
 
   if (step.orderStatus) {

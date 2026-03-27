@@ -15,6 +15,7 @@ import {
 } from "./OrderDetailConfig";
 import CancelFormModal, { CancelFormData } from "./CancelFormModal";
 import ReturnExchangePanel from "./ReturnExchangePanel";
+import WarrantyPanel from "./WarrantyPanel";
 
 export default function OrderDetailCustomer() {
   const { orderId } = useParams();
@@ -259,6 +260,10 @@ export default function OrderDetailCustomer() {
         {/* ── Return/Exchange status panel ── */}
         {order.latestReturnExchangeStatus && (
           <ReturnExchangePanel order={order} />
+        )}
+
+        {order.latestWarrantyStatus && (
+          <WarrantyPanel order={order} />
         )}
 
         {/* ── Shipping info ── */}

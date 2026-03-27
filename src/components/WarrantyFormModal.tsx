@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { ShieldAlert, X, Upload, Plus, Minus, Image as ImageIcon, AlertTriangle } from 'lucide-react';
 
-import { api } from "@/lib/api";
+import { api } from "@/lib/ApiService";
 import { Popup } from "@/components/Popup";
 
 const formatCurrency = (v: number) =>

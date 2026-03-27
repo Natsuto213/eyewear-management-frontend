@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { api } from "@/lib/api"; // axios instance đã cấu hình sẵn baseURL
+import { api } from "@/lib/ApiService"; // axios instance đã cấu hình sẵn baseURL
 import { mapVirtualTryOnConfig } from "../utils/tryOnConfigMapper";
 import { extractFrameMetrics } from "../utils/frameMetricsMapper";
 

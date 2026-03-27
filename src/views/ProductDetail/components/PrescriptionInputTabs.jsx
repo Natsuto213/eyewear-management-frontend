@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { PRESCRIPTION_FIELDS } from "../utils/constants";
-import { api } from "../../../lib/api";
+import { api } from "../../../lib/ApiService";
 import { DEFAULT_PRESCRIPTION } from "../utils/constants";
 
 /**

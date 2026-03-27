@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 
-import { ShoppingCart, User } from "lucide-react";
-import { apiLogout } from "@/lib/userApi";
+import { Search, ShoppingCart, User } from "lucide-react";
+import { apiLogout } from "@/lib/ApiService";
 import logo from "@/assets/logo.png";
 import { useShoppingContext } from "../views/Cart/contexts/ShoppingContext";
 import CartItem from "../views/Cart/components/CartItem";

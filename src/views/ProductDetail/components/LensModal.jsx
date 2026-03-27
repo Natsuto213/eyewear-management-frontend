@@ -14,7 +14,7 @@
 
 import { useState, useEffect } from "react";
 import { X, Filter } from "lucide-react";
-import { api } from "@/lib/api";
+import { api } from "@/lib/ApiService";
 import { ImageWithFallback } from "@/components/ImageWithFallback";
 
 /**
