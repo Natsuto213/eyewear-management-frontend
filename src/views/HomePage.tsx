@@ -57,6 +57,28 @@ export default function HomePage() {
     // COMPONENT: BANNER SLIDER (Tự lướt + Đếm ngược)
     // ----------------------------------------------------
     function BannerSlider() {
+        const getVietnamTime = () => {
+            const parts = new Intl.DateTimeFormat("en-GB", {
+                timeZone: "Asia/Ho_Chi_Minh",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: false,
+            }).formatToParts(new Date());
+
+            const time = Object.fromEntries(
+                parts
+                    .filter((part) => part.type !== "literal")
+                    .map((part) => [part.type, part.value])
+            );
+
+            return {
+                hours: Number(time.hour ?? 0),
+                minutes: Number(time.minute ?? 0),
+                seconds: Number(time.second ?? 0),
+            };
+        };
+
         const banners = [
             { id: 1, image: banner1, title: "Giảm Giá Đến", highlight: "50%", desc: "Khuyến mãi lớn nhất trong năm! Hàng ngàn mẫu kính thời trang." },
             { id: 2, image: banner2, title: "BST Mùa Hè", highlight: "Mới Lên Kệ", desc: "Khám phá ngay bộ sưu tập kính mát cực chất cho mùa hè sôi động." },
@@ -64,7 +86,7 @@ export default function HomePage() {
         ];
 
         const [currentSlide, setCurrentSlide] = useState(0);
-        const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
+        const [timeLeft, setTimeLeft] = useState(getVietnamTime());
 
         useEffect(() => {
             const slideTimer = setInterval(() => {
@@ -72,16 +94,7 @@ export default function HomePage() {
             }, 5000);
 
             const countdownTimer = setInterval(() => {
-                const now = new Date();
-                const midnight = new Date();
-                midnight.setHours(24, 0, 0, 0);
-                const diff = midnight.getTime() - now.getTime();
-
-                setTimeLeft({
-                    hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
-                    minutes: Math.floor((diff / 1000 / 60) % 60),
-                    seconds: Math.floor((diff / 1000) % 60)
-                });
+                setTimeLeft(getVietnamTime());
             }, 1000);
 
             return () => {
