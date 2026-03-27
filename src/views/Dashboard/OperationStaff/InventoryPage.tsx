@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Search, Filter, Package, Eye, Layers, ChevronLeft, ChevronRight, RefreshCcw, AlertCircle, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
+import { api } from "@/lib/ApiService";
 
 // --- Types ---
 interface BaseProduct {
@@ -39,22 +40,6 @@ interface ContactLensProduct extends BaseProduct {
 }
 
 type Product = FrameProduct | LensProduct | ContactLensProduct;
-
-// --- API ---
-async function fetchProducts(token: string): Promise<Product[]> {
-  const res = await fetch("https://api-eyewear.purintech.id.vn/api/inventory/products", {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!res.ok) throw new Error("Không thể tải sản phẩm");
-  const data = await res.json();
-  if (data.code !== 1000) throw new Error(data.message || "Lỗi không xác định");
-  return data.result as Product[];
-}
 
 // --- Badge helpers ---
 const TYPE_CONFIG: Record<string, { icon: React.ReactNode; color: string; bg: string }> = {
@@ -175,14 +160,13 @@ export default function InventoryPage() {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
-
   const loadData = async () => {
-    if (!token) { setError("Token không hợp lệ, vui lòng đăng nhập lại."); return; }
     setLoading(true);
     setError(null);
     try {
-      setProducts(await fetchProducts(token));
+      const res = await api.get("/api/inventory/products");
+      if (res.data.code !== 1000) throw new Error(res.data.message || "Lỗi không xác định");
+      setProducts(res.data.result as Product[]);
     } catch {
       setError("Không thể tải sản phẩm. Vui lòng thử lại.");
     } finally {
@@ -190,7 +174,7 @@ export default function InventoryPage() {
     }
   };
 
-  useEffect(() => { loadData(); }, [token]);
+  useEffect(() => { loadData(); }, []);
 
   // Reset trang về 0 khi filter thay đổi
   useEffect(() => { setCurrentPage(0); }, [selectedType, search, showOutOfStock]);
@@ -427,8 +411,7 @@ export default function InventoryPage() {
                       pagedProducts.map((product) => (
                         <tr
                           key={product.productId}
-                          className={`hover:bg-indigo-50/40 transition-colors ${(product.availableQuantity ?? 0) === 0 ? "bg-red-50/30" : ""
-                            }`}
+                          className={`hover:bg-indigo-50/40 transition-colors ${(product.availableQuantity ?? 0) === 0 ? "bg-red-50/30" : ""}`}
                         >
                           <td className="px-5 py-4">
                             <p className="font-medium text-gray-900 leading-snug">{product.productName}</p>
@@ -478,7 +461,6 @@ export default function InventoryPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="mt-6 flex items-center justify-between flex-wrap gap-4"
               >
-                {/* Info */}
                 <p className="text-sm text-gray-500">
                   Trang{" "}
                   <span className="font-bold text-indigo-600">{currentPage + 1}</span>{" "}
@@ -487,7 +469,6 @@ export default function InventoryPage() {
                   <span className="font-bold">{filteredProducts.length}</span> sản phẩm
                 </p>
 
-                {/* Buttons */}
                 <div className="flex items-center gap-2">
                   <motion.button
                     whileHover={{ scale: 1.05 }}
