@@ -15,7 +15,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useShoppingContext } from "../contexts/ShoppingContext";
 import { formatCurrency } from "../helpers/common";
-
+import { ArrowLeft } from "lucide-react";
 // Import các component con
 import EmptyCart from "./EmptyCart";
 import CartTable from "./CartTable";
@@ -130,6 +130,9 @@ export default function CartPage() {
     return (
         <div className="min-h-screen bg-gray-50">
             <Navbar />
+            <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-600 hover:text-gray-800 font-semibold transition-colors px-4 py-2 ml-71  mt-4">
+                <ArrowLeft size={20} /> Quay lại
+            </button>
 
             <div className="max-w-6xl mx-auto px-4 py-10">
 
