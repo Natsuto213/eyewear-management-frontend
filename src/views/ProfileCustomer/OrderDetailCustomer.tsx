@@ -17,6 +17,8 @@ import CancelFormModal, { CancelFormData } from "./CancelFormModal";
 import ReturnExchangePanel from "./ReturnExchangePanel";
 import WarrantyPanel from "./WarrantyPanel";
 
+import { api } from "@/lib/ApiService";
+
 export default function OrderDetailCustomer() {
   const { orderId } = useParams();
   const navigate = useNavigate();
@@ -30,32 +32,28 @@ export default function OrderDetailCustomer() {
 
   // ── Fetch order detail ───────────────────────────────────────────────────
   const fetchDetail = useCallback(async () => {
-    const token = localStorage.getItem("access_token");
-    if (!token) { setError("Vui lòng đăng nhập để xem đơn hàng"); setLoading(false); return; }
     try {
       setLoading(true);
-      const res = await fetch(`${BASE_URL}/orders/${orderId}/detail`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (data.code === 1000) { setOrder(data.result); setError(null); }
-      else setError(data.message || "Không tìm thấy đơn hàng");
-    } catch { setError("Lỗi kết nối server"); }
-    finally { setLoading(false); }
+      
+      const res = await api.get(`/orders/${orderId}/detail`);
+      
+      if (res.data.code === 1000) { 
+          setOrder(res.data.result); 
+          setError(null); 
+      } else {
+          setError(res.data.message || "Không tìm thấy đơn hàng");
+      }
+    } catch (err: any) { 
+        setError(err.response?.data?.message || "Lỗi kết nối server"); 
+    } finally { 
+        setLoading(false); 
+    }
   }, [orderId]);
 
   useEffect(() => { fetchDetail(); }, [fetchDetail]);
 
   // ── Cancel handler ───────────────────────────────────────────────────────
-  /**
-   * POST /orders/{orderId}/cancel
-   * - Không có file QR  → Content-Type: application/json
-   * - Có file QR        → multipart/form-data (browser tự set boundary)
-   */
   const handleCancelSubmit = async (formData: CancelFormData) => {
-    const token = localStorage.getItem("access_token");
-    if (!token) { alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."); return; }
-
     try {
       setCanceling(true);
 
@@ -68,33 +66,34 @@ export default function OrderDetailCustomer() {
       if (formData.refundAccountNumber.trim()) requestData.refundAccountNumber = formData.refundAccountNumber.trim();
       if (formData.refundAccountName.trim()) requestData.refundAccountName = formData.refundAccountName.trim();
 
-      // Backend dùng @RequestPart → phải gửi multipart/form-data
-      // Dùng Blob với type application/json để Spring đọc được @RequestPart("request")
       const form = new FormData();
       form.append(
         "request",
         new Blob([JSON.stringify(requestData)], { type: "application/json" })
       );
 
-      // Append file QR nếu có (key phải đúng với @RequestPart("customerAccountQrFile"))
       if (formData.customerAccountQrFile) {
         form.append("customerAccountQrFile", formData.customerAccountQrFile);
       }
 
-      // KHÔNG set Content-Type thủ công — browser tự set multipart/form-data + boundary
-      const res = await fetch(`${BASE_URL}/orders/${orderId}/cancel`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: form,
+      // Gọi bằng api (Axios)
+      const res = await api.post(`/orders/${orderId}/cancel`, form, {
+          headers: {
+              'Content-Type': 'multipart/form-data'
+          }
       });
 
-      const data = await res.json();
-      if (data.code === 1000) { setShowCancelModal(false); fetchDetail(); }
-      else alert(data.message || "Không thể hủy đơn hàng");
-    } catch { alert("Lỗi kết nối khi gửi yêu cầu hủy"); }
-    finally { setCanceling(false); }
+      if (res.data.code === 1000) { 
+          setShowCancelModal(false); 
+          fetchDetail(); 
+      } else {
+          alert(res.data.message || "Không thể hủy đơn hàng");
+      }
+    } catch (err: any) { 
+        alert(err.response?.data?.message || "Lỗi kết nối khi gửi yêu cầu hủy"); 
+    } finally { 
+        setCanceling(false); 
+    }
   };
 
   // ── Loading / Error states ───────────────────────────────────────────────
@@ -308,13 +307,17 @@ export default function OrderDetailCustomer() {
             {order.prescriptionOrderDetail.map((item: any, idx: number) => (
               <div key={idx} className="rounded-2xl border border-zinc-100 p-4 bg-zinc-50/30">
                 <div className="flex flex-wrap gap-6 mb-4">
-                  <div className="flex items-center gap-3">
-                    <img src={item.frameImg} alt="" className="w-14 h-14 rounded-xl object-cover border bg-white" />
-                    <div>
-                      <p className="text-[10px] font-bold text-indigo-600 uppercase">Gọng kính</p>
-                      <p className="text-sm font-semibold">{item.frameName}</p>
-                    </div>
+                  {item.frameName && (
+                <div className="flex items-center gap-3">
+                  <img src={item.frameImg} alt="" className="w-14 h-14 rounded-xl object-cover border bg-white" />
+                  <div>
+                    <p className="text-[10px] font-bold text-indigo-600 uppercase">Gọng kính</p>
+                    <p className="text-sm font-semibold">{item.frameName}</p>
                   </div>
+                </div>
+              )}
+
+                  
                   <div className="flex items-center gap-3">
                     <img src={item.lensImg} alt="" className="w-14 h-14 rounded-xl object-cover border bg-white" />
                     <div>
