@@ -317,15 +317,7 @@ export default function OrderDetailCustomer() {
                 </div>
               )}
 
-                  {item.lensName && (
-                    <div className="flex items-center gap-3">
-                      <img src={item.lensImg} alt="" className="w-14 h-14 rounded-xl object-cover border bg-white" />
-                      <div>
-                        <p className="text-[10px] font-bold text-purple-600 uppercase">Tròng kính</p>
-                        <p className="text-sm font-semibold">{item.lensName}</p>
-                      </div>
-                    </div>
-                  )}
+                  
                   <div className="flex items-center gap-3">
                     <img src={item.lensImg} alt="" className="w-14 h-14 rounded-xl object-cover border bg-white" />
                     <div>
