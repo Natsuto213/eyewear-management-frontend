@@ -3,7 +3,7 @@ import axios from "axios";
 
 // ─── Config ────────────────────────────────────────────────────────────────
 
-const BASE_URL = "https://api-eyewear.sora.io.vn";
+const BASE_URL = "https://api-eyewear.purintech.id.vn";
 
 // Axios instance dùng chung, tự động gắn Bearer token
 export const api = axios.create({
