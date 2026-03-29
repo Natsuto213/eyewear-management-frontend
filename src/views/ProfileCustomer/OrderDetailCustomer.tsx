@@ -8,7 +8,7 @@ import Navbar from "@/components/Navbar";
 import WarrantyFormModal from "@/components/WarrantyFormModal";
 
 import {
-  BASE_URL, CANCELABLE_STATUSES,
+  CANCELABLE_STATUSES,
   orderStatusConfig, shippingConfig,
   prescriptionTimeline, normalTimeline,
   getTimelineStatus, formatCurrency, formatDate,

@@ -9,9 +9,9 @@ interface Props {
     onSave: (data: any) => Promise<void>;
     initialData: Product | null;
     showPopup: (message: string, type: 'success' | 'error') => void;
+    brands: string[]; // 👇 THÊM PROP MỚI
 }
 
-// ─── ĐƯA INPUT FIELD RA NGOÀI ĐỂ KHÔNG BỊ RENDER LẠI GÂY MẤT FOCUS ───
 const InputField = ({ label, name, type = "text", placeholder = "", required = false, step = "", min = "", value, onChange, error }: any) => {
     const hasError = !!error;
     const displayValue = (value === 0 && type === 'number') ? '' : value;
@@ -42,7 +42,7 @@ const InputField = ({ label, name, type = "text", placeholder = "", required = f
     );
 };
 
-export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }: Props) {
+export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup, brands }: Props) {
     const [formData, setFormData] = useState({
         id: 0,
         sku: '',
@@ -50,7 +50,7 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
         price: 0,
         costPrice: 0,
         description: '',
-        brandName: '',
+        brandName: '', // Mặc định là rỗng để ép user phải chọn
         typeName: 'Gọng kính',
         allowPreorder: false,
         isActive: true,
@@ -67,7 +67,6 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // STATE LƯU TRỮ LỖI CỦA TỪNG TRƯỜNG DỮ LIỆU
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     useEffect(() => {
@@ -95,7 +94,7 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
 
             setImagePreviews(firstImageUrl ? [firstImageUrl] : []);
             setImageFiles([]);
-            setErrors({}); // Xóa lỗi khi mở modal
+            setErrors({});
 
         } else if (!initialData && isOpen) {
             setFormData({
@@ -106,33 +105,28 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
             });
             setImagePreviews([]);
             setImageFiles([]);
-            setErrors({}); // Xóa lỗi khi mở modal
+            setErrors({});
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialData, isOpen]);
 
     if (!isOpen) return null;
 
-    // Thêm formValues vào để có thể so sánh Giá Nhập và Giá Bán
     const validateField = (name: string, value: any, currentTypeName: string, formValues: any) => {
         let errorMsg = '';
 
-        // Validate chung
         if (['sku', 'name', 'brandName'].includes(name) && !value.toString().trim()) {
             errorMsg = 'Bắt buộc nhập';
         }
         
-        // LOGIC CHÉO GIÁ NHẬP VÀ GIÁ BÁN
         if (name === 'price') {
             if (Number(value) < 0) errorMsg = 'Giá không được âm';
-            else if (Number(value) < Number(formValues.costPrice)) errorMsg = 'Giá nhập không thể lớn hơn giá bán';
+            else if (Number(value) < Number(formValues.costPrice)) errorMsg = 'Giá bán phải >= Giá nhập';
         }
         if (name === 'costPrice') {
             if (Number(value) < 0) errorMsg = 'Giá không được âm';
-            else if (Number(value) > Number(formValues.price)) errorMsg = 'Giá nhập không thể lớn hơn giá bán';
+            else if (Number(value) > Number(formValues.price)) errorMsg = 'Giá nhập phải <= Giá bán';
         }
 
-        // Validate Tròng kính
         if (currentTypeName === 'Tròng kính') {
             if (name === 'lensIndexValue') {
                 const val = Number(value);
@@ -146,7 +140,6 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
             }
         }
 
-        // Validate Kính áp tròng
         if (currentTypeName === 'Kính áp tròng') {
             if (name === 'contactLensWaterContent') {
                 const val = Number(value);
@@ -167,7 +160,6 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
             }
         }
 
-        // Validate Gọng kính
         if (currentTypeName === 'Gọng kính') {
             if (['frameColor', 'frameShapeName', 'frameMaterialName'].includes(name) && !value.toString().trim()) {
                 errorMsg = 'Bắt buộc nhập';
@@ -193,7 +185,6 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
 
         const finalValue = numberFields.includes(name) ? Number(value) : value;
 
-        // Tạo object mới giả lập state sau khi đổi
         const updatedFormData = {
             ...formData,
             [name]: finalValue
@@ -201,12 +192,10 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
 
         setFormData(updatedFormData);
 
-        // Validate ngay lập tức và tự động check chéo trường còn lại
         setErrors(prevErrors => {
             const nextErrors = { ...prevErrors };
             nextErrors[name] = validateField(name, finalValue, updatedFormData.typeName, updatedFormData);
 
-            // Tự động gỡ lỗi/báo lỗi cho ô kia nếu mình vừa sửa price hoặc costPrice
             if (name === 'price') {
                 nextErrors.costPrice = validateField('costPrice', updatedFormData.costPrice, updatedFormData.typeName, updatedFormData);
             } else if (name === 'costPrice') {
@@ -241,11 +230,8 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
             return;
         }
 
-        // KIỂM TRA LỖI TOÀN BỘ FORM TRƯỚC KHI SUBMIT
         let hasError = false;
         const newErrors: Record<string, string> = {};
-
-        // Cho hàm biết là đang Edit
         const isEditing = !!initialData;
 
         const fieldsToValidate = Object.keys(formData).filter(key => {
@@ -335,7 +321,29 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup }
                             </div>
 
                             <div className="grid grid-cols-3 gap-x-4 gap-y-6">
-                                <div><InputField label="Thương hiệu" name="brandName" value={formData.brandName} onChange={handleChange} error={errors.brandName} placeholder="Ray-Ban, Gucci" required /></div>
+                                <div className="flex flex-col relative">
+                                    <label className={`block text-xs font-medium mb-1 ${errors.brandName ? 'text-red-600' : 'text-gray-700'}`}>
+                                        Thương hiệu *
+                                    </label>
+                                    <div className="relative">
+                                        <select
+                                            name="brandName"
+                                            value={formData.brandName}
+                                            onChange={handleChange}
+                                            className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-colors bg-white
+                                                ${errors.brandName
+                                                    ? 'border-red-400 focus:ring-red-200 bg-red-50 text-red-900'
+                                                    : 'border-gray-300 focus:ring-purple-400'}`}
+                                        >
+                                            <option value="">Chọn thương hiệu</option>
+                                            {brands.map(brand => (
+                                                <option key={brand} value={brand}>{brand}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    {errors.brandName && <span className="text-[10px] text-red-600 mt-1 font-medium absolute -bottom-4 left-0">{errors.brandName}</span>}
+                                </div>
+
                                 <div><InputField label="Giá bán (VNĐ)" name="price" type="number" min="0" value={formData.price} onChange={handleChange} error={errors.price} placeholder="1500000" required /></div>
                                 <div><InputField label="Giá nhập (VNĐ)" name="costPrice" type="number" min="0" value={formData.costPrice} onChange={handleChange} error={errors.costPrice} placeholder="800000" /></div>
                             </div>

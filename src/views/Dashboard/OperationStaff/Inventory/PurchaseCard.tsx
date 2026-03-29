@@ -233,7 +233,7 @@ const PurchaseCard = () => {
                                     value={selectedSupplierId}
                                     onChange={(e) => setSelectedSupplierId(e.target.value)}
                                 >
-                                    <option value="">-- Vui lòng chọn nhà cung cấp --</option>
+                                    <option value="">Vui lòng chọn nhà cung cấp</option>
                                     {suppliers.map(s => (
                                         <option key={s.id} value={s.id}>{s.name}</option>
                                     ))}

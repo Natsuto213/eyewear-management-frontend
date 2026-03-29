@@ -162,7 +162,7 @@ export default function PurchaseList() {
                                 value={filterSupplier}
                                 onChange={(e) => setFilterSupplier(e.target.value)}
                             >
-                                <option value="">-- Tất cả nhà cung cấp --</option>
+                                <option value="">Tất cả nhà cung cấp</option>
                                 <option value="1">Công ty TNHH Kính Mắt Việt</option>
                                 <option value="2">Công ty Phân Phối Quang Học</option>
                             </select>
