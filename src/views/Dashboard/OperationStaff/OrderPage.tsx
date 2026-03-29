@@ -14,7 +14,6 @@ export default function OrderPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ Restore currentPage từ sessionStorage
   const [currentPage, setCurrentPage] = useState(() => {
     const saved = sessionStorage.getItem("orderPage");
     return saved ? parseInt(saved) : 0;
@@ -22,7 +21,6 @@ export default function OrderPage() {
 
   const location = useLocation();
 
-  // ✅ Restore filters từ sessionStorage
   const [filters, setFilters] = useState(() => {
     const saved = sessionStorage.getItem("orderFilters");
     return saved
@@ -35,61 +33,45 @@ export default function OrderPage() {
         };
   });
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
-
   // Fetch status options 1 lần duy nhất
   useEffect(() => {
-    if (!token) return;
-    fetch("https://api-eyewear.purintech.id.vn/api/operation-staff/orders/status-options", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.code === 1000) setStatusData(data.result || []);
+    api.get("/api/operation-staff/orders/status-options")
+      .then(res => {
+        if (res.data.code === 1000) setStatusData(res.data.result || []);
       })
       .catch(() => {});
-  }, [token]);
+  }, []);
 
-  // ✅ Batch fetch toàn bộ data
+  // Batch fetch toàn bộ data
   const loadData = useCallback(async () => {
-  try {
-    setLoading(true);
-    const BATCH_SIZE = 50;
-    let page = 0;
-    let allData: any[] = [];
-    let totalPages = 1;
+    try {
+      setLoading(true);
+      const BATCH_SIZE = 50;
+      let page = 0;
+      let allData: any[] = [];
+      let totalPages = 1;
 
-    do {
-      // ✅ Bỏ token + headers thủ công
-      const res = await api.post("/api/operation-staff/orders/search", {
-        page,
-        size: BATCH_SIZE,
-        sortBy: "orderDate",
-        sortDir: "desc",
-      });
-      const result = res.data?.result;
-      allData = [...allData, ...(result?.content || [])];
-      totalPages = result?.totalPages || 1;
-      page++;
-    } while (page < totalPages);
+      do {
+        const res = await api.post("/api/operation-staff/orders/search", {
+          page,
+          size: BATCH_SIZE,
+          sortBy: "orderDate",
+          sortDir: "desc",
+        });
+        const result = res.data?.result;
+        allData = [...allData, ...(result?.content || [])];
+        totalPages = result?.totalPages || 1;
+        page++;
+      } while (page < totalPages);
 
-    setAllOrders(allData);
-    setError(null);
-  } catch (err: any) {
-    setError(err.message || "Không thể tải đơn hàng");
-  } finally {
-    setLoading(false);
-  }
-}, []); 
-
-// Thay fetch status-options:
-useEffect(() => {
-  api.get("/api/operation-staff/orders/status-options")
-    .then(res => {
-      if (res.data.code === 1000) setStatusData(res.data.result || []);
-    })
-    .catch(() => {});
-}, []);
+      setAllOrders(allData);
+      setError(null);
+    } catch (err: any) {
+      setError(err.message || "Không thể tải đơn hàng");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   // Load lần đầu
   useEffect(() => {
@@ -104,17 +86,17 @@ useEffect(() => {
     }
   }, [location.state]);
 
-  // ✅ Lưu filters vào sessionStorage mỗi khi thay đổi
+  // Lưu filters vào sessionStorage mỗi khi thay đổi
   useEffect(() => {
     sessionStorage.setItem("orderFilters", JSON.stringify(filters));
   }, [filters]);
 
-  // ✅ Lưu page vào sessionStorage mỗi khi thay đổi
+  // Lưu page vào sessionStorage mỗi khi thay đổi
   useEffect(() => {
     sessionStorage.setItem("orderPage", String(currentPage));
   }, [currentPage]);
 
-  // ✅ Filter hoàn toàn trên FE
+  // Filter hoàn toàn trên FE
   const filteredOrders = useMemo(() => {
     const q = filters.searchQuery.trim().toLowerCase();
     return allOrders.filter((o) => {
@@ -132,7 +114,7 @@ useEffect(() => {
     });
   }, [allOrders, filters]);
 
-  // ✅ Paginate trên FE
+  // Paginate trên FE
   const totalElements = filteredOrders.length;
   const totalPages = Math.max(1, Math.ceil(totalElements / PAGE_SIZE));
   const orders = filteredOrders.slice(
@@ -156,7 +138,6 @@ useEffect(() => {
       orderDate: "",
     });
     setCurrentPage(0);
-    // ✅ Xóa khỏi sessionStorage
     sessionStorage.removeItem("orderFilters");
     sessionStorage.removeItem("orderPage");
   };
@@ -262,18 +243,14 @@ useEffect(() => {
               animate={{ opacity: 1, y: 0 }}
               className="mt-6 flex items-center justify-between flex-wrap gap-4"
             >
-              {/* Info */}
               <p className="text-sm text-gray-500">
                 Trang{" "}
-                <span className="font-bold text-indigo-600">
-                  {currentPage + 1}
-                </span>{" "}
+                <span className="font-bold text-indigo-600">{currentPage + 1}</span>{" "}
                 / {totalPages} · Hiển thị{" "}
                 <span className="font-bold">{orders.length}</span> /{" "}
                 <span className="font-bold">{totalElements}</span> đơn
               </p>
 
-              {/* Buttons */}
               <div className="flex items-center gap-2">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -288,10 +265,7 @@ useEffect(() => {
                 <div className="flex items-center gap-1">
                   {pageNumbers().map((page, idx) =>
                     page === "..." ? (
-                      <span
-                        key={`ellipsis-${idx}`}
-                        className="px-2 text-gray-400 font-bold"
-                      >
+                      <span key={`ellipsis-${idx}`} className="px-2 text-gray-400 font-bold">
                         ...
                       </span>
                     ) : (
@@ -301,10 +275,9 @@ useEffect(() => {
                         whileTap={{ scale: 0.9 }}
                         onClick={() => handlePageChange(page as number)}
                         className={`w-9 h-9 rounded-xl font-bold text-sm transition-all shadow-sm
-                          ${
-                            currentPage === page
-                              ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg"
-                              : "bg-white border-2 border-indigo-100 text-gray-600 hover:bg-indigo-50"
+                          ${currentPage === page
+                            ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg"
+                            : "bg-white border-2 border-indigo-100 text-gray-600 hover:bg-indigo-50"
                           }`}
                       >
                         {(page as number) + 1}

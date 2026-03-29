@@ -2,8 +2,7 @@ import {
   Clock, CheckCircle2, XCircle, Truck, Package,
   CreditCard, Ban, CheckCheck, RotateCcw, ShieldAlert,
 } from "lucide-react";
-
-export const BASE_URL = "https://api-eyewear.purintech.id.vn";
+import api from "../../lib/ApiService";
 
 export const CANCELABLE_STATUSES = ["PENDING", "PARTIALLY_PAID", "PAID"];
 

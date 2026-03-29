@@ -57,21 +57,32 @@ export default function PurchaseList() {
         fetchReceipts();
     }, []);
 
-    // LỌC DỮ LIỆU TẠI FRONTEND (Client-side filtering)
+    // LỌC VÀ SẮP XẾP DỮ LIỆU TẠI FRONTEND (Client-side filtering & sorting)
     const filteredReceipts = useMemo(() => {
-        return receipts.filter((receipt) => {
-            // Lọc theo mã phiếu
+        // 1. Lọc dữ liệu trước
+        const result = receipts.filter((receipt) => {
             const matchCode = filterCode ? receipt.receiptCode?.toLowerCase().includes(filterCode.toLowerCase()) : true;
-            // Lọc theo trạng thái
             const matchStatus = filterStatus ? receipt.status === filterStatus : true;
-            // Lọc theo Nguồn nhập (Supplier ID)
             const matchSupplier = filterSupplier ? receipt.supplierId?.toString() === filterSupplier : true;
-
-            // Lọc theo ngày đặt (So sánh phần YYYY-MM-DD)
             const matchOrderDate = dateOrder ? receipt.orderDate?.startsWith(dateOrder) : true;
             const matchReceiveDate = dateReceive ? receipt.receivedDate?.startsWith(dateReceive) : true;
 
             return matchCode && matchStatus && matchSupplier && matchOrderDate && matchReceiveDate;
+        });
+
+        // 2. Sắp xếp dữ liệu (Mới nhất lên đầu)
+        return result.sort((a, b) => {
+            // Chuyển ngày ra số millisecond để trừ cho nhau
+            const dateA = new Date(a.orderDate || 0).getTime();
+            const dateB = new Date(b.orderDate || 0).getTime();
+
+            // Nếu khác ngày thì lấy ngày mới nhất (dateB - dateA)
+            if (dateA !== dateB) {
+                return dateB - dateA;
+            }
+
+            // Nếu lỡ trùng đúng ngày thì lấy phiếu tạo sau (ID lớn hơn) lên trước
+            return (b.inventoryReceiptId || 0) - (a.inventoryReceiptId || 0);
         });
     }, [receipts, filterCode, filterStatus, filterSupplier, dateOrder, dateReceive]);
 
@@ -151,7 +162,7 @@ export default function PurchaseList() {
                                 value={filterSupplier}
                                 onChange={(e) => setFilterSupplier(e.target.value)}
                             >
-                                <option value="">-- Tất cả nhà cung cấp --</option>
+                                <option value="">Tất cả nhà cung cấp</option>
                                 <option value="1">Công ty TNHH Kính Mắt Việt</option>
                                 <option value="2">Công ty Phân Phối Quang Học</option>
                             </select>

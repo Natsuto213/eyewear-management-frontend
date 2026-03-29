@@ -1,13 +1,13 @@
 // ManagerProductView.tsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react'; // Bổ sung useMemo
 import { api } from '@/lib/ApiService';
 import { Product } from './ManagerProductView/ProductConfig';
 import { ProductHeader } from './ManagerProductView/ProductHeader';
 import { ProductTable } from './ManagerProductView/ProductTable';
 import { DeleteConfirmModal } from './ManagerProductView/DeleteConfirmModal';
 import { ProductModal } from './ManagerProductView/ProductModal';
-import { Popup } from '@/components/Popup'; // Import Popup
-import { ConfirmDialog } from '@/components/ConfirmDialog'; // Import ConfirmDialog
+import { Popup } from '@/components/Popup'; 
+import { ConfirmDialog } from '@/components/ConfirmDialog'; 
 
 export default function ManagerProductView() {
     // STATE DATA & LỌC
@@ -35,7 +35,6 @@ export default function ManagerProductView() {
     const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
     const [productToRestore, setProductToRestore] = useState<any>(null);
 
-    // Hàm gọi nhanh Popup
     const showPopup = (message: string, type: 'success' | 'error') => {
         setPopup({ isOpen: true, message, type });
     };
@@ -61,26 +60,26 @@ export default function ManagerProductView() {
     const sortedAndFiltered = [...filtered].sort((a, b) => {
         const nameA = a.productName || a.name || '';
         const nameB = b.productName || b.name || '';
-
-        // Lấy ID ra để so sánh (hỗ trợ cả 2 kiểu tên field)
         const idA = a.productID || a.id || 0;
         const idB = b.productID || b.id || 0;
 
-        // Xử lý Mới nhất (ID lớn hơn nằm trên)
         if (sortBy === 'newest') return idB - idA;
-
-        // Các sort khác
         if (sortBy === 'price_asc') return a.price - b.price;
         if (sortBy === 'price_desc') return b.price - a.price;
         if (sortBy === 'name_asc') return nameA.localeCompare(nameB);
-
         return 0;
     });
+
     // LOGIC PHÂN TRANG
     const totalPages = Math.ceil(sortedAndFiltered.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const currentItems = sortedAndFiltered.slice(startIndex, endIndex);
+
+    const uniqueBrands = useMemo(() => {
+        const brands = products.map((p: any) => p.brand?.brandName || p.brandName || p.Brand).filter(Boolean);
+        return Array.from(new Set(brands)) as string[];
+    }, [products]);
 
     // XỬ LÝ LẤY SẢN PHẨM
     const fetchProducts = async () => {
@@ -98,27 +97,22 @@ export default function ManagerProductView() {
         fetchProducts();
     }, []);
 
-    // RESET TRANG MỖI LẦN SEARCH, FILTER, SORT
     useEffect(() => {
         setCurrentPage(1);
     }, [search, selectedTypes, sortBy]);
 
-    // XỬ LÝ MỞ MODAL THÊM
     const handleAddClick = () => {
         setEditingProduct(null);
         setIsFormModalOpen(true);
     };
 
-    // XỬ LÝ MỞ MODAL SỬA 
     const handleEditClick = (product: any) => {
         setEditingProduct(product);
         setIsFormModalOpen(true);
     };
 
-    // GỌI API KHI BẤM LƯU TỪ MODAL
     const handleSaveProduct = async (formData: any) => {
         if (editingProduct) {
-            // 🚀 NHÁNH SỬA (PUT)
             try {
                 const currentId = editingProduct.id || editingProduct.productID;
                 const putPayload = {
@@ -133,23 +127,15 @@ export default function ManagerProductView() {
                 };
 
                 await api.put('api/products', putPayload);
-
-                showPopup("Cập nhật thông tin chung thành công!", "success"); // Đã thay bằng Popup
-
+                showPopup("Cập nhật thông tin chung thành công!", "success"); 
                 fetchProducts();
                 setIsFormModalOpen(false);
-
             } catch (error: any) {
-                console.error("Lỗi khi cập nhật sản phẩm:", error);
-                showPopup("Có lỗi xảy ra khi cập nhật sản phẩm!", "error"); // Đã thay bằng Popup
+                showPopup("Có lỗi xảy ra khi cập nhật sản phẩm!", "error"); 
             }
-
         } else {
-            // 🚀 NHÁNH THÊM MỚI (POST) 
             try {
                 const uploadData = new FormData();
-
-                // 1. Thông tin chung
                 uploadData.append('sku', formData.sku);
                 uploadData.append('name', formData.name);
                 uploadData.append('price', String(formData.price));
@@ -160,14 +146,12 @@ export default function ManagerProductView() {
                 uploadData.append('allowPreorder', String(formData.allowPreorder));
                 uploadData.append('isActive', String(formData.isActive));
 
-                // 2. Ảnh
                 if (formData.imageFiles && formData.imageFiles.length > 0) {
                     formData.imageFiles.forEach((file: File) => {
                         uploadData.append('imageFiles', file);
                     });
                 }
 
-                // 3. Thông số kỹ thuật
                 if (formData.typeName === 'Gọng kính') {
                     uploadData.append('frameColor', formData.frameColor);
                     uploadData.append('frameTempleLength', String(formData.frameTempleLength));
@@ -176,7 +160,6 @@ export default function ManagerProductView() {
                     uploadData.append('frameShapeName', formData.frameShapeName);
                     uploadData.append('frameMaterialName', formData.frameMaterialName);
                     uploadData.append('frameDescription', formData.frameDescription || '');
-
                 } else if (formData.typeName === 'Tròng kính') {
                     uploadData.append('lensTypeName', formData.lensTypeName);
                     uploadData.append('lensIndexValue', String(formData.lensIndexValue));
@@ -185,7 +168,6 @@ export default function ManagerProductView() {
                     uploadData.append('lensIsBlueLightBlock', String(formData.lensIsBlueLightBlock));
                     uploadData.append('lensIsPhotochromic', String(formData.lensIsPhotochromic));
                     uploadData.append('lensDescription', formData.lensDescription || '');
-
                 } else if (formData.typeName === 'Kính áp tròng') {
                     uploadData.append('contactLensUsageType', formData.contactLensUsageType);
                     uploadData.append('contactLensBaseCurve', String(formData.contactLensBaseCurve));
@@ -202,25 +184,21 @@ export default function ManagerProductView() {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
 
-                showPopup("Thêm sản phẩm mới thành công!", "success"); // Đã thay bằng Popup
+                showPopup("Thêm sản phẩm mới thành công!", "success"); 
                 fetchProducts();
                 setIsFormModalOpen(false);
-
             } catch (error: any) {
-                console.error("Lỗi khi thêm sản phẩm:", error);
                 const errMsg = error.response?.data?.message || error.response?.data?.result || "Có lỗi xảy ra khi gọi API Add!";
-                showPopup(`LỖI: ${errMsg}`, "error"); // Đã thay bằng Popup
+                showPopup(`LỖI: ${errMsg}`, "error"); 
             }
         }
     };
 
-    // MỞ MODAL XÓA (Ngừng bán)
     const handleDeleteClick = (id: number) => {
         setProductToDelete(id);
         setIsDeleteModalOpen(true);
     };
 
-    // XÓA MỀM (Status = false)
     const handleConfirmDelete = async () => {
         if (productToDelete === null) return;
         try {
@@ -230,30 +208,22 @@ export default function ManagerProductView() {
                     (p.id === productToDelete || p.productID === productToDelete) ? { ...p, isActive: false } : p
                 )
             );
-            showPopup("Đã ngừng bán sản phẩm!", "success"); // Thêm thông báo nhẹ cho vui
+            showPopup("Đã ngừng bán sản phẩm!", "success");
             setIsDeleteModalOpen(false);
             setProductToDelete(null);
         } catch (error) {
-            console.error("Lỗi khi xóa sản phẩm:", error);
-            showPopup("Lỗi 401: Vui lòng kiểm tra lại token đăng nhập hoặc quyền của bạn!", "error"); // Đã thay bằng Popup
+            showPopup("Lỗi 401: Vui lòng kiểm tra lại token đăng nhập hoặc quyền của bạn!", "error"); 
             setIsDeleteModalOpen(false);
         }
     };
 
-    // ==========================================
-    // LOGIC MỚI: MỞ MODAL HỎI XÁC NHẬN MỞ BÁN LẠI
-    // ==========================================
     const handleRestoreClick = (product: any) => {
         setProductToRestore(product);
         setIsRestoreModalOpen(true);
     };
 
-    // ==========================================
-    // LOGIC MỚI: GỌI API KHI XÁC NHẬN TRÊN MODAL MỞ BÁN
-    // ==========================================
     const confirmRestoreProduct = async () => {
         if (!productToRestore) return;
-
         const currentName = productToRestore.productName || productToRestore.name;
         const currentId = productToRestore.productID || productToRestore.id;
         const currentBrand = productToRestore.brand?.brandName || productToRestore.brandName || productToRestore.Brand;
@@ -273,11 +243,9 @@ export default function ManagerProductView() {
 
             await api.put('api/products', payload);
             setProducts(prev => prev.map(p => (p.id === currentId || p.productID === currentId) ? { ...p, isActive: true } : p));
-
-            showPopup("Mở bán sản phẩm thành công!", "success"); // Đã thay bằng Popup
+            showPopup("Mở bán sản phẩm thành công!", "success"); 
         } catch (error) {
-            console.error("Lỗi khi khôi phục sản phẩm:", error);
-            showPopup("Có lỗi xảy ra khi khôi phục sản phẩm!", "error"); // Đã thay bằng Popup
+            showPopup("Có lỗi xảy ra khi khôi phục sản phẩm!", "error"); 
         } finally {
             setIsRestoreModalOpen(false);
             setProductToRestore(null);
@@ -305,10 +273,9 @@ export default function ManagerProductView() {
                 setCurrentPage={setCurrentPage}
                 onDeleteClick={handleDeleteClick}
                 onEditClick={handleEditClick}
-                onRestoreClick={handleRestoreClick} // Trỏ hàm mở modal vào đây
+                onRestoreClick={handleRestoreClick}
             />
 
-            {/* Modal xác nhận Ngừng Bán (Có sẵn của bạn) */}
             <DeleteConfirmModal
                 isOpen={isDeleteModalOpen}
                 productId={productToDelete}
@@ -325,16 +292,16 @@ export default function ManagerProductView() {
                 onClose={() => setIsFormModalOpen(false)}
                 onSave={handleSaveProduct}
                 showPopup={showPopup}
+                brands={uniqueBrands} 
             />
 
-            {/* MODAL MỚI CHO VIỆC XÁC NHẬN MỞ BÁN LẠI SẢN PHẨM */}
             <ConfirmDialog
                 isOpen={isRestoreModalOpen}
                 title="Xác nhận mở bán"
                 message={`Bạn có chắc chắn muốn kinh doanh lại sản phẩm "${productToRestore?.productName || productToRestore?.name}" không?`}
                 confirmText="Mở bán ngay"
                 cancelText="Hủy bỏ"
-                type="success" // Màu xanh lá cây đẹp mắt
+                type="success"
                 onConfirm={confirmRestoreProduct}
                 onCancel={() => {
                     setIsRestoreModalOpen(false);
@@ -342,7 +309,6 @@ export default function ManagerProductView() {
                 }}
             />
 
-            {/* POPUP THÔNG BÁO Ở GÓC MÀN HÌNH */}
             <Popup
                 isOpen={popup.isOpen}
                 message={popup.message}
