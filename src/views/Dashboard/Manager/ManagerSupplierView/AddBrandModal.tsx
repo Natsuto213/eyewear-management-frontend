@@ -9,7 +9,7 @@ interface Props {
     onClose: () => void;
     onSave: (brandsList: string[]) => Promise<void>;
     isSubmitting: boolean;
-    availableBrands: string[]; // Nhận danh sách brand từ cha
+    availableBrands: string[]; 
 }
 
 export function AddBrandModal({ isOpen, supplier, onClose, onSave, isSubmitting, availableBrands }: Props) {
