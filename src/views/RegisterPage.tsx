@@ -4,7 +4,7 @@ import { apiSignup } from "../lib/ApiService";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import loginImg from "@/assets/login.png";
-import { Eye, EyeOff } from "lucide-react"; 
+import { Eye, EyeOff } from "lucide-react";
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
