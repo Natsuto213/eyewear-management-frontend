@@ -63,7 +63,7 @@ export default function ManagerSupplierView() {
         );
     }, [suppliers, search]);
 
-    // LOGIC LƯU SUPPLIER
+    // LOGIC LƯU SUPPLIER (Cái này api xài multipart/form-data nên giữ nguyên)
     const handleSaveSupplier = async (data: { name: string, phone: string, address: string, brandsList: string[] }) => {
         if (!data.name || !data.phone || !data.address) {
             showPopup("Vui lòng nhập đủ Tên, SĐT và Địa chỉ!", "error");
@@ -77,13 +77,11 @@ export default function ManagerSupplierView() {
             formData.append('supplierPhone', data.phone);
             formData.append('supplierAddress', data.address);
 
-            // PHÂN LOẠI BRAND: Cũ truyền 1 trường, Mới truyền 3 trường
+            // PHÂN LOẠI BRAND
             const brandArray = data.brandsList.map(b => {
                 if (availableBrands.includes(b)) {
-                    // Nếu là brand từ select -> Chỉ gửi {"brandName": "..."} giống hình bạn gửi
                     return { brandName: b }; 
                 } else {
-                    // Nếu là brand mới gõ vào -> Gửi đủ 3 trường
                     return { brandName: b, description: "", status: true };
                 }
             });
@@ -109,7 +107,7 @@ export default function ManagerSupplierView() {
         }
     };
 
-    // LOGIC LƯU THƯƠNG HIỆU
+    // LOGIC LƯU THƯƠNG HIỆU (Đổi sang gửi JSON array thẳng vào body)
     const handleSaveBrand = async (brandsList: string[]) => {
         if (!selectedSupplier) return;
         if (brandsList.length === 0) {
@@ -119,23 +117,17 @@ export default function ManagerSupplierView() {
 
         setIsSubmitting(true);
         try {
-            const formData = new FormData();
-            
             // PHÂN LOẠI BRAND: Cũ truyền 1 trường, Mới truyền 3 trường
             const brandArray = brandsList.map(b => {
                 if (availableBrands.includes(b)) {
-                    // Nếu là brand từ select -> Chỉ gửi {"brandName": "..."} giống hình bạn gửi
                     return { brandName: b }; 
                 } else {
-                    // Nếu là brand mới gõ vào -> Gửi đủ 3 trường
-                    return { brandName: b, description: "", status: true }; 
+                    return { brandName: b, description: null, status: true }; 
                 }
             });
 
-            formData.append('brands', new Blob([JSON.stringify(brandArray)], { type: 'application/json' }));
-
-            await api.post(`/api/suppliers/${selectedSupplier.id}/brands`, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
+            await api.post(`/api/suppliers/${selectedSupplier.id}/brands`, brandArray, {
+                headers: { 'Content-Type': 'application/json' }
             });
 
             setIsAddBrandOpen(false);
