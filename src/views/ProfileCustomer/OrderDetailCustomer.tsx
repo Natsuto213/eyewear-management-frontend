@@ -307,13 +307,17 @@ export default function OrderDetailCustomer() {
             {order.prescriptionOrderDetail.map((item: any, idx: number) => (
               <div key={idx} className="rounded-2xl border border-zinc-100 p-4 bg-zinc-50/30">
                 <div className="flex flex-wrap gap-6 mb-4">
-                  <div className="flex items-center gap-3">
-                    <img src={item.frameImg} alt="" className="w-14 h-14 rounded-xl object-cover border bg-white" />
-                    <div>
-                      <p className="text-[10px] font-bold text-indigo-600 uppercase">Gọng kính</p>
-                      <p className="text-sm font-semibold">{item.frameName}</p>
-                    </div>
+                  {item.frameName && (
+                <div className="flex items-center gap-3">
+                  <img src={item.frameImg} alt="" className="w-14 h-14 rounded-xl object-cover border bg-white" />
+                  <div>
+                    <p className="text-[10px] font-bold text-indigo-600 uppercase">Gọng kính</p>
+                    <p className="text-sm font-semibold">{item.frameName}</p>
                   </div>
+                </div>
+              )}
+
+                  
                   <div className="flex items-center gap-3">
                     <img src={item.lensImg} alt="" className="w-14 h-14 rounded-xl object-cover border bg-white" />
                     <div>
