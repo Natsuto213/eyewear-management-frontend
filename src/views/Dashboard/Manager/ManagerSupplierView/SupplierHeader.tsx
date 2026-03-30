@@ -1,5 +1,5 @@
 // ManagerSupplierView/SupplierHeader.tsx
-import { Building2, PlusCircle, Search } from 'lucide-react';
+import { PlusCircle, Search } from 'lucide-react';
 
 interface Props {
     search: string;
@@ -9,32 +9,31 @@ interface Props {
 
 export function SupplierHeader({ search, setSearch, onAddClick }: Props) {
     return (
-        <div className="bg-white border border-gray-200 rounded-xl shadow-sm mb-6 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 bg-gray-50">
-                <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2 uppercase tracking-wide">
-                    <Building2 className="w-6 h-6 text-blue-600" />
-                    Quản lý Nhà Cung Cấp
-                </h1>
-                <button
-                    onClick={onAddClick}
-                    className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold flex items-center gap-2 shadow-sm transition-all"
-                >
-                    <PlusCircle className="w-5 h-5" />
-                    Thêm nhà cung cấp
-                </button>
-            </div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+            <h1 className="text-xl text-gray-800 uppercase tracking-wide font-bold">
+                Danh sách nhà cung cấp
+            </h1>
 
-            <div className="p-4 bg-white">
-                <div className="relative max-w-md">
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+                {/* Ô Search được canh chỉnh lại cho mượt */}
+                <div className="relative w-full sm:w-80">
+                    <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                         type="text"
                         placeholder="Tìm kiếm theo tên hoặc SĐT..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all shadow-sm"
                     />
-                    <Search className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
                 </div>
+
+                <button
+                    onClick={onAddClick}
+                    className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 shadow-sm hover:shadow transition-all whitespace-nowrap"
+                >
+                    <PlusCircle className="w-5 h-5" />
+                    Thêm nhà cung cấp
+                </button>
             </div>
         </div>
     );

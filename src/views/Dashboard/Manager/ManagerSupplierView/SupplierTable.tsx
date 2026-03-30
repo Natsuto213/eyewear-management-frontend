@@ -121,7 +121,7 @@ function SupplierRow({ supplier, onAddBrandClick }: { supplier: Supplier, onAddB
 export function SupplierTable({ loading, suppliers, onAddBrandClick }: Props) {
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div className="overflow-x-auto min-h-[300px]">
+            <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                     <thead className="bg-blue-50/50 border-b border-gray-200">
                         <tr>
