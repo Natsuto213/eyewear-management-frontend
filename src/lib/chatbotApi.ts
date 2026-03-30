@@ -1,3 +1,4 @@
+import axios from "axios";
 import { api } from "@/lib/ApiService";
 
 export interface ChatbotFilters {
@@ -36,12 +37,36 @@ type ApiEnvelope<T> = {
 };
 
 export async function recommendProducts(message: string): Promise<ChatbotRecommendPayload> {
-    const response = await api.post<ApiEnvelope<ChatbotRecommendPayload>>("/api/chatbot/recommend", {
-        message,
-    });
+    try {
+        const response = await api.post<ApiEnvelope<ChatbotRecommendPayload>>("/api/chatbot/recommend", {
+            message,
+        });
 
-    return response.data?.result ?? {
-        reply: "Mình chưa nhận được phản hồi hợp lệ từ hệ thống tư vấn.",
-        products: [],
-    };
+        return response.data?.result ?? {
+            reply: "Mình chưa nhận được phản hồi hợp lệ từ hệ thống tư vấn.",
+            products: [],
+        };
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            const responseData = error.response?.data;
+            const backendMessage =
+                responseData && typeof responseData === "object" && "message" in responseData
+                    ? String(responseData.message ?? "").trim()
+                    : "";
+
+            if (backendMessage) {
+                throw new Error(backendMessage);
+            }
+
+            if (!error.response) {
+                throw new Error("Không thể kết nối tới backend chatbot. Hãy kiểm tra URL API hoặc backend local đã chạy chưa.");
+            }
+
+            if (error.response.status === 404) {
+                throw new Error("Backend hiện tại chưa có API /api/chatbot/recommend.");
+            }
+        }
+
+        throw error;
+    }
 }
