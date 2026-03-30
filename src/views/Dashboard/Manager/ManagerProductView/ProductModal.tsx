@@ -120,11 +120,11 @@ export function ProductModal({ isOpen, onClose, onSave, initialData, showPopup, 
         
         if (name === 'price') {
             if (Number(value) < 0) errorMsg = 'Giá không được âm';
-            else if (Number(value) < Number(formValues.costPrice)) errorMsg = 'Giá bán phải >= Giá nhập';
+            else if (Number(value) < Number(formValues.costPrice)) errorMsg = 'Giá bán cao hơn giá nhập';
         }
         if (name === 'costPrice') {
             if (Number(value) < 0) errorMsg = 'Giá không được âm';
-            else if (Number(value) > Number(formValues.price)) errorMsg = 'Giá nhập phải <= Giá bán';
+            else if (Number(value) > Number(formValues.price)) errorMsg = 'Giá bán cao hơn giá nhập';
         }
 
         if (currentTypeName === 'Tròng kính') {
