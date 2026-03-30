@@ -4,11 +4,15 @@ import { apiSignup } from "../lib/ApiService";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import loginImg from "@/assets/login.png";
+import { Eye, EyeOff } from "lucide-react";
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [form, setForm] = useState({
     username: "",
@@ -40,7 +44,7 @@ const RegisterPage: React.FC = () => {
     setLoading(true);
     try {
       await apiSignup({
-        username: form.username,
+        username: form.username.trim(), // Thêm trim() giống bên đăng nhập cho chắc
         password: form.password,
         email: form.email,
         phone: form.phone,
@@ -49,7 +53,7 @@ const RegisterPage: React.FC = () => {
       });
       navigate("/login", { replace: true });
     } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || "Sign up failed");
+      setError(err?.response?.data?.message || err?.message || "Đăng ký thất bại");
     } finally {
       setLoading(false);
     }
@@ -123,30 +127,50 @@ const RegisterPage: React.FC = () => {
                 />
               </div>
 
+              {/* Ô Nhập Mật Khẩu */}
               <div>
                 <label className="mb-2 block text-sm font-medium text-zinc-700">
                   Mật khẩu <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="password"
-                  className={inputBase}
-                  value={form.password}
-                  onChange={setField("password")}
-                  placeholder="••••••••"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    className={`${inputBase} pr-10`} // Thêm pr-10 để không đè icon
+                    value={form.password}
+                    onChange={setField("password")}
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-teal-600 transition-colors focus:outline-none"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
               </div>
 
+              {/* Ô Xác Nhận Mật Khẩu */}
               <div>
                 <label className="mb-2 block text-sm font-medium text-zinc-700">
                   Xác nhận mật khẩu <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="password"
-                  className={inputBase}
-                  value={form.confirmPassword}
-                  onChange={setField("confirmPassword")}
-                  placeholder="••••••••"
-                />
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    className={`${inputBase} pr-10`} // Thêm pr-10 để không đè icon
+                    value={form.confirmPassword}
+                    onChange={setField("confirmPassword")}
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-teal-600 transition-colors focus:outline-none"
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
               </div>
 
               <div className="sm:col-span-2">

@@ -8,7 +8,8 @@ import {
     ShieldCheck,
     TrendingUp,
     Tag,
-    House
+    House,
+    Truck
 } from 'lucide-react';
 
 export type Role = 'sales' | 'operation' | 'manager';
@@ -51,7 +52,7 @@ export const roleTabsConfig: RoleTabs[] = [
                 label: 'Danh sách đơn huỷ',
                 icon: FileText,
                 path: '/sales/containers/cancelled-orders'
-            },{
+            }, {
                 id: 'inventoryorder',
                 label: 'Quản lý kho',
                 icon: ClipboardList,
@@ -102,12 +103,7 @@ export const roleTabsConfig: RoleTabs[] = [
                 label: 'Về lại trang chủ',
                 icon: House,
                 path: '/'
-            }, {
-                id: 'product',
-                label: 'Danh sách sản phẩm',
-                icon: Package,
-                path: '/manager/product'
-            }, {
+            },  {
                 id: 'staff',
                 label: 'Danh sách nhân sự',
                 icon: Users,
@@ -117,6 +113,16 @@ export const roleTabsConfig: RoleTabs[] = [
                 label: 'Thống kê doanh thu',
                 icon: TrendingUp,
                 path: '/manager/static'
+            },{
+                id: 'product',
+                label: 'Danh sách sản phẩm',
+                icon: Package,
+                path: '/manager/product'
+            }, {
+                id: 'supplier',
+                label: 'Danh sách nhà cung cấp',
+                icon: Truck,
+                path: '/manager/supplier'
             }, {
                 id: 'policies',
                 label: 'Chỉnh sửa chính sách',

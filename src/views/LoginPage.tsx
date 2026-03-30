@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { apiLogin } from "../lib/ApiService";
 import loginImg from "@/assets/login.png";
 import { useShoppingContext } from "./Cart/contexts/ShoppingContext";
+import { Eye, EyeOff } from "lucide-react"; 
 
 const LoginPage: React.FC = () => {
     const navigate = useNavigate();
@@ -14,6 +15,7 @@ const LoginPage: React.FC = () => {
     const [remember, setRemember] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+        const [showPassword, setShowPassword] = useState(false);
 
     // Kiểm tra nếu đã có username được lưu từ trước
     useEffect(() => {
@@ -26,7 +28,6 @@ const LoginPage: React.FC = () => {
 
     const roleRedirects = (role: string) => {
         console.log("Điều hướng cho Role:", role);
-        // Chuyển về Uppercase để tránh lỗi so sánh chữ hoa chữ thường từ API
         const upperRole = role?.toUpperCase();
 
         switch (upperRole) {
@@ -35,7 +36,7 @@ const LoginPage: React.FC = () => {
             case "MANAGER":
                 return "/manager";
             case "SALES STAFF":
-            case "SALES_STAFF": 
+            case "SALES_STAFF":
                 return "/sales";
             case "OPERATIONS STAFF":
             case "OPERATIONS_STAFF":
@@ -47,41 +48,38 @@ const LoginPage: React.FC = () => {
     };
 
     const handleLogin = async () => {
-    setError("");
-    setLoading(true);
-    try {
-        const res = await apiLogin(username, password);
-        
-        // Kiểm tra xem backend trả về role ở đâu. 
-        // Nếu res là kết quả từ apiLogin trả về res.data.result, thì lấy như sau:
-        const userRole = res?.role || res?.result?.role; 
+        setError("");
+        setLoading(true);
+        try {
+            const res = await apiLogin(username.trim(), password);
 
-        console.log("Full Response:", res); // Bạn nhấn F12 xem role nằm ở đâu nhé
-        console.log("Detected Role:", userRole);
+            const userRole = res?.role || res?.result?.role;
 
-        if (remember) {
-            localStorage.setItem("remember_username", username);
-        } else {
-            localStorage.removeItem("remember_username");
+            console.log("Full Response:", res); 
+            console.log("Detected Role:", userRole);
+
+            if (remember) {
+                localStorage.setItem("remember_username", username.trim());
+            } else {
+                localStorage.removeItem("remember_username");
+            }
+
+            if (userRole?.toUpperCase() === "CUSTOMER") {
+                await fetchCart();
+            }
+
+            const redirectPath = roleRedirects(userRole);
+            console.log("Điều hướng tới path:", redirectPath);
+
+            navigate(redirectPath, { replace: true });
+
+        } catch (err: any) {
+            console.error("Login Error:", err);
+            setError(err?.response?.data?.message || err?.message || "Đăng nhập thất bại");
+        } finally {
+            setLoading(false);
         }
-
-        if (userRole?.toUpperCase() === "CUSTOMER") {
-            await fetchCart();
-        }
-        
-        const redirectPath = roleRedirects(userRole);
-        console.log("Điều hướng tới path:", redirectPath);
-
-        // Đảm bảo navigate chạy sau khi các log/logic trên hoàn tất
-        navigate(redirectPath, { replace: true });
-
-    } catch (err: any) {
-        console.error("Login Error:", err);
-        setError(err?.response?.data?.message || err?.message || "Đăng nhập thất bại");
-    } finally {
-        setLoading(false);
-    }
-};
+    };
 
     const inputBase =
         "w-full rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm " +
@@ -141,14 +139,27 @@ const LoginPage: React.FC = () => {
                         <label className="mb-2 mt-4 block text-sm font-medium text-zinc-700">
                             Mật khẩu
                         </label>
-                        <input
-                            type="password"
-                            placeholder="Nhập mật khẩu"
-                            className={inputBase}
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                        />
+                        <div className="relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                placeholder="Nhập mật khẩu"
+                                className={`${inputBase} pr-10`} 
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-teal-600 transition-colors focus:outline-none"
+                            >
+                                {showPassword ? (
+                                    <EyeOff className="w-5 h-5" />
+                                ) : (
+                                    <Eye className="w-5 h-5" />
+                                )}
+                            </button>
+                        </div>
 
                         <div className="mt-4 flex items-center justify-between">
                             <label className="flex items-center gap-2 text-sm text-zinc-600 cursor-pointer">

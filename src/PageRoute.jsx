@@ -38,8 +38,10 @@ import { ManagerLayout } from './views/Dashboard/Manager/ManagerLayout';
 import ManagerProductView from './views/Dashboard/Manager/ManagerProductView';
 import ManagerStaffView from './views/Dashboard/Manager/ManagerStaffView';
 import ManagerStatisticView from './views/Dashboard/Manager/ManagerStatisticView';
+import ManagerSupplierView from "./views/Dashboard/Manager/ManagerSupplierView";
 import ManagerSalesView from './views/Dashboard/Manager/ManagerSalesView';
 import ManagerPoliciesView from './views/Dashboard/Manager/ManagerPoliciesView';
+
 import InventoryOrder from "./views/Dashboard/SalesStaff/ui/InventoryOrder";
 import CancelledTable from "./views/Dashboard/SalesStaff/containers/CancelledTable";
 import CancelledDetail from "./views/Dashboard/SalesStaff/ui/CancelledDetail";
@@ -85,7 +87,6 @@ export default function PageRoute() {
                     <Route path="ui/inventoryorder" element={<InventoryOrder />} />
                     <Route path="containers/cancelled-orders" element={<CancelledTable />} />
                     <Route path="ui/cancelleddetail/:returnExchangeId" element={<CancelledDetail />} />
-
                 </Route>
 
                 <Route path="/operation-staff" element={<OperationStaffLayout />} >
@@ -104,10 +105,10 @@ export default function PageRoute() {
                     <Route index element={<ManagerProductView />} />
                     <Route path="product" element={<ManagerProductView />} />
                     <Route path="staff" element={<ManagerStaffView />} />
+                    <Route path="static" element={<ManagerStatisticView />} />
+                    <Route path="supplier" element={<ManagerSupplierView />} />
                     <Route path="policies" element={<ManagerPoliciesView />} />
                     <Route path="sales" element={<ManagerSalesView />} />
-                    <Route path="static" element={<ManagerStatisticView />} />
-                    {/* Route cho trang không tồn tại */}
                     <Route path="*" element={<NotFoundPage />} />
                 </Route>
 

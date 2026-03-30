@@ -45,7 +45,7 @@ export function StaffTable({
                             <th className="text-left px-4 py-3 text-gray-600" style={{ fontWeight: 600 }}>Email</th>
                             <th className="text-left px-4 py-3 text-gray-600" style={{ fontWeight: 600 }}>Địa chỉ</th>
                             <th className="text-center px-4 py-3 text-gray-600" style={{ fontWeight: 600 }}>Trạng thái</th>
-                            <th className="text-center px-4 py-3 text-gray-600" style={{ fontWeight: 600 }}>Action</th>
+                            <th className="text-center px-4 py-3 text-gray-600" style={{ fontWeight: 600 }}>Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>

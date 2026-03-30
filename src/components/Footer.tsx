@@ -88,15 +88,6 @@ export default function Footer() {
                         <ul className="space-y-3">
                             <li>
                                 <Link
-                                    to="/chinh-sach-mua-hang"
-                                    className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition group"
-                                >
-                                    <ShoppingBag className="size-4 group-hover:translate-x-1 transition-transform" />
-                                    <span>Chính sách mua hàng</span>
-                                </Link>
-                            </li>
-                            <li>
-                                <Link
 
                                     to="/warranty"
                                     className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition group"
