@@ -160,7 +160,8 @@ export default function OrderDetail() {
     setConfirmAction(null);
     const res = await api.put(
       `/api/operation-staff/orders/${orderId}/status`,
-      { action }
+      { action },
+      { validateStatus: () => true }
     );
     if (res.data.code === 1000) {
       setOrder(res.data.result);
@@ -168,13 +169,21 @@ export default function OrderDetail() {
       setTimeout(() => setUpdateSuccess(null), 3000);
     } else if (res.data.code === 1032) {
       setUpdateError("⏰ Chưa đến thời điểm dự kiến giao hàng.");
-    } else if (res.data.code === 1003) {
+    } else if (res.data.code === 1023) {
       setUpdateError("❌ Thao tác không hợp lệ với trạng thái hiện tại.");
     } else {
       setUpdateError(res.data.message || "Cập nhật thất bại.");
     }
   } catch (err: any) {
-    setUpdateError(err.message || "Lỗi kết nối.");
+    const apiError = err?.response?.data;
+
+    if (apiError?.code === 1032) {
+      setUpdateError("⏰ Chưa đến thời điểm dự kiến giao hàng.");
+    } else if (apiError?.code === 1023) {
+      setUpdateError("❌ Thao tác không hợp lệ với trạng thái hiện tại.");
+    } else {
+      setUpdateError(apiError?.message || err.message || "Lỗi kết nối.");
+    }
   } finally {
     setUpdating(false);
   }
