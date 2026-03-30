@@ -49,7 +49,7 @@ export function ProductTable({
               <th className="text-left px-4 py-3 text-gray-600" style={{ fontWeight: 600 }}>Loại</th>
               <th className="text-right px-4 py-3 text-gray-600" style={{ fontWeight: 600 }}>Giá</th>
               <th className="text-center px-4 py-3 text-gray-600" style={{ fontWeight: 600 }}>Trạng thái</th>
-              <th className="text-center px-4 py-3 text-gray-600" style={{ fontWeight: 600 }}>Hành động</th>
+              <th className="text-center px-4 py-3 text-gray-600" style={{ fontWeight: 600 }}>Thao tác</th>
             </tr>
           </thead>
           <tbody>
