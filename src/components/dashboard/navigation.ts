@@ -123,17 +123,7 @@ export const roleTabsConfig: RoleTabs[] = [
                 label: 'Danh sách nhà cung cấp',
                 icon: Truck,
                 path: '/manager/supplier'
-            }, {
-                id: 'policies',
-                label: 'Chỉnh sửa chính sách',
-                icon: ShieldCheck,
-                path: '/manager/policies'
-            }, {
-                id: 'sales',
-                label: 'Chỉnh sửa giảm giá',
-                icon: Tag,
-                path: '/manager/sales'
-            },
+            }
         ]
     }
 ];
