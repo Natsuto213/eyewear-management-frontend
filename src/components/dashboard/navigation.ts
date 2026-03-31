@@ -103,7 +103,7 @@ export const roleTabsConfig: RoleTabs[] = [
                 label: 'Về lại trang chủ',
                 icon: House,
                 path: '/'
-            },  {
+            }, {
                 id: 'staff',
                 label: 'Danh sách nhân sự',
                 icon: Users,
@@ -113,7 +113,7 @@ export const roleTabsConfig: RoleTabs[] = [
                 label: 'Thống kê doanh thu',
                 icon: TrendingUp,
                 path: '/manager/static'
-            },{
+            }, {
                 id: 'product',
                 label: 'Danh sách sản phẩm',
                 icon: Package,
