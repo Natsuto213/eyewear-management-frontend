@@ -3,7 +3,7 @@ import axios from "axios";
 
 // ─── Config ────────────────────────────────────────────────────────────────
 
-const BASE_URL = "https://api-eyewear.sora.io.vn"; // Thay bằng URL backend của bạn
+const BASE_URL = "http://localhost:8080"; // Thay bằng URL backend của bạn
 
 // Axios instance dùng chung, tự động gắn Bearer token
 export const api = axios.create({
