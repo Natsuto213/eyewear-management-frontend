@@ -160,7 +160,8 @@ export default function OrderDetail() {
     setConfirmAction(null);
     const res = await api.put(
       `/api/operation-staff/orders/${orderId}/status`,
-      { action }
+      { action },
+      { validateStatus: () => true }
     );
     if (res.data.code === 1000) {
       setOrder(res.data.result);
@@ -168,13 +169,21 @@ export default function OrderDetail() {
       setTimeout(() => setUpdateSuccess(null), 3000);
     } else if (res.data.code === 1032) {
       setUpdateError("⏰ Chưa đến thời điểm dự kiến giao hàng.");
-    } else if (res.data.code === 1003) {
+    } else if (res.data.code === 1023) {
       setUpdateError("❌ Thao tác không hợp lệ với trạng thái hiện tại.");
     } else {
       setUpdateError(res.data.message || "Cập nhật thất bại.");
     }
   } catch (err: any) {
-    setUpdateError(err.message || "Lỗi kết nối.");
+    const apiError = err?.response?.data;
+
+    if (apiError?.code === 1032) {
+      setUpdateError("⏰ Chưa đến thời điểm dự kiến giao hàng.");
+    } else if (apiError?.code === 1023) {
+      setUpdateError("❌ Thao tác không hợp lệ với trạng thái hiện tại.");
+    } else {
+      setUpdateError(apiError?.message || err.message || "Lỗi kết nối.");
+    }
   } finally {
     setUpdating(false);
   }
@@ -255,7 +264,11 @@ export default function OrderDetail() {
 
   const hasOrderDetail = order.orderDetail && order.orderDetail.length > 0;
   const hasPrescription = order.prescriptionOrderDetail && order.prescriptionOrderDetail.length > 0;
-  const hasActions = order.availableActions && order.availableActions.length > 0;
+  const hasActions = order.availableActions?.length > 0;
+  const showInventoryWarning =
+    order.inventoryReadyForOperationUpdate === false &&
+    order.orderStatus === "CONFIRMED";
+  const showUpdateSection = hasActions || showInventoryWarning;
 
   const isCanceled = order.orderStatus === "CANCELED" || order.shippingStatus === "CANCELED";
   const isFailed = order.shippingStatus === "FAILED";
@@ -438,7 +451,7 @@ const shippingInfo = shippingConfig[order.shippingStatus] || { bg: "bg-gray-100"
         </motion.div>
 
         {/* Cập nhật trạng thái */}
-        {hasActions && (
+        {showUpdateSection && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
             className="bg-white rounded-2xl shadow-lg border-2 border-indigo-200 overflow-hidden mb-6"
           >
@@ -467,48 +480,44 @@ const shippingInfo = shippingConfig[order.shippingStatus] || { bg: "bg-gray-100"
                   <span className="font-medium">{updateError}</span>
                 </motion.div>
               )}
-              <div className="flex flex-wrap gap-3">
-                {order.availableActions.map((action: string) => (
-                  <motion.button key={action} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                    onClick={() => handleActionClick(action)}
-                    disabled={updating}
-                    className={`px-6 py-3 rounded-xl text-white font-semibold text-sm transition-all shadow-lg hover:shadow-xl
-                      bg-gradient-to-r ${actionColors[action] || "from-gray-500 to-gray-600"}
-                      disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2`}
-                  >
-                    {updating ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Đang xử lý...
-                      </>
-                    ) : (
-                      <>
-                        {DANGEROUS_ACTIONS.includes(action) && <AlertTriangle className="w-4 h-4" />}
-                        {actionLabels[action] || action}
-                      </>
-                    )}
-                  </motion.button>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* PRE_ORDER warning — chỉ hiện khi là Pre-Order và không có action */}
-        {order.orderType === "PRE_ORDER" && order.orderStatus === "CONFIRMED" && (!order.availableActions || order.availableActions.length === 0) && (
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}
-            className="bg-violet-50 border border-violet-200 rounded-2xl p-5 mb-6 flex items-start gap-4"
-          >
-            <div className="w-10 h-10 bg-violet-100 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
-              <span className="text-xl">📦</span>
-            </div>
-            <div>
-              <p className="font-bold text-violet-800 text-base mb-1">Đơn Pre-Order — Chờ nhập hàng</p>
-              <p className="text-violet-700 text-sm leading-relaxed">
-                Đơn hàng này là <span className="font-semibold">Pre-Order</span>. Hệ thống chưa thể chuyển sang gia công vì{" "}
-                <span className="font-semibold">chưa đủ tồn kho</span> cho sản phẩm trong đơn.
-                Vui lòng nhập hàng mới trước, sau đó thao tác sẽ được mở lại tự động.
-              </p>
+              {showInventoryWarning && (
+                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+                  className="mb-4 flex items-start gap-3 bg-violet-50 border border-violet-200 text-violet-700 rounded-xl px-4 py-3"
+                >
+                  <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium mb-1">Chưa đủ hàng trong kho</p>
+                    <p className="text-sm leading-relaxed">
+                      Đơn hàng này hiện chưa đủ tồn kho để tiếp tục xử lý. Vui lòng nhập đủ hàng cho các sản phẩm trong đơn trước khi tiếp tục xử lý.
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+              {hasActions && (
+                <div className="flex flex-wrap gap-3">
+                  {order.availableActions.map((action: string) => (
+                    <motion.button key={action} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                      onClick={() => handleActionClick(action)}
+                      disabled={updating}
+                      className={`px-6 py-3 rounded-xl text-white font-semibold text-sm transition-all shadow-lg hover:shadow-xl
+                        bg-gradient-to-r ${actionColors[action] || "from-gray-500 to-gray-600"}
+                        disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2`}
+                    >
+                      {updating ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Đang xử lý...
+                        </>
+                      ) : (
+                        <>
+                          {DANGEROUS_ACTIONS.includes(action) && <AlertTriangle className="w-4 h-4" />}
+                          {actionLabels[action] || action}
+                        </>
+                      )}
+                    </motion.button>
+                  ))}
+                </div>
+              )}
             </div>
           </motion.div>
         )}
