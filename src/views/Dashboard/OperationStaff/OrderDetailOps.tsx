@@ -167,14 +167,29 @@ export default function OrderDetail() {
       setUpdateSuccess(`✅ ${actionLabels[action]} thành công!`);
       setTimeout(() => setUpdateSuccess(null), 3000);
     } else if (res.data.code === 1032) {
-      setUpdateError("⏰ Chưa đến thời điểm dự kiến giao hàng.");
+      const expectedDate = order?.expectedDeliveryAt
+        ? `Ngày dự kiến giao: ${new Date(order.expectedDeliveryAt).toLocaleString("vi-VN")}.`
+        : "";
+      setUpdateError(`__WARN__Chưa thể cập nhật trạng thái giao hàng vì chưa đến ngày dự kiến. ${expectedDate} Vui lòng thử lại sau khi đến hoặc qua ngày dự kiến giao.`);
     } else if (res.data.code === 1003) {
       setUpdateError("❌ Thao tác không hợp lệ với trạng thái hiện tại.");
     } else {
       setUpdateError(res.data.message || "Cập nhật thất bại.");
     }
   } catch (err: any) {
-    setUpdateError(err.message || "Lỗi kết nối.");
+    const resData = err?.response?.data;
+    if (resData?.code === 1032) {
+      const expectedDate = order?.expectedDeliveryAt
+        ? `Ngày dự kiến giao: ${new Date(order.expectedDeliveryAt).toLocaleString("vi-VN")}.`
+        : "";
+      setUpdateError(`__WARN__Chưa thể cập nhật trạng thái giao hàng vì chưa đến ngày dự kiến. ${expectedDate} Vui lòng thử lại sau khi đến hoặc qua ngày dự kiến giao.`);
+    } else if (resData?.code === 1003) {
+      setUpdateError("❌ Thao tác không hợp lệ với trạng thái hiện tại.");
+    } else if (resData?.message) {
+      setUpdateError(resData.message);
+    } else {
+      setUpdateError(err.message || "Lỗi kết nối.");
+    }
   } finally {
     setUpdating(false);
   }
@@ -459,14 +474,30 @@ const shippingInfo = shippingConfig[order.shippingStatus] || { bg: "bg-gray-100"
                   <span className="font-medium">{updateSuccess}</span>
                 </motion.div>
               )}
-              {updateError && (
-                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-                  className="mb-4 flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3"
-                >
-                  <AlertCircle className="w-5 h-5 shrink-0" />
-                  <span className="font-medium">{updateError}</span>
-                </motion.div>
-              )}
+              {updateError && (() => {
+                const isWarn = updateError.startsWith("__WARN__");
+                const message = isWarn ? updateError.replace("__WARN__", "") : updateError;
+                return (
+                  <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+                    className={`mb-4 flex items-start gap-3 rounded-xl px-4 py-3 border ${
+                      isWarn
+                        ? "bg-amber-50 border-amber-300 text-amber-800"
+                        : "bg-red-50 border-red-200 text-red-700"
+                    }`}
+                  >
+                    {isWarn
+                      ? <Clock className="w-5 h-5 shrink-0 mt-0.5 text-amber-600" />
+                      : <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                    }
+                    <div>
+                      {isWarn && (
+                        <p className="font-bold text-amber-900 mb-0.5">Chưa đến ngày giao hàng</p>
+                      )}
+                      <span className="font-medium text-sm leading-relaxed">{message}</span>
+                    </div>
+                  </motion.div>
+                );
+              })()}
               <div className="flex flex-wrap gap-3">
                 {order.availableActions.map((action: string) => (
                   <motion.button key={action} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
