@@ -184,7 +184,7 @@ export default function PurchaseList() {
                 </div>
 
                 {/* BẢNG DỮ LIỆU (TABLE) */}
-                <div className="overflow-x-auto min-h-[300px]">
+                <div className="overflow-x-auto ">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b-2 border-gray-200">
