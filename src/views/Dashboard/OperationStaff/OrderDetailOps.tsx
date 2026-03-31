@@ -160,7 +160,8 @@ export default function OrderDetail() {
     setConfirmAction(null);
     const res = await api.put(
       `/api/operation-staff/orders/${orderId}/status`,
-      { action }
+      { action },
+      { validateStatus: () => true }
     );
     if (res.data.code === 1000) {
       setOrder(res.data.result);
