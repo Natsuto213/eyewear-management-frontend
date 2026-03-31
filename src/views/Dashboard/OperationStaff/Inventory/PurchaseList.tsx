@@ -10,8 +10,6 @@ const getStatusBadge = (status: string) => {
             return <span className="px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-md">Đã nhập</span>;
         case 'Partially Entered':
             return <span className="px-3 py-1 bg-cyan-500 text-white text-xs font-bold rounded-md">Đã nhập một phần</span>;
-        case 'REJECTED':
-            return <span className="px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-md">Từ chối/Hủy</span>;
         case 'Pending Verification':
             return <span className="px-3 py-1 bg-yellow-400 text-white text-xs font-bold rounded-md shadow-sm">Chờ xác thực</span>;
         default:
@@ -125,9 +123,9 @@ export default function PurchaseList() {
                                 onChange={(e) => setFilterStatus(e.target.value)}
                             >
                                 <option value="">Tất cả</option>
-                                <option value="ORDERED">Chờ xác thực (Đã đặt)</option>
-                                <option value="RECEIVED">Đã nhập kho</option>
-                                <option value="CANCELLED">Đã hủy</option>
+                                <option value="Pending Verification">Chờ xác thực</option>
+                                <option value="Partially Entered">Đã nhập một phần</option>
+                                <option value="Fully Entered">Đã nhập</option>
                             </select>
                         </div>
 
