@@ -10,8 +10,6 @@ const actionLabels: Record<string, string> = {
   MOVE_TO_PACKING: "Chuyển đóng gói",
   HANDOVER_TO_GHN: "Bàn giao GHN",
   MARK_DELIVERED: "Xác nhận đã giao",
-  MARK_FAILED: "Giao thất bại",
-  MARK_RETURNED: "Hoàn hàng",
   COMPLETE_ORDER: "Hoàn tất đơn",
 };
 
@@ -21,16 +19,12 @@ const actionColors: Record<string, string> = {
   MOVE_TO_PACKING: "from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600",
   HANDOVER_TO_GHN: "from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600",
   MARK_DELIVERED: "from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600",
-  MARK_FAILED: "from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600",
-  MARK_RETURNED: "from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600",
   COMPLETE_ORDER: "from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700",
 };
 
-const DANGEROUS_ACTIONS = ["MARK_FAILED", "MARK_RETURNED", "COMPLETE_ORDER"];
+const DANGEROUS_ACTIONS = ["COMPLETE_ORDER"];
 
 const dangerousActionMessages: Record<string, string> = {
-  MARK_FAILED: "Bạn xác nhận đơn hàng này giao thất bại? Hành động này không thể hoàn tác.",
-  MARK_RETURNED: "Bạn xác nhận hoàn hàng? Đơn hàng sẽ được đánh dấu là đã hoàn trả.",
   COMPLETE_ORDER: "Bạn xác nhận hoàn tất đơn hàng? Hệ thống sẽ chốt thanh toán và kết thúc đơn.",
 };
 
@@ -171,7 +165,7 @@ export default function OrderDetail() {
       const expectedDate = order?.expectedDeliveryAt
         ? `Ngày dự kiến giao: ${new Date(order.expectedDeliveryAt).toLocaleString("vi-VN")}.`
         : "";
-      setUpdateError(`__WARN__Chưa thể cập nhật trạng thái giao hàng vì chưa đến ngày dự kiến. ${expectedDate} Vui lòng thử lại sau khi đến hoặc qua ngày dự kiến giao.`);
+      setUpdateError(`Chưa thể cập nhật trạng thái giao hàng vì chưa đến ngày dự kiến. ${expectedDate} Vui lòng thử lại sau khi đến hoặc qua ngày dự kiến giao.`);
     } else if (res.data.code === 1003) {
       setUpdateError("❌ Thao tác không hợp lệ với trạng thái hiện tại.");
     } else {
@@ -183,7 +177,7 @@ export default function OrderDetail() {
       const expectedDate = order?.expectedDeliveryAt
         ? `Ngày dự kiến giao: ${new Date(order.expectedDeliveryAt).toLocaleString("vi-VN")}.`
         : "";
-      setUpdateError(`__WARN__Chưa thể cập nhật trạng thái giao hàng vì chưa đến ngày dự kiến. ${expectedDate} Vui lòng thử lại sau khi đến hoặc qua ngày dự kiến giao.`);
+      setUpdateError(`Chưa thể cập nhật trạng thái giao hàng vì chưa đến ngày dự kiến. ${expectedDate} Vui lòng thử lại sau khi đến hoặc qua ngày dự kiến giao.`);
     } else if (resData?.code === 1003) {
       setUpdateError("❌ Thao tác không hợp lệ với trạng thái hiện tại.");
     } else if (resData?.message) {
@@ -481,7 +475,7 @@ const shippingInfo = shippingConfig[order.shippingStatus] || { bg: "bg-gray-100"
               )}
               {updateError && (
                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-                  className="mb-4 flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3"
+                  className="mb-4 flex items-center gap-3 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-xl px-4 py-3"
                 >
                   <AlertCircle className="w-5 h-5 shrink-0" />
                   <span className="font-medium">{updateError}</span>
