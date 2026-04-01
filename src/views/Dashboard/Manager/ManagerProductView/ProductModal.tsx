@@ -9,7 +9,7 @@ interface Props {
     onSave: (data: any) => Promise<void>;
     initialData: Product | null;
     showPopup: (message: string, type: 'success' | 'error') => void;
-    brands: string[]; // 👇 THÊM PROP MỚI
+    brands: string[];
 }
 
 const InputField = ({ label, name, type = "text", placeholder = "", required = false, step = "", min = "", value, onChange, error }: any) => {
