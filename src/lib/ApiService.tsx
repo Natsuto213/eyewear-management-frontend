@@ -1,11 +1,11 @@
-// src/api/index.ts
+// src/lib/ApiService.ts
 import axios from "axios";
 
-// ─── Config ────────────────────────────────────────────────────────────────
+// ─── Config ─────────────────────────────────────────────────────────────────
 
-const BASE_URL = "https://api-eyewear.sora.io.vn"; // Thay bằng URL backend của bạn
+const BASE_URL = "https://api-eyewear.sora.io.vn";
 
-// Axios instance dùng chung, tự động gắn Bearer token
+// Axios instance dùng chung cho toàn bộ app
 export const api = axios.create({
   baseURL: BASE_URL,
   headers: {
@@ -13,6 +13,8 @@ export const api = axios.create({
     Accept: "application/json",
   },
 });
+
+// ─── Request Interceptor — tự động gắn Bearer token ─────────────────────────
 
 api.interceptors.request.use(
   (config) => {
@@ -23,8 +25,26 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ─── Token helpers ──────────────────────────────────────────────────────────
+// ─── Response Interceptor — xử lý token hết hạn (401) ──────────────────────
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Nếu backend trả 401 → token hết hạn hoặc không hợp lệ → logout luôn
+    if (error.response?.status === 401) {
+      sessionStorage.clear();
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("user");
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
+);
+
+// ─── Session helper ──────────────────────────────────────────────────────────
+
+// sessionStorage.session_active tự xóa khi đóng tab/browser
+// → đảm bảo token trong localStorage không còn hiệu lực khi mở lại
 export function getToken(): string | null {
   if (!sessionStorage.getItem("session_active")) {
     localStorage.removeItem("access_token");
@@ -34,11 +54,12 @@ export function getToken(): string | null {
   return localStorage.getItem("access_token");
 }
 
-// ─── Auth ───────────────────────────────────────────────────────────────────
+// ─── Auth ────────────────────────────────────────────────────────────────────
 
 export async function apiLogin(username: string, password: string) {
   const res = await api.post("/auth/token", { username, password });
 
+  // Fallback nhiều key vì backend có thể trả về tên field khác nhau
   const token =
     res.data?.result?.accessToken ??
     res.data?.result?.access_token ??
@@ -57,10 +78,10 @@ export async function apiLogin(username: string, password: string) {
 }
 
 export async function apiLogout() {
-  const token = localStorage.getItem("access_token");
   try {
-    if (token) await api.post("/auth/logout");
+    await api.post("/auth/logout");
   } catch {
+    // Token có thể đã hết hạn, bỏ qua lỗi — vẫn dọn local storage
     console.warn("Lỗi API Logout hoặc Token hết hạn.");
   } finally {
     sessionStorage.clear();
@@ -75,84 +96,14 @@ export async function apiSignup(payload: Record<string, unknown>) {
   return res.data;
 }
 
-// ─── User ───────────────────────────────────────────────────────────────────
+// ─── User ────────────────────────────────────────────────────────────────────
 
 export async function apiGetMyInfo() {
-  if (!getToken()) return null;
   const res = await api.get("/users/my-info");
   return res.data?.result ?? res.data;
 }
 
 export async function apiUpdateMyInfo(payload: Record<string, unknown>) {
-  if (!getToken()) return null;
   const res = await api.put("/users/my-info", payload);
   return res.data;
 }
-
-// ─── Orders ─────────────────────────────────────────────────────────────────
-
-export type OrderStatus =
-  | "Đang chờ"
-  | "Đang gia công"
-  | "Đang đóng gói"
-  | "Đang giao hàng"
-  | "Hoàn thành";
-
-export type OrderRow = {
-  id: string;
-  code: string;
-  date: string;
-  status: OrderStatus;
-  type: "Pre-order" | "In-stock";
-  total: string;
-  customer: string;
-};
-
-export async function fetchOrders(
-  token: string,
-  searchParams: Record<string, unknown>
-): Promise<OrderRow[]> {
-  const res = await fetch(`${BASE_URL}/api/operation-staff/orders/search`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(searchParams),
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    console.error("API Error:", data);
-    throw new Error(data.message || "Không thể lấy danh sách đơn hàng");
-  }
-
-  if (data?.result?.content) return data.result.content;
-  if (Array.isArray(data?.result)) return data.result;
-  return [];
-}
-
-// ─── Default export (gộp tất cả vào 1 object) ──────────────────────────────
-
-const apiService = {
-  // instance
-  api,
-
-  // helpers
-  getToken,
-
-  // auth
-  login: apiLogin,
-  logout: apiLogout,
-  signup: apiSignup,
-
-  // user
-  getMyInfo: apiGetMyInfo,
-  updateMyInfo: apiUpdateMyInfo,
-
-  // orders
-  fetchOrders,
-};
-
-export default apiService;

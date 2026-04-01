@@ -11,6 +11,13 @@ import AddressModal from "./AddressModal";
 
 type PaymentMethodType = "VNPAY" | "PAYOS" | "COD";
 
+type ShippingFormErrors = {
+  fullName?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+};
+
 const ConfirmPage: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -19,6 +26,7 @@ const ConfirmPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [payment, setPayment] = useState<PaymentMethodType>("VNPAY");
   const [orderNote, setOrderNote] = useState("");
+  const [formErrors, setFormErrors] = useState<ShippingFormErrors>({});
   const [selectedCodes, setSelectedCodes] = useState<{
     provinceCode?: string; provinceName?: string;
     districtCode?: string; districtName?: string;
@@ -38,10 +46,10 @@ const ConfirmPage: React.FC = () => {
         if (u) {
           setForm(prev => ({
             ...prev,
-            fullName: u.name || "",
-            phone: u.phone || "",
-            email: u.email || "",
-            address: u.address || "",
+            fullName: u.name  || "",
+            phone:    u.phone || "",
+            email:    u.email || "",
+            address:  u.address || "",
           }));
           if (u.provinceCode && u.districtCode && u.wardCode) {
             setSelectedCodes({
@@ -78,7 +86,6 @@ const ConfirmPage: React.FC = () => {
       if (codes?.districtCode && codes?.wardCode) {
         payload.address = { districtCode: codes.districtCode, wardCode: codes.wardCode };
       }
-      // ✅ Bỏ token thủ công, interceptor tự gắn
       const res = await api.post("/checkout/preview", payload);
       if (res.data.result) setPreviewData(res.data.result);
     } catch (err) {
@@ -101,14 +108,15 @@ const ConfirmPage: React.FC = () => {
   const handleAddressConfirm = async (addr: string, isSave: boolean, codes: any) => {
     setForm(prev => ({ ...prev, address: addr }));
     setSelectedCodes(codes);
+    // Xóa lỗi address khi user đã chọn địa chỉ
+    setFormErrors(prev => ({ ...prev, address: "" }));
     if (isSave) {
       try {
-        // ✅ Bỏ token thủ công
         await api.put("/users/my-address", {
-          street: codes.street || addr.split(",")[0].trim(),
+          street:       codes.street || addr.split(",")[0].trim(),
           provinceCode: Number(codes.provinceCode), provinceName: codes.provinceName,
           districtCode: Number(codes.districtCode), districtName: codes.districtName,
-          wardCode: String(codes.wardCode), wardName: codes.wardName,
+          wardCode:     String(codes.wardCode),     wardName:     codes.wardName,
         });
       } catch (err) {
         console.error("❌ Lỗi cập nhật địa chỉ:", err);
@@ -117,22 +125,45 @@ const ConfirmPage: React.FC = () => {
     setIsModalOpen(false);
   };
 
+  // ─── Validate trước khi đặt hàng ─────────────────────────────────────────
+  const validate = (): boolean => {
+    const errs: ShippingFormErrors = {};
+
+    if (!form.fullName.trim())
+      errs.fullName = "Vui lòng nhập họ và tên";
+
+    if (!form.phone.trim())
+      errs.phone = "Vui lòng nhập số điện thoại";
+    else if (!/^(0[3|5|7|8|9])\d{8}$/.test(form.phone))
+      errs.phone = "Số điện thoại không hợp lệ";
+
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+      errs.email = "Email không đúng định dạng";
+
+    if (!form.address.trim())
+      errs.address = "Vui lòng chọn địa chỉ giao hàng";
+
+    setFormErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
   const handleOrder = async () => {
-    if (!form.fullName || !form.phone) return alert("Vui lòng điền đủ thông tin!");
+    if (!validate()) return; // dừng lại, hiện lỗi inline
+
     try {
       const payload: any = {
-        cartItemIds: cartItems.map(i => i.cartItemId),
-        promotionId: previewData?.appliedPromotionId || null,
-        recipientName: form.fullName,
+        cartItemIds:    cartItems.map(i => i.cartItemId),
+        promotionId:    previewData?.appliedPromotionId || null,
+        recipientName:  form.fullName,
         recipientPhone: form.phone,
         recipientEmail: form.email,
-        note: orderNote || "Giao hàng từ website",
-        paymentMethod: payment,
+        note:           orderNote || "Giao hàng từ website",
+        paymentMethod:  payment,
         address: {
           provinceCode: Number(selectedCodes?.provinceCode), provinceName: selectedCodes?.provinceName,
           districtCode: Number(selectedCodes?.districtCode), districtName: selectedCodes?.districtName,
-          wardCode: String(selectedCodes?.wardCode), wardName: selectedCodes?.wardName,
-          street: selectedCodes?.street,
+          wardCode:     String(selectedCodes?.wardCode),     wardName:     selectedCodes?.wardName,
+          street:       selectedCodes?.street,
         },
       };
 
@@ -143,7 +174,6 @@ const ConfirmPage: React.FC = () => {
         }
       }
 
-      // ✅ Bỏ token thủ công
       const res = await api.post("/orders", payload);
       if (res.data.code === 1000) {
         const { paymentRedirectRequired, paymentUrl } = res.data.result;
@@ -171,7 +201,14 @@ const ConfirmPage: React.FC = () => {
       <div className="min-h-screen bg-zinc-50 pb-12 font-sans">
         <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="space-y-6">
-            <ShippingForm form={form} setForm={setForm} onOpenModal={() => setIsModalOpen(true)} />
+            {/* Truyền thêm errors và setFormErrors xuống ShippingForm */}
+            <ShippingForm
+              form={form}
+              setForm={setForm}
+              onOpenModal={() => setIsModalOpen(true)}
+              errors={formErrors}
+              setErrors={setFormErrors}
+            />
             <PaymentMethods
               payment={payment}
               setPayment={setPayment}
