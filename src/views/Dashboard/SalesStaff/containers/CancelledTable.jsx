@@ -113,7 +113,7 @@ const CancelledTable = () => {
 
     return (
         <div className="min-h-screen bg-gray-200 p-6">
-            <h2 className="mb-5 text-2xl font-bold text-gray-800">Quản lý đơn HUỶ</h2>
+            <h2 className="mb-5 text-2xl font-bold text-gray-800">Quản lý đơn hủy</h2>
 
             <CancelledFilter
                 filters={filters}
