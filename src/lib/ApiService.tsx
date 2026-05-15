@@ -3,7 +3,7 @@ import axios from "axios";
 
 // ─── Config ─────────────────────────────────────────────────────────────────
 
-const BASE_URL = "https://api-eyewear.sora.io.vn";
+const BASE_URL = "https://api.eyewear.druignguyen.me";
 
 // Axios instance dùng chung cho toàn bộ app
 export const api = axios.create({
